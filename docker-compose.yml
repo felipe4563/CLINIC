@@ -29,6 +29,14 @@ services:
     ports:
       - "3000:3000"
 
+  public-site:
+    build: ./public-site
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3001:3000"
+
   nginx:
     image: nginx:alpine
     restart: unless-stopped
@@ -37,6 +45,7 @@ services:
     depends_on:
       - web
       - api
+      - public-site
     ports:
       - "80:80"
 
