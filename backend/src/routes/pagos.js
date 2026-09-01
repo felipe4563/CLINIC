@@ -25,6 +25,12 @@ router.post('/pagos/:citaId/qr', requirePaciente, async (req, res) => {
 });
 
 router.post('/pagos/webhook', async (req, res) => {
+  const secretEsperado = process.env.BANCO_ECONOMICO_WEBHOOK_SECRET;
+  const secretRecibido = req.header('X-Webhook-Secret');
+  if (!secretEsperado || secretRecibido !== secretEsperado) {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+
   if (!validarWebhook(req.body)) return res.status(400).json({ error: 'Payload invalido' });
 
   const { referencia, estado } = req.body;
@@ -33,6 +39,10 @@ router.post('/pagos/webhook', async (req, res) => {
     include: [{ model: db.Cita, as: 'Cita' }],
   });
   if (!pago) return res.status(404).json({ error: 'Pago no encontrado' });
+
+  if (pago.estado === 'pagado') {
+    return res.json({ ok: true });
+  }
 
   if (estado === 'pagado') {
     pago.estado = 'pagado';

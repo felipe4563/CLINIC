@@ -10,8 +10,10 @@ async function generarQR({ monto, referencia }) {
 }
 
 function validarWebhook(payload) {
-  // TODO once the bank's webhook signature scheme is confirmed from the docs:
-  // verify signature/HMAC header before trusting payload.referencia / payload.estado.
+  // DEPLOY BLOCKER: this only checks payload shape. Once the real Banco
+  // Economico webhook docs are available, this MUST verify the
+  // signature/HMAC header before trusting payload.referencia / payload.estado.
+  // Do not ship to production without real signature validation here.
   return payload && payload.referencia && payload.estado;
 }
 

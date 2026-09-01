@@ -12,7 +12,12 @@ function toHHMM(totalMinutes) {
   return `${h}:${m}`;
 }
 
+const PENDIENTE_PAGO_TTL_MS = 15 * 60 * 1000;
+
 async function getSlotsDisponibles({ profesionalId, servicioId, fecha }) {
+  const hoy = new Date().toISOString().slice(0, 10);
+  if (fecha < hoy) return [];
+
   const servicioProfesional = await db.ServicioProfesional.findOne({
     where: { profesional_id: profesionalId, servicio_id: servicioId },
   });
@@ -34,10 +39,16 @@ async function getSlotsDisponibles({ profesionalId, servicioId, fecha }) {
       estado: { [Op.ne]: 'cancelada' },
     },
   });
-  const ocupados = citasDelDia.map((c) => ({
-    inicio: toMinutes(c.hora_inicio),
-    fin: toMinutes(c.hora_fin),
-  }));
+  const ahora = Date.now();
+  const ocupados = citasDelDia
+    .filter((c) => {
+      if (c.estado !== 'pendiente_pago') return true;
+      return ahora - new Date(c.createdAt).getTime() < PENDIENTE_PAGO_TTL_MS;
+    })
+    .map((c) => ({
+      inicio: toMinutes(c.hora_inicio),
+      fin: toMinutes(c.hora_fin),
+    }));
 
   const inicioJornada = toMinutes(horario.hora_inicio);
   const finJornada = toMinutes(horario.hora_fin);

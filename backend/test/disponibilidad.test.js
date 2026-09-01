@@ -58,4 +58,62 @@ describe('getSlotsDisponibles', () => {
     });
     expect(slots).toEqual([]);
   });
+
+  test('returns empty array for a date in the past', async () => {
+    const slots = await getSlotsDisponibles({
+      profesionalId: profesional.id, servicioId: servicio.id, fecha: '2020-01-01',
+    });
+    expect(slots).toEqual([]);
+  });
+
+  describe('pendiente_pago TTL', () => {
+    let paciente;
+
+    beforeAll(async () => {
+      paciente = await db.Paciente.create({
+        codigo_paciente: 'PAC-000003', nombre_completo: 'Paciente TTL',
+        telefono: '59170000003', carnet_identidad: '1112223', carnet_expedido: 'LP',
+      });
+      // 2026-09-21 is a Monday, same horario applies via dia_semana
+    });
+
+    test('a fresh pendiente_pago cita still blocks its slot', async () => {
+      await db.Cita.create({
+        paciente_id: paciente.id, profesional_id: profesional.id, servicio_id: servicio.id,
+        fecha: '2026-09-21', hora_inicio: '09:00:00', hora_fin: '09:30:00', estado: 'pendiente_pago',
+      });
+
+      const slots = await getSlotsDisponibles({
+        profesionalId: profesional.id, servicioId: servicio.id, fecha: '2026-09-21',
+      });
+      expect(slots).toEqual([
+        { hora_inicio: '09:30', hora_fin: '10:00' },
+        { hora_inicio: '10:00', hora_fin: '10:30' },
+        { hora_inicio: '10:30', hora_fin: '11:00' },
+      ]);
+    });
+
+    test('a stale pendiente_pago cita (older than 15 min) no longer blocks its slot', async () => {
+      const cita = await db.Cita.create({
+        paciente_id: paciente.id, profesional_id: profesional.id, servicio_id: servicio.id,
+        fecha: '2026-09-21', hora_inicio: '10:00:00', hora_fin: '10:30:00', estado: 'pendiente_pago',
+      });
+      const backdated = new Date(Date.now() - 20 * 60 * 1000);
+      await db.Cita.update(
+        { createdAt: backdated },
+        { where: { id: cita.id }, silent: true },
+      );
+
+      const slots = await getSlotsDisponibles({
+        profesionalId: profesional.id, servicioId: servicio.id, fecha: '2026-09-21',
+      });
+      // the 09:00 slot is still blocked by the fresh cita from the previous test,
+      // but the 10:00 slot (stale cita) is bookable again.
+      expect(slots).toEqual([
+        { hora_inicio: '09:30', hora_fin: '10:00' },
+        { hora_inicio: '10:00', hora_fin: '10:30' },
+        { hora_inicio: '10:30', hora_fin: '11:00' },
+      ]);
+    });
+  });
 });

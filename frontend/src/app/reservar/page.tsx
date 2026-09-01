@@ -46,7 +46,12 @@ function ReservarInner() {
           <option key={p.id} value={p.id}>{p.nombre}</option>
         ))}
       </select>
-      <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+      <input
+        type="date"
+        value={fecha}
+        min={new Date().toISOString().slice(0, 10)}
+        onChange={(e) => setFecha(e.target.value)}
+      />
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <ul>
         {slots.map((s) => (

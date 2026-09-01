@@ -9,6 +9,7 @@ jest.mock('../src/services/bancoEconomico', () => ({
 const request = require('supertest');
 const db = require('../src/models');
 const app = require('../src/app');
+const { enviarPlantillaWhatsApp } = require('../src/services/whatsapp');
 
 async function loginPaciente(telefono) {
   await request(app).post('/auth/otp/request').send({ telefono, nombre_completo: 'Test' });
@@ -52,9 +53,28 @@ describe('pagos routes', () => {
     expect(pago.referencia_qr_banco).toBe('REF-123');
   });
 
+  test('POST /pagos/webhook without the shared secret is rejected', async () => {
+    const res = await request(app)
+      .post('/pagos/webhook')
+      .send({ referencia: 'REF-123', estado: 'pagado' });
+    expect(res.status).toBe(401);
+
+    const pago = await db.Pago.findOne({ where: { cita_id: cita.id } });
+    expect(pago.estado).toBe('pendiente');
+  });
+
+  test('POST /pagos/webhook with the wrong secret is rejected', async () => {
+    const res = await request(app)
+      .post('/pagos/webhook')
+      .set('X-Webhook-Secret', 'not-the-secret')
+      .send({ referencia: 'REF-123', estado: 'pagado' });
+    expect(res.status).toBe(401);
+  });
+
   test('POST /pagos/webhook marks pago as pagado and cita as confirmada', async () => {
     const res = await request(app)
       .post('/pagos/webhook')
+      .set('X-Webhook-Secret', process.env.BANCO_ECONOMICO_WEBHOOK_SECRET)
       .send({ referencia: 'REF-123', estado: 'pagado' });
     expect(res.status).toBe(200);
 
@@ -63,5 +83,16 @@ describe('pagos routes', () => {
 
     const citaActualizada = await db.Cita.findByPk(cita.id);
     expect(citaActualizada.estado).toBe('confirmada');
+  });
+
+  test('POST /pagos/webhook is idempotent for an already-paid pago', async () => {
+    enviarPlantillaWhatsApp.mockClear();
+    const res = await request(app)
+      .post('/pagos/webhook')
+      .set('X-Webhook-Secret', process.env.BANCO_ECONOMICO_WEBHOOK_SECRET)
+      .send({ referencia: 'REF-123', estado: 'pagado' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+    expect(enviarPlantillaWhatsApp).not.toHaveBeenCalled();
   });
 });
