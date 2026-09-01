@@ -32,7 +32,7 @@ Servicio.hasMany(Cita, { foreignKey: 'servicio_id' });
 Cita.belongsTo(Servicio, { foreignKey: 'servicio_id' });
 
 Cita.hasOne(Pago, { foreignKey: 'cita_id' });
-Pago.belongsTo(Cita, { foreignKey: 'cita_id' });
+Pago.belongsTo(Cita, { foreignKey: 'cita_id', as: 'Cita' });
 
 module.exports = {
   sequelize,
