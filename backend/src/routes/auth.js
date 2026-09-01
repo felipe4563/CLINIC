@@ -1,19 +1,31 @@
 const express = require('express');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 const db = require('../models');
 const { enviarPlantillaWhatsApp } = require('../services/whatsapp');
 
 const router = express.Router();
 
+const MAX_INTENTOS = 5;
+
+const otpRequestLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes, intenta de nuevo mas tarde' },
+});
+
 function generarCodigo() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  return String(crypto.randomInt(100000, 1000000));
 }
 
 function generarCodigoPaciente(id) {
   return `PAC-${String(id).padStart(6, '0')}`;
 }
 
-router.post('/otp/request', async (req, res) => {
+router.post('/otp/request', otpRequestLimiter, async (req, res) => {
   const { telefono, nombre_completo, carnet_identidad, carnet_complemento, carnet_expedido } = req.body;
   if (!telefono) return res.status(400).json({ error: 'telefono es requerido' });
 
@@ -47,11 +59,17 @@ router.post('/otp/request', async (req, res) => {
 router.post('/otp/verify', async (req, res) => {
   const { telefono, codigo } = req.body;
   const otp = await db.OtpCode.findOne({
-    where: { telefono, codigo, usado: false },
+    where: { telefono, usado: false },
     order: [['id', 'DESC']],
   });
 
-  if (!otp || otp.expira_en < new Date()) {
+  if (!otp || otp.expira_en < new Date() || otp.intentos >= MAX_INTENTOS) {
+    return res.status(401).json({ error: 'Codigo invalido o expirado' });
+  }
+
+  if (otp.codigo !== codigo) {
+    otp.intentos += 1;
+    await otp.save();
     return res.status(401).json({ error: 'Codigo invalido o expirado' });
   }
 

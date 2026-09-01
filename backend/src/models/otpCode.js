@@ -6,6 +6,7 @@ const OtpCode = sequelize.define('OtpCode', {
   codigo: { type: DataTypes.STRING, allowNull: false },
   expira_en: { type: DataTypes.DATE, allowNull: false },
   usado: { type: DataTypes.BOOLEAN, defaultValue: false },
+  intentos: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 }, { tableName: 'otp_codes', underscored: true });
 
 module.exports = OtpCode;

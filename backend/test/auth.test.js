@@ -46,4 +46,25 @@ describe('OTP auth flow', () => {
       .send({ telefono: '59170000011', codigo: '000000' });
     expect(res.status).toBe(401);
   });
+
+  test('OTP is locked out after 5 failed attempts, even with the correct code', async () => {
+    const telefono = '59170000012';
+    await request(app).post('/auth/otp/request').send({ telefono, nombre_completo: 'Bloqueo Test' });
+    const otp = await db.OtpCode.findOne({ where: { telefono }, order: [['id', 'DESC']] });
+
+    for (let i = 0; i < 5; i += 1) {
+      const res = await request(app)
+        .post('/auth/otp/verify')
+        .send({ telefono, codigo: '000000' });
+      expect(res.status).toBe(401);
+    }
+
+    await otp.reload();
+    expect(otp.intentos).toBe(5);
+
+    const res = await request(app)
+      .post('/auth/otp/verify')
+      .send({ telefono, codigo: otp.codigo });
+    expect(res.status).toBe(401);
+  });
 });

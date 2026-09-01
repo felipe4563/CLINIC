@@ -8,13 +8,16 @@ function LoginInner() {
   const next = useSearchParams().get('next') || '/mis-citas';
   const [telefono, setTelefono] = useState('');
   const [nombre, setNombre] = useState('');
+  const [carnetIdentidad, setCarnetIdentidad] = useState('');
+  const [carnetComplemento, setCarnetComplemento] = useState('');
+  const [carnetExpedido, setCarnetExpedido] = useState('');
   const [codigo, setCodigo] = useState('');
   const [enviado, setEnviado] = useState(false);
   const [error, setError] = useState('');
 
   async function enviarOtp() {
     try {
-      await api.requestOtp(telefono, nombre);
+      await api.requestOtp(telefono, nombre, carnetIdentidad, carnetComplemento, carnetExpedido);
       setEnviado(true);
     } catch (e: any) {
       setError(e.message);
@@ -39,6 +42,23 @@ function LoginInner() {
         <>
           <input placeholder="Nombre completo" value={nombre} onChange={(e) => setNombre(e.target.value)} />
           <input placeholder="Telefono (con codigo de pais)" value={telefono} onChange={(e) => setTelefono(e.target.value)} />
+          <input
+            placeholder="Carnet de identidad"
+            value={carnetIdentidad}
+            onChange={(e) => setCarnetIdentidad(e.target.value)}
+            required
+          />
+          <input
+            placeholder="Complemento (opcional)"
+            value={carnetComplemento}
+            onChange={(e) => setCarnetComplemento(e.target.value)}
+          />
+          <input
+            placeholder="Expedido (ej. LP)"
+            value={carnetExpedido}
+            onChange={(e) => setCarnetExpedido(e.target.value)}
+            required
+          />
           <button onClick={enviarOtp}>Enviar codigo por WhatsApp</button>
         </>
       ) : (
