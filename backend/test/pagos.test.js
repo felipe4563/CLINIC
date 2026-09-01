@@ -2,14 +2,15 @@ jest.mock('../src/services/whatsapp', () => ({
   enviarPlantillaWhatsApp: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('../src/services/bancoEconomico', () => ({
-  generarQR: jest.fn().mockResolvedValue({ qrImageBase64: 'FAKE_BASE64', referencia: 'REF-123' }),
-  validarWebhook: jest.fn().mockReturnValue(true),
+  generarQR: jest.fn().mockResolvedValue({ qrId: 'QR-123', qrImageBase64: 'FAKE_BASE64' }),
+  consultarEstadoQR: jest.fn(),
 }));
 
 const request = require('supertest');
 const db = require('../src/models');
 const app = require('../src/app');
 const { enviarPlantillaWhatsApp } = require('../src/services/whatsapp');
+const { consultarEstadoQR } = require('../src/services/bancoEconomico');
 
 async function loginPaciente(telefono) {
   await request(app).post('/auth/otp/request').send({ telefono, nombre_completo: 'Test' });
@@ -42,7 +43,7 @@ describe('pagos routes', () => {
     await db.sequelize.close();
   });
 
-  test('POST /pagos/:citaId/qr returns a QR and stores the referencia', async () => {
+  test('POST /pagos/:citaId/qr returns a QR and stores the qrId as referencia', async () => {
     const res = await request(app)
       .post(`/pagos/${cita.id}/qr`)
       .set('Authorization', `Bearer ${token}`);
@@ -50,49 +51,58 @@ describe('pagos routes', () => {
     expect(res.body.qrImageBase64).toBe('FAKE_BASE64');
 
     const pago = await db.Pago.findOne({ where: { cita_id: cita.id } });
-    expect(pago.referencia_qr_banco).toBe('REF-123');
+    expect(pago.referencia_qr_banco).toBe('QR-123');
   });
 
-  test('POST /pagos/webhook without the shared secret is rejected', async () => {
+  test('POST /pagos/webhook ignores an unknown qrId without touching any pago', async () => {
     const res = await request(app)
       .post('/pagos/webhook')
-      .send({ referencia: 'REF-123', estado: 'pagado' });
-    expect(res.status).toBe(401);
+      .send({ payment: { qrId: 'QR-DESCONOCIDO' } });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ responseCode: 0, message: '' });
+    expect(consultarEstadoQR).not.toHaveBeenCalled();
+  });
+
+  test('POST /pagos/webhook does not confirm payment when statusQR says not paid', async () => {
+    consultarEstadoQR.mockResolvedValueOnce({ pagado: false });
+
+    const res = await request(app)
+      .post('/pagos/webhook')
+      .send({ payment: { qrId: 'QR-123' } });
+    expect(res.status).toBe(200);
+    expect(consultarEstadoQR).toHaveBeenCalledWith('QR-123');
 
     const pago = await db.Pago.findOne({ where: { cita_id: cita.id } });
     expect(pago.estado).toBe('pendiente');
   });
 
-  test('POST /pagos/webhook with the wrong secret is rejected', async () => {
-    const res = await request(app)
-      .post('/pagos/webhook')
-      .set('X-Webhook-Secret', 'not-the-secret')
-      .send({ referencia: 'REF-123', estado: 'pagado' });
-    expect(res.status).toBe(401);
-  });
+  test('POST /pagos/webhook confirms payment only after statusQR says pagado', async () => {
+    consultarEstadoQR.mockResolvedValueOnce({ pagado: true });
 
-  test('POST /pagos/webhook marks pago as pagado and cita as confirmada', async () => {
     const res = await request(app)
       .post('/pagos/webhook')
-      .set('X-Webhook-Secret', process.env.BANCO_ECONOMICO_WEBHOOK_SECRET)
-      .send({ referencia: 'REF-123', estado: 'pagado' });
+      .send({ payment: { qrId: 'QR-123' } });
     expect(res.status).toBe(200);
+    expect(res.body).toEqual({ responseCode: 0, message: '' });
 
     const pago = await db.Pago.findOne({ where: { cita_id: cita.id } });
     expect(pago.estado).toBe('pagado');
 
     const citaActualizada = await db.Cita.findByPk(cita.id);
     expect(citaActualizada.estado).toBe('confirmada');
+    expect(enviarPlantillaWhatsApp).toHaveBeenCalled();
   });
 
   test('POST /pagos/webhook is idempotent for an already-paid pago', async () => {
     enviarPlantillaWhatsApp.mockClear();
+    consultarEstadoQR.mockClear();
+
     const res = await request(app)
       .post('/pagos/webhook')
-      .set('X-Webhook-Secret', process.env.BANCO_ECONOMICO_WEBHOOK_SECRET)
-      .send({ referencia: 'REF-123', estado: 'pagado' });
+      .send({ payment: { qrId: 'QR-123' } });
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ ok: true });
+    expect(res.body).toEqual({ responseCode: 0, message: '' });
+    expect(consultarEstadoQR).not.toHaveBeenCalled();
     expect(enviarPlantillaWhatsApp).not.toHaveBeenCalled();
   });
 });

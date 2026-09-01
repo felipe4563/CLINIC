@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../models');
 const { requirePaciente } = require('./auth.middleware');
-const { generarQR, validarWebhook } = require('../services/bancoEconomico');
+const { generarQR, consultarEstadoQR } = require('../services/bancoEconomico');
 const { enviarPlantillaWhatsApp } = require('../services/whatsapp');
 
 const router = express.Router();
@@ -9,42 +9,44 @@ const router = express.Router();
 router.post('/pagos/:citaId/qr', requirePaciente, async (req, res) => {
   const cita = await db.Cita.findOne({
     where: { id: req.params.citaId, paciente_id: req.pacienteId },
-    include: [db.Pago],
+    include: [db.Pago, db.Servicio],
   });
   if (!cita || !cita.Pago) return res.status(404).json({ error: 'Cita o pago no encontrado' });
 
-  const { qrImageBase64, referencia } = await generarQR({
+  const { qrId, qrImageBase64 } = await generarQR({
     monto: cita.Pago.monto,
-    referencia: `CITA-${cita.id}`,
+    transactionId: `CITA-${cita.id}-${Date.now()}`,
+    descripcion: `Cita ${cita.id} - ${cita.Servicio.nombre}`,
   });
 
-  cita.Pago.referencia_qr_banco = referencia;
+  cita.Pago.referencia_qr_banco = qrId;
   await cita.Pago.save();
 
-  res.json({ qrImageBase64, referencia });
+  res.json({ qrImageBase64, referencia: qrId });
 });
 
+// El banco llama a este endpoint cuando se paga un QR, pero su documentacion
+// no define firma ni secreto compartido para esta notificacion. Por eso no
+// confiamos en el contenido del body: lo usamos solo como aviso de "revisa
+// este qrId", y confirmamos el pago consultando nosotros mismos statusQR con
+// nuestro propio token autenticado antes de mutar cualquier estado.
 router.post('/pagos/webhook', async (req, res) => {
-  const secretEsperado = process.env.BANCO_ECONOMICO_WEBHOOK_SECRET;
-  const secretRecibido = req.header('X-Webhook-Secret');
-  if (!secretEsperado || secretRecibido !== secretEsperado) {
-    return res.status(401).json({ error: 'No autorizado' });
-  }
+  const qrId = req.body && req.body.payment && req.body.payment.qrId;
+  if (!qrId) return res.json({ responseCode: 1, message: 'qrId no encontrado en el payload' });
 
-  if (!validarWebhook(req.body)) return res.status(400).json({ error: 'Payload invalido' });
-
-  const { referencia, estado } = req.body;
   const pago = await db.Pago.findOne({
-    where: { referencia_qr_banco: referencia },
+    where: { referencia_qr_banco: qrId },
     include: [{ model: db.Cita, as: 'Cita' }],
   });
-  if (!pago) return res.status(404).json({ error: 'Pago no encontrado' });
+  if (!pago) return res.json({ responseCode: 0, message: '' });
 
   if (pago.estado === 'pagado') {
-    return res.json({ ok: true });
+    return res.json({ responseCode: 0, message: '' });
   }
 
-  if (estado === 'pagado') {
+  const { pagado } = await consultarEstadoQR(qrId);
+
+  if (pagado) {
     pago.estado = 'pagado';
     await pago.save();
     pago.Cita.estado = 'confirmada';
@@ -52,12 +54,9 @@ router.post('/pagos/webhook', async (req, res) => {
 
     const paciente = await db.Paciente.findByPk(pago.Cita.paciente_id);
     await enviarPlantillaWhatsApp(paciente.telefono, 'cita_confirmada', [pago.Cita.fecha, pago.Cita.hora_inicio]);
-  } else {
-    pago.estado = 'fallido';
-    await pago.save();
   }
 
-  res.json({ ok: true });
+  res.json({ responseCode: 0, message: '' });
 });
 
 module.exports = router;
