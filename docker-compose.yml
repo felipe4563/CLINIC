@@ -24,8 +24,6 @@ services:
   web:
     build: ./frontend
     restart: unless-stopped
-    environment:
-      - NEXT_PUBLIC_API_URL=http://api:4000
     depends_on:
       - api
     ports:

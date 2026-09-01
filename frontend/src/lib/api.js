@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 function getToken() {
   if (typeof window === 'undefined') return null;
@@ -27,8 +27,11 @@ export const api = {
   getProfesionales: (servicioId) => apiFetch(`/profesionales?servicioId=${servicioId}`),
   getDisponibilidad: (profesionalId, servicioId, fecha) =>
     apiFetch(`/disponibilidad?profesionalId=${profesionalId}&servicioId=${servicioId}&fecha=${fecha}`),
-  requestOtp: (telefono, nombre_completo) =>
-    apiFetch('/auth/otp/request', { method: 'POST', body: JSON.stringify({ telefono, nombre_completo }) }),
+  requestOtp: (telefono, nombre_completo, carnet_identidad, carnet_complemento, carnet_expedido) =>
+    apiFetch('/auth/otp/request', {
+      method: 'POST',
+      body: JSON.stringify({ telefono, nombre_completo, carnet_identidad, carnet_complemento, carnet_expedido }),
+    }),
   verifyOtp: (telefono, codigo) =>
     apiFetch('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ telefono, codigo }) }),
   crearCita: (profesionalId, servicioId, fecha, horaInicio) =>
