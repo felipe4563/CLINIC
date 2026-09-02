@@ -40,16 +40,22 @@ export default function StepLogin() {
       <h3 className="font-serif text-2xl text-espresso">Ingresa tus datos</h3>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {!enviado ? (
-        <div className="mt-6 space-y-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            enviarOtp();
+          }}
+          className="mt-6 space-y-3"
+        >
           <input placeholder="Nombre completo" value={nombre} onChange={(e) => setNombre(e.target.value)} className="w-full rounded border border-tan/30 px-4 py-2" />
           <input placeholder="Teléfono (con código de país)" value={telefono} onChange={(e) => setTelefono(e.target.value)} className="w-full rounded border border-tan/30 px-4 py-2" />
           <input placeholder="Carnet de identidad" value={carnet} onChange={(e) => setCarnet(e.target.value)} className="w-full rounded border border-tan/30 px-4 py-2" required />
           <input placeholder="Complemento (opcional)" value={complemento} onChange={(e) => setComplemento(e.target.value)} className="w-full rounded border border-tan/30 px-4 py-2" />
           <input placeholder="Expedido (ej. CB)" value={expedido} onChange={(e) => setExpedido(e.target.value)} className="w-full rounded border border-tan/30 px-4 py-2" required />
-          <button onClick={enviarOtp} className="w-full rounded-full bg-espresso text-cream text-xs tracking-widest uppercase px-6 py-3">
+          <button type="submit" className="w-full rounded-full bg-espresso text-cream text-xs tracking-widest uppercase px-6 py-3">
             Enviar código por WhatsApp
           </button>
-        </div>
+        </form>
       ) : (
         <div className="mt-6 space-y-3">
           <input placeholder="Código recibido" value={codigo} onChange={(e) => setCodigo(e.target.value)} className="w-full rounded border border-tan/30 px-4 py-2" />
