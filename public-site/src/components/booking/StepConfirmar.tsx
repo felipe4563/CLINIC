@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
 
 export default function StepConfirmar() {
-  const { profesionalId, servicioId, fecha, horaInicio, setCitaId, setStep } = useBooking();
+  const { profesionalId, servicioId, servicio, profesional, fecha, horaInicio, setCitaId, setStep } = useBooking();
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
@@ -26,6 +26,8 @@ export default function StepConfirmar() {
     <div>
       <h3 className="font-serif text-2xl text-espresso">Confirmar reserva</h3>
       <div className="mt-6 space-y-2 text-sm text-ink">
+        <p>Servicio: {servicio?.nombre}{servicio?.precio ? ` — Bs. ${servicio.precio}` : ''}</p>
+        <p>Profesional: {profesional?.nombre}</p>
         <p>Fecha: {fecha}</p>
         <p>Hora: {horaInicio}</p>
       </div>

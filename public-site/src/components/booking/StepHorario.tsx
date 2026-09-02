@@ -6,11 +6,18 @@ import { useBooking } from '@/lib/bookingContext';
 export default function StepHorario() {
   const { servicioId, profesionalId, fecha, setFecha, setHoraInicio, setStep } = useBooking();
   const [slots, setSlots] = useState<any[]>([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const hoy = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     if (servicioId && profesionalId && fecha) {
-      api.getDisponibilidad(profesionalId, servicioId, fecha).then(setSlots).catch(console.error);
+      setLoading(true);
+      api
+        .getDisponibilidad(profesionalId, servicioId, fecha)
+        .then(setSlots)
+        .catch((e) => setError(e.message))
+        .finally(() => setLoading(false));
     } else {
       setSlots([]);
     }
@@ -24,6 +31,7 @@ export default function StepHorario() {
   return (
     <div>
       <h3 className="font-serif text-2xl text-espresso">Elige fecha y horario</h3>
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       <input
         type="date"
         min={hoy}
@@ -43,6 +51,9 @@ export default function StepHorario() {
           </li>
         ))}
       </ul>
+      {fecha && !loading && !error && slots.length === 0 && (
+        <p className="mt-6 text-sm text-muted">No hay horarios disponibles para esta fecha.</p>
+      )}
       <button onClick={() => setStep('profesional')} className="mt-6 text-xs uppercase tracking-widest text-muted">
         ← Volver
       </button>
