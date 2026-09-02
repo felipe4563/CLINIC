@@ -3,6 +3,9 @@ import { useBooking } from '@/lib/bookingContext';
 import StepServicio from './StepServicio';
 import StepProfesional from './StepProfesional';
 import StepHorario from './StepHorario';
+import StepLogin from './StepLogin';
+import StepConfirmar from './StepConfirmar';
+import StepPago from './StepPago';
 
 export default function BookingModal() {
   const { isOpen, close, step } = useBooking();
@@ -19,9 +22,9 @@ export default function BookingModal() {
         {step === 'servicio' && <StepServicio />}
         {step === 'profesional' && <StepProfesional />}
         {step === 'horario' && <StepHorario />}
-        {(step === 'login' || step === 'confirmar' || step === 'pago') && (
-          <p className="text-ink">Paso &quot;{step}&quot; pendiente (Task 9).</p>
-        )}
+        {step === 'login' && <StepLogin />}
+        {step === 'confirmar' && <StepConfirmar />}
+        {step === 'pago' && <StepPago />}
       </div>
     </div>
   );
