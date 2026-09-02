@@ -5,7 +5,7 @@ const puntos = [
   { n: '04', titulo: 'Acompañamiento', texto: 'Estamos contigo antes, durante y después del tratamiento.' },
 ];
 
-export default function ArtePerfeccion() {
+export default function ArtePerfeccion({ onReservar }: { onReservar: () => void }) {
   return (
     <section className="bg-espresso text-cream px-6 py-28">
       <div className="mx-auto grid max-w-6xl gap-16 md:grid-cols-2">
@@ -27,9 +27,12 @@ export default function ArtePerfeccion() {
             ))}
           </div>
 
-          <a href="#nosotros" className="mt-12 inline-block text-xs tracking-widest uppercase border-b border-cream/40 pb-1">
+          <button
+            onClick={onReservar}
+            className="mt-12 inline-block text-xs tracking-widest uppercase border-b border-cream/40 pb-1"
+          >
             Iniciar Transformación
-          </a>
+          </button>
         </div>
 
         <div className="relative flex items-center">

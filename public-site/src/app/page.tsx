@@ -23,7 +23,7 @@ function HomeContent() {
       <EsenciaMarca />
       <Tratamientos />
       <Silencio />
-      <ArtePerfeccion />
+      <ArtePerfeccion onReservar={open} />
       <Nosotros />
       <Ubicacion />
       <CtaFinal onReservar={open} />
