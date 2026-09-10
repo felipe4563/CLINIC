@@ -4,10 +4,7 @@ export default function Nosotros() {
   return (
     <section id="nosotros" className="bg-cream px-6 py-28">
       <div className="mx-auto grid max-w-6xl items-center gap-16 md:grid-cols-2">
-        <div
-          className="relative mx-auto aspect-square w-full max-w-md overflow-hidden bg-espresso/10"
-          style={{ borderRadius: '60% 40% 55% 45% / 55% 45% 60% 40%' }}
-        >
+        <div className="relative mx-auto aspect-[400/530] w-full max-w-md overflow-hidden rounded-full bg-espresso/10">
           <Image
             src="/novaged-assets/DraNovaged-CZHbEtUk.jpeg"
             alt="Dra. Maria Noemi Ponce Caisiri"
@@ -20,9 +17,9 @@ export default function Nosotros() {
           <Image
             src="/novaged-assets/horizontal_dark-YqD6kOfW.png"
             alt="Clinic NovagED"
-            width={110}
-            height={33}
-            className="mt-4 h-8 w-auto opacity-70"
+            width={188}
+            height={80}
+            className="mt-4 h-20 w-auto"
           />
           <span className="mt-6 block h-px w-10 bg-tan/50" />
           <h2 className="mt-6 font-serif text-3xl md:text-4xl xl:text-[46px] text-espresso">

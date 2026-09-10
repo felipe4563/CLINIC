@@ -19,4 +19,10 @@ router.get('/profesionales', async (req, res) => {
   res.json(profesionales);
 });
 
+router.get('/configuracion-publica', async (req, res) => {
+  const config = await db.ConfiguracionClinica.obtenerConfig();
+  const { nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url } = config;
+  res.json({ nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url });
+});
+
 module.exports = router;

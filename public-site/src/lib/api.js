@@ -23,6 +23,7 @@ async function apiFetch(path, options = {}) {
 }
 
 export const api = {
+  getConfiguracionPublica: () => apiFetch('/configuracion-publica'),
   getServicios: () => apiFetch('/servicios'),
   getProfesionales: (servicioId) => apiFetch(`/profesionales?servicioId=${servicioId}`),
   getDisponibilidad: (profesionalId, servicioId, fecha) =>
