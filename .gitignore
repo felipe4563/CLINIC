@@ -9,3 +9,12 @@ dist/
 *.sql
 uploads/
 **/uploads/
+
+# Capturas y artefactos de depuracion (Playwright MCP, screenshots sueltos
+# tomados al replicar el diseño del sitio real). No son parte de la app.
+**/.playwright-mcp/
+/desktop-*.png
+/local-*.png
+/mobile-*.png
+/wide-*.png
+/real-*.png
