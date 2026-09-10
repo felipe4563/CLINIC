@@ -15,10 +15,10 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-echo "==> Verificando que no haya cambios locales sin commitear..."
-if [ -n "$(git status --porcelain)" ]; then
+echo "==> Verificando que no haya cambios sin commitear en archivos versionados..."
+if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "Hay cambios locales sin commitear en el servidor. Abortando para no perderlos:"
-  git status --porcelain
+  git status --porcelain --untracked-files=no
   exit 1
 fi
 
