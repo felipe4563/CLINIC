@@ -22,7 +22,7 @@ function HomeContent() {
       <Nav onReservar={open} />
       <Hero onReservar={open} />
       <Reveal><EsenciaMarca /></Reveal>
-      <Reveal><Tratamientos onReservar={open} /></Reveal>
+      <Reveal><Tratamientos /></Reveal>
       <Silencio />
       <Reveal><ArtePerfeccion onReservar={open} /></Reveal>
       <Reveal><Nosotros /></Reveal>
