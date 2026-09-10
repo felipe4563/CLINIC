@@ -8,8 +8,9 @@
 #   3. Recrea solo los contenedores afectados (sin downtime de los que no cambiaron).
 #   4. Limpia imágenes viejas sin usar.
 #
-# No toca la base de datos ni el nginx bootstrap/HTTPS: eso es cosa del
-# primer despliegue (ver DEPLOY, sección "Primer despliegue" del chat).
+# No toca la config de nginx del sistema ni los certificados HTTPS: eso vive
+# fuera de este repo, en /etc/nginx/ del VPS (ver nginx/*.conf para la
+# plantilla usada en el primer despliegue).
 
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
