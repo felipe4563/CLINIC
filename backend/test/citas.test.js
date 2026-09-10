@@ -63,4 +63,36 @@ describe('citas routes', () => {
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(1);
   });
+
+  test('books with a 50% deposit and computes monto from monto_total', async () => {
+    const res = await request(app)
+      .post('/citas')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        profesionalId: profesional.id,
+        servicioId: servicio.id,
+        fecha: '2026-09-14',
+        horaInicio: '09:30',
+        porcentajePago: 50,
+      });
+
+    expect(res.status).toBe(201);
+    expect(Number(res.body.pago.monto)).toBe(50);
+    expect(Number(res.body.pago.monto_total)).toBe(100);
+    expect(res.body.pago.porcentaje).toBe(50);
+  });
+
+  test('rejects an invalid porcentajePago', async () => {
+    const res = await request(app)
+      .post('/citas')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        profesionalId: profesional.id,
+        servicioId: servicio.id,
+        fecha: '2026-09-15',
+        horaInicio: '09:00',
+        porcentajePago: 75,
+      });
+    expect(res.status).toBe(400);
+  });
 });

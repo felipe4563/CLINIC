@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
@@ -6,16 +7,47 @@ const catalogoRoutes = require('./routes/catalogo');
 const disponibilidadRoutes = require('./routes/disponibilidad');
 const citasRoutes = require('./routes/citas');
 const pagosRoutes = require('./routes/pagos');
+const staffAuthRoutes = require('./routes/staffAuth');
+const staffAgendaRoutes = require('./routes/staffAgenda');
+const staffPacientesRoutes = require('./routes/staffPacientes');
+const staffCatalogoRoutes = require('./routes/staffCatalogo');
+const staffUsuariosRoutes = require('./routes/staffUsuarios');
+const staffDashboardRoutes = require('./routes/staffDashboard');
+const staffSaldosRoutes = require('./routes/staffSaldos');
+const staffTratamientosRoutes = require('./routes/staffTratamientos');
+const staffCajaRoutes = require('./routes/staffCaja');
+const staffInventarioRoutes = require('./routes/staffInventario');
+const staffVentasRoutes = require('./routes/staffVentas');
+const staffAutomatizacionRoutes = require('./routes/staffAutomatizacion');
+const staffPersonalRoutes = require('./routes/staffPersonal');
+const staffConfiguracionRoutes = require('./routes/staffConfiguracion');
+const staffReportesRoutes = require('./routes/staffReportes');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.use('/auth', authRoutes);
 app.use('/', catalogoRoutes);
 app.use('/', disponibilidadRoutes);
 app.use('/', citasRoutes);
 app.use('/', pagosRoutes);
+app.use('/', staffAuthRoutes);
+app.use('/', staffAgendaRoutes);
+app.use('/', staffPacientesRoutes);
+app.use('/', staffCatalogoRoutes);
+app.use('/', staffUsuariosRoutes);
+app.use('/', staffDashboardRoutes);
+app.use('/', staffSaldosRoutes);
+app.use('/', staffTratamientosRoutes);
+app.use('/', staffCajaRoutes);
+app.use('/', staffInventarioRoutes);
+app.use('/', staffVentasRoutes);
+app.use('/', staffAutomatizacionRoutes);
+app.use('/', staffPersonalRoutes);
+app.use('/', staffConfiguracionRoutes);
+app.use('/', staffReportesRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 

@@ -1,17 +1,34 @@
+import Image from 'next/image';
+
 export default function Nosotros() {
   return (
     <section id="nosotros" className="bg-cream px-6 py-28">
       <div className="mx-auto grid max-w-6xl items-center gap-16 md:grid-cols-2">
-        <div className="mx-auto aspect-square w-full max-w-md overflow-hidden rounded-full bg-espresso/10">
-          {/* PLACEHOLDER: replace with real photo of Dra. Maria Noemi Ponce Caisiri */}
+        <div
+          className="relative mx-auto aspect-square w-full max-w-md overflow-hidden bg-espresso/10"
+          style={{ borderRadius: '60% 40% 55% 45% / 55% 45% 60% 40%' }}
+        >
+          <Image
+            src="/novaged-assets/DraNovaged-CZHbEtUk.jpeg"
+            alt="Dra. Maria Noemi Ponce Caisiri"
+            fill
+            className="object-cover object-top"
+          />
         </div>
         <div>
-          <p className="text-xs tracking-widest uppercase text-muted">Dirección Médica</p>
-          <p className="mt-4 font-serif italic text-tan">Clinic NovagED</p>
-          <h2 className="mt-4 font-serif text-3xl md:text-4xl text-espresso">
+          <p className="text-xs tracking-widest uppercase text-tan">Dirección Médica</p>
+          <Image
+            src="/novaged-assets/horizontal_dark-YqD6kOfW.png"
+            alt="Clinic NovagED"
+            width={110}
+            height={33}
+            className="mt-4 h-8 w-auto opacity-70"
+          />
+          <span className="mt-6 block h-px w-10 bg-tan/50" />
+          <h2 className="mt-6 font-serif text-3xl md:text-4xl xl:text-[46px] text-espresso">
             Dra. Maria Noemi Ponce Caisiri
           </h2>
-          <div className="mt-6 space-y-4 text-sm leading-relaxed text-muted">
+          <div className="mt-6 space-y-4 text-sm leading-relaxed text-espresso">
             <p>
               Médico cirujano-ultrasonografista. Médico estético especialista en
               rejuvenecimiento y armonización facial y corporal, con técnicas
@@ -34,6 +51,19 @@ export default function Nosotros() {
               fisioterapia, con compromiso y profesionalismo.
             </p>
           </div>
+          <ul className="mt-6 flex flex-col gap-2.5">
+            {[
+              'Miembro del Colegio Médico de Cochabamba.',
+              'Médica matriculada en SEDES Cochabamba.',
+              'Miembro de ASOBOME Cochabamba.',
+              'Médico con doble titulación, miembro del Colegio Médico de Lima, Perú.',
+            ].map((linea) => (
+              <li key={linea} className="flex items-center gap-3.5">
+                <span className="h-px w-6 shrink-0 bg-espresso" />
+                <span className="text-[0.7rem] tracking-widest uppercase text-tan">{linea}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

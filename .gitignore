@@ -1,6 +1,11 @@
 node_modules/
 .env
 backend/.env
-frontend/.env*.local
+backend/.env.test
 .next/
 dist/
+
+.claude/
+*.sql
+uploads/
+**/uploads/

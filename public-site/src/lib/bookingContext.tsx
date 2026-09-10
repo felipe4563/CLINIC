@@ -23,6 +23,8 @@ interface BookingState {
   setHoraInicio: (h: string | null) => void;
   citaId: number | null;
   setCitaId: (id: number | null) => void;
+  pago: any | null;
+  setPago: (p: any | null) => void;
 }
 
 const BookingContext = createContext<BookingState | null>(null);
@@ -37,6 +39,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const [fecha, setFecha] = useState('');
   const [horaInicio, setHoraInicio] = useState<string | null>(null);
   const [citaId, setCitaId] = useState<number | null>(null);
+  const [pago, setPago] = useState<any | null>(null);
 
   function open() {
     setStep('servicio');
@@ -47,6 +50,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setFecha('');
     setHoraInicio(null);
     setCitaId(null);
+    setPago(null);
     setIsOpen(true);
   }
   function close() {
@@ -55,7 +59,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
   return (
     <BookingContext.Provider
-      value={{ isOpen, open, close, step, setStep, servicioId, setServicioId, servicio, setServicio, profesionalId, setProfesionalId, profesional, setProfesional, fecha, setFecha, horaInicio, setHoraInicio, citaId, setCitaId }}
+      value={{ isOpen, open, close, step, setStep, servicioId, setServicioId, servicio, setServicio, profesionalId, setProfesionalId, profesional, setProfesional, fecha, setFecha, horaInicio, setHoraInicio, citaId, setCitaId, pago, setPago }}
     >
       {children}
     </BookingContext.Provider>

@@ -9,8 +9,9 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change_me}
     volumes:
       - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
+    # Sin "ports": mysql solo es alcanzable desde otros contenedores de esta
+    # red (por ejemplo "api"). Para depurar desde el VPS usa:
+    #   docker compose exec mysql mysql -u novaged -p novaged
 
   api:
     build: ./backend
@@ -18,36 +19,51 @@ services:
     env_file: ./backend/.env
     depends_on:
       - mysql
-    ports:
-      - "4000:4000"
-
-  web:
-    build: ./frontend
-    restart: unless-stopped
-    depends_on:
-      - api
-    ports:
-      - "3000:3000"
+    volumes:
+      - uploads_data:/app/uploads
+    # Sin "ports": nginx llega a la API por la red interna (http://api:4000).
+    # No se expone directamente a internet.
 
   public-site:
     build: ./public-site
     restart: unless-stopped
     depends_on:
       - api
-    ports:
-      - "3001:3000"
+    # Sin "ports": solo nginx llega a este servicio (http://public-site:3000).
+
+  staff:
+    build: ./staff
+    restart: unless-stopped
+    depends_on:
+      - api
+    # Sin "ports": solo nginx llega a este servicio (http://staff:3000).
 
   nginx:
     image: nginx:alpine
     restart: unless-stopped
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
     depends_on:
-      - web
       - api
       - public-site
+      - staff
     ports:
       - "80:80"
+      - "443:443"
+
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: >
+      /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;"
 
 volumes:
   mysql_data:
+  uploads_data:
+  certbot_conf:
+  certbot_www:

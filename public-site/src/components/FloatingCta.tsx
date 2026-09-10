@@ -1,8 +1,5 @@
 'use client';
 
-// NOTE: `onClick` is a stub trigger for opening the booking modal.
-// Task 8/9 will wire this to the real modal via BookingContext.
-
 export default function FloatingCta({ onClick }: { onClick: () => void }) {
   return (
     <button

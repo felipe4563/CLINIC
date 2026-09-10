@@ -5,10 +5,16 @@ const { getSlotsDisponibles } = require('../services/disponibilidad');
 
 const router = express.Router();
 
+const PORCENTAJES_VALIDOS = [50, 100];
+
 router.post('/citas', requirePaciente, async (req, res) => {
-  const { profesionalId, servicioId, fecha, horaInicio } = req.body;
+  const { profesionalId, servicioId, fecha, horaInicio, porcentajePago } = req.body;
   if (!profesionalId || !servicioId || !fecha || !horaInicio) {
     return res.status(400).json({ error: 'profesionalId, servicioId, fecha y horaInicio son requeridos' });
+  }
+  const porcentaje = porcentajePago ? Number(porcentajePago) : 100;
+  if (!PORCENTAJES_VALIDOS.includes(porcentaje)) {
+    return res.status(400).json({ error: 'porcentajePago debe ser 50 o 100' });
   }
 
   const slots = await getSlotsDisponibles({
@@ -31,9 +37,14 @@ router.post('/citas', requirePaciente, async (req, res) => {
     estado: 'pendiente_pago',
   });
 
+  const montoTotal = Number(servicio.precio);
+  const monto = Math.round(montoTotal * (porcentaje / 100) * 100) / 100;
+
   const pago = await db.Pago.create({
     cita_id: cita.id,
-    monto: servicio.precio,
+    monto,
+    monto_total: montoTotal,
+    porcentaje,
     estado: 'pendiente',
   });
 

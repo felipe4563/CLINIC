@@ -27,17 +27,21 @@ export const api = {
   getProfesionales: (servicioId) => apiFetch(`/profesionales?servicioId=${servicioId}`),
   getDisponibilidad: (profesionalId, servicioId, fecha) =>
     apiFetch(`/disponibilidad?profesionalId=${profesionalId}&servicioId=${servicioId}&fecha=${fecha}`),
-  requestOtp: (telefono, nombre_completo, carnet_identidad, carnet_complemento, carnet_expedido) =>
-    apiFetch('/auth/otp/request', {
+  registro: (telefono, nombre_completo, carnet_identidad, carnet_complemento, carnet_expedido) =>
+    apiFetch('/auth/registro', {
       method: 'POST',
       body: JSON.stringify({ telefono, nombre_completo, carnet_identidad, carnet_complemento, carnet_expedido }),
     }),
-  verifyOtp: (telefono, codigo) =>
-    apiFetch('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ telefono, codigo }) }),
-  crearCita: (profesionalId, servicioId, fecha, horaInicio) =>
-    apiFetch('/citas', { method: 'POST', body: JSON.stringify({ profesionalId, servicioId, fecha, horaInicio }) }),
+  loginConCodigo: (codigo_paciente, telefono) =>
+    apiFetch('/auth/codigo/login', { method: 'POST', body: JSON.stringify({ codigo_paciente, telefono }) }),
+  crearCita: (profesionalId, servicioId, fecha, horaInicio, porcentajePago) =>
+    apiFetch('/citas', {
+      method: 'POST',
+      body: JSON.stringify({ profesionalId, servicioId, fecha, horaInicio, porcentajePago }),
+    }),
   misCitas: () => apiFetch('/citas/mias'),
   generarQR: (citaId) => apiFetch(`/pagos/${citaId}/qr`, { method: 'POST' }),
+  estadoPago: (citaId) => apiFetch(`/pagos/${citaId}/estado`),
   setToken: (token) => localStorage.setItem('novaged_token', token),
   isLoggedIn: () => Boolean(getToken()),
 };

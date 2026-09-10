@@ -1,11 +1,44 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cream: #F3EDE7;
-  --color-espresso: #2B1F16;
-  --color-tan: #8B6F4E;
+  /* Valores extraidos directamente del CSS compilado de clinicnovaged.com */
+  --color-cream: #F3EEEC;    /* su "nude": fondo claro principal */
+  --color-espresso: #5F4534; /* su "chocolate": titulares y botones solidos oscuros */
+  --color-tan: #876A4A;      /* su "route": acentos/enlaces sobre fondo claro */
+  --color-manhattan: #C5B198;/* su "manhattan": acento suave, texto secundario sobre fondo oscuro */
   --color-ink: #3A2E22;
-  --color-muted: #6B5D4F;
-  --font-serif: var(--font-playfair), serif;
-  --font-sans: var(--font-inter), sans-serif;
+  --color-muted: #876A4A;
+  --font-serif: "Bodoni Moda", "Bodoni Moda Fallback", Georgia, serif;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+a, button {
+  cursor: pointer;
+}
+
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Edge legacy */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge Chromium */
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-tan);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

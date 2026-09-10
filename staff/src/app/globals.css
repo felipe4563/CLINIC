@@ -1,0 +1,200 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f5f4f2;
+  --foreground: #24211d;
+  --panel: #ffffff;
+  --sidebar: #ffffff;
+  --border: #e5e1da;
+  --accent: #8b6f4e;
+  --accent-soft: #f1e9df;
+  --accent-foreground: #ffffff;
+  --danger: #b3413a;
+  --muted-foreground: #6b6357;
+
+  --stat-blue: #2563eb;
+  --stat-blue-soft: #eaf0fe;
+  --stat-amber: #d97706;
+  --stat-amber-soft: #fdf1e3;
+  --stat-rose: #dc2626;
+  --stat-rose-soft: #fbebeb;
+  --stat-green: #16a34a;
+  --stat-green-soft: #eaf7ee;
+
+  --banner-from: #3a2e22;
+  --banner-to: #8b6f4e;
+}
+
+:root.dark {
+  --background: #17140f;
+  --foreground: #f1ede6;
+  --panel: #211c15;
+  --sidebar: #1b170f;
+  --border: #322b20;
+  --accent: #c9a877;
+  --accent-soft: #362c1e;
+  --accent-foreground: #17140f;
+  --danger: #f0837a;
+  --muted-foreground: #b3a892;
+
+  --stat-blue: #60a5fa;
+  --stat-blue-soft: #1c2942;
+  --stat-amber: #fbbf24;
+  --stat-amber-soft: #3a2c12;
+  --stat-rose: #f87171;
+  --stat-rose-soft: #3a1f1e;
+  --stat-green: #4ade80;
+  --stat-green-soft: #16301f;
+
+  --banner-from: #1b170f;
+  --banner-to: #4a3a26;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-panel: var(--panel);
+  --color-sidebar: var(--sidebar);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-stat-blue: var(--stat-blue);
+  --color-stat-blue-soft: var(--stat-blue-soft);
+  --color-stat-amber: var(--stat-amber);
+  --color-stat-amber-soft: var(--stat-amber-soft);
+  --color-stat-rose: var(--stat-rose);
+  --color-stat-rose-soft: var(--stat-rose-soft);
+  --color-stat-green: var(--stat-green);
+  --color-stat-green-soft: var(--stat-green-soft);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+a, button {
+  cursor: pointer;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 8px;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.login-bg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.login-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 56px 56px;
+  opacity: 0.35;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+}
+
+.login-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+}
+
+.login-blob-1 {
+  left: -10%;
+  top: -15%;
+  width: 46vw;
+  height: 46vw;
+  background: var(--banner-to);
+  opacity: 0.35;
+  animation: login-drift-a 26s ease-in-out infinite;
+}
+
+.login-blob-2 {
+  right: -12%;
+  bottom: -18%;
+  width: 40vw;
+  height: 40vw;
+  background: var(--accent);
+  opacity: 0.28;
+  animation: login-drift-b 32s ease-in-out infinite;
+}
+
+.login-blob-3 {
+  right: 18%;
+  top: 8%;
+  width: 24vw;
+  height: 24vw;
+  background: var(--banner-from);
+  opacity: 0.25;
+  animation: login-drift-c 20s ease-in-out infinite;
+}
+
+@keyframes login-drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6vw, 5vh) scale(1.12); }
+}
+
+@keyframes login-drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-5vw, -6vh) scale(1.08); }
+}
+
+@keyframes login-drift-c {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-4vw, 4vh) scale(0.9); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,191 @@
+- generic [active] [ref=f12e1]:
+  - main [ref=f12e2]:
+    - generic [ref=f12e4]:
+      - link [ref=f12e5] [cursor=pointer]:
+        - /url: "#top"
+        - img "Clinic NovagED" [ref=f12e6]
+      - navigation [ref=f12e7]:
+        - link "Tratamientos" [ref=f12e8] [cursor=pointer]:
+          - /url: "#tratamientos"
+        - link "Nosotros" [ref=f12e9] [cursor=pointer]:
+          - /url: "#nosotros"
+        - link "Ubicación" [ref=f12e10] [cursor=pointer]:
+          - /url: "#ubicacion"
+      - button "Reservar Consulta" [ref=f12e11] [cursor=pointer]
+    - generic [ref=f12e14]:
+      - heading [level=1] [ref=f12e15]:
+        - text: Esculpir la
+        - emphasis [ref=f12e16]: Esencia
+      - paragraph [ref=f12e17]: Arquitectura facial y medicina estética avanzada diseñada para revelar la belleza intrínseca que reside en el equilibrio.
+      - generic [ref=f12e18]:
+        - button "Agenda tu consulta" [ref=f12e19] [cursor=pointer]
+        - link "Conocer más" [ref=f12e20] [cursor=pointer]:
+          - /url: "#tratamientos"
+      - emphasis [ref=f12e23]: Boutique Medical Excellence
+      - link "Descubre tratamientos ↓" [ref=f12e24] [cursor=pointer]:
+        - /url: "#esencia"
+    - generic [ref=f12e26]:
+      - paragraph [ref=f12e27]: Esencia de Marca
+      - heading [level=2] [ref=f12e28]:
+        - text: Renovación y evolución
+        - emphasis [ref=f12e29]: constante
+      - paragraph [ref=f12e30]: Novaged nace para ofrecer una nueva etapa en el cuidado estético — donde la innovación médica se une a una visión artística del bienestar integral.
+      - generic [ref=f12e31]:
+        - generic [ref=f12e32]:
+          - heading "Salud" [level=3] [ref=f12e33]
+          - paragraph [ref=f12e34]: La base de cada procedimiento, garantizando seguridad y respaldo médico.
+        - generic [ref=f12e35]:
+          - heading "Belleza" [level=3] [ref=f12e36]
+          - paragraph [ref=f12e37]: Una expresión natural y personalizada, lejos de estándares artificiales.
+        - generic [ref=f12e38]:
+          - heading "Armonía" [level=3] [ref=f12e39]
+          - paragraph [ref=f12e40]: El equilibrio entre cuerpo, mente y percepción personal.
+    - generic [ref=f12e42]:
+      - generic [ref=f12e43]:
+        - img "Medicina Estética" [ref=f12e45]
+        - generic [ref=f12e47]:
+          - paragraph [ref=f12e48]: "01"
+          - heading "Medicina Estética" [level=2] [ref=f12e49]
+          - paragraph [ref=f12e50]: Tratamientos médico-estéticos avanzados orientados a la mejora visible, el rejuvenecimiento y el bienestar integral de la piel y el cuerpo.
+          - button "Tratamientos Detalles" [ref=f12e51] [cursor=pointer]
+      - generic [ref=f12e53]:
+        - img "Ginecología y Obstetricia" [ref=f12e55]
+        - generic [ref=f12e57]:
+          - paragraph [ref=f12e58]: "02"
+          - heading "Ginecología y Obstetricia" [level=2] [ref=f12e59]
+          - paragraph [ref=f12e60]: Atención integral femenina con enfoque preventivo, diagnóstico y seguimiento especializado.
+          - button "Tratamientos Detalles" [ref=f12e61] [cursor=pointer]
+      - generic [ref=f12e63]:
+        - img "Ecografía" [ref=f12e65]
+        - generic [ref=f12e67]:
+          - paragraph [ref=f12e68]: "03"
+          - heading "Ecografía" [level=2] [ref=f12e69]
+          - paragraph [ref=f12e70]: Servicios de diagnóstico por imagen orientados a evaluación médica precisa y especializada.
+          - button "Tratamientos Detalles" [ref=f12e71] [cursor=pointer]
+      - generic [ref=f12e73]:
+        - img "Fisioterapia" [ref=f12e75]
+        - generic [ref=f12e77]:
+          - paragraph [ref=f12e78]: "04"
+          - heading "Fisioterapia" [level=2] [ref=f12e79]
+          - paragraph [ref=f12e80]: Tratamientos terapéuticos orientados a rehabilitación, bienestar físico y recuperación funcional.
+          - button "Tratamientos Detalles" [ref=f12e81] [cursor=pointer]
+      - generic [ref=f12e83]:
+        - img "Enfermería" [ref=f12e85]
+        - generic [ref=f12e87]:
+          - paragraph [ref=f12e88]: "05"
+          - heading "Enfermería" [level=2] [ref=f12e89]
+          - paragraph [ref=f12e90]: Servicios básicos de apoyo clínico y control médico.
+          - button "Tratamientos Detalles" [ref=f12e91] [cursor=pointer]
+    - generic [ref=f12e93]:
+      - img "Espacios de Clinic NovagED" [ref=f12e94]
+      - img "Espacios de Clinic NovagED" [ref=f12e95]
+      - img "Espacios de Clinic NovagED" [ref=f12e96]
+      - img "Espacios de Clinic NovagED" [ref=f12e97]
+      - generic [ref=f12e99]:
+        - heading "Silencio" [level=2] [ref=f12e100]
+        - paragraph [ref=f12e101]: El primer tratamiento comienza antes de entrar al box
+      - generic [ref=f12e102]:
+        - button "Ver imagen 1" [ref=f12e103] [cursor=pointer]
+        - button "Ver imagen 2" [ref=f12e104] [cursor=pointer]
+        - button "Ver imagen 3" [ref=f12e105] [cursor=pointer]
+        - button "Ver imagen 4" [ref=f12e106] [cursor=pointer]
+    - generic [ref=f12e108]:
+      - generic [ref=f12e110]:
+        - paragraph [ref=f12e111]: ¿Por qué elegirnos?
+        - heading [level=2] [ref=f12e112]:
+          - text: El Arte de la
+          - emphasis [ref=f12e113]: Perfección
+        - generic [ref=f12e114]:
+          - generic [ref=f12e115]:
+            - paragraph [ref=f12e116]: "01"
+            - heading "Resultados Naturales" [level=3] [ref=f12e117]
+            - paragraph [ref=f12e118]: Evitamos el exceso, buscando siempre la elegancia de lo sutil.
+          - generic [ref=f12e119]:
+            - paragraph [ref=f12e120]: "02"
+            - heading "Trato Personalizado" [level=3] [ref=f12e121]
+            - paragraph [ref=f12e122]: Cada rostro es único, por eso creamos planes a tu medida.
+          - generic [ref=f12e123]:
+            - paragraph [ref=f12e124]: "03"
+            - heading "Respaldo Médico" [level=3] [ref=f12e125]
+            - paragraph [ref=f12e126]: Ciencia y tecnología de última generación a tu servicio.
+          - generic [ref=f12e127]:
+            - paragraph [ref=f12e128]: "04"
+            - heading "Acompañamiento" [level=3] [ref=f12e129]
+            - paragraph [ref=f12e130]: Estamos contigo antes, durante y después del tratamiento.
+        - button "Iniciar Transformación" [ref=f12e131] [cursor=pointer]
+      - generic [ref=f12e132]:
+        - img "Interior de Clinic NovagED" [ref=f12e133]
+        - blockquote [ref=f12e134]:
+          - paragraph [ref=f12e135]: “La verdadera belleza reside en la armonía, no en el cambio drástico.”
+          - generic [ref=f12e136]: — Filosofía NovagED
+    - generic [ref=f12e139]:
+      - img "Dra. Maria Noemi Ponce Caisiri" [ref=f12e141]
+      - generic [ref=f12e142]:
+        - paragraph [ref=f12e143]: Dirección Médica
+        - img "Clinic NovagED" [ref=f12e144]
+        - heading "Dra. Maria Noemi Ponce Caisiri" [level=2] [ref=f12e146]
+        - generic [ref=f12e147]:
+          - paragraph [ref=f12e148]: Médico cirujano-ultrasonografista. Médico estético especialista en rejuvenecimiento y armonización facial y corporal, con técnicas avanzadas en armonización facial, antiedad, lifting, bioestimuladores de colágeno, fillers (ácido hialurónico), hilos, neuromodulación (toxina botulínica o Botox), enzimas recombinantes, enzimas lipolíticas y aparatología, con seguimiento médico especializado.
+          - paragraph [ref=f12e149]: En ClinicNovagED tu salud es nuestra prioridad. Brindamos tratamientos seguros y de alta calidad, asegurando resultados naturales y armónicos, con características únicas que realzan tu belleza natural mediante protocolos personalizados acordes a cada paciente, superando tus expectativas.
+          - paragraph [ref=f12e150]: ClinicNovagED tiene un enfoque integral donde cada paciente es único, integrando servicios de ginecología, ecografía y fisioterapia, con compromiso y profesionalismo.
+        - list [ref=f12e151]:
+          - listitem [ref=f12e152]:
+            - generic [ref=f12e154]: Miembro del Colegio Médico de Cochabamba.
+          - listitem [ref=f12e155]:
+            - generic [ref=f12e157]: Médica matriculada en SEDES Cochabamba.
+          - listitem [ref=f12e158]:
+            - generic [ref=f12e160]: Miembro de ASOBOME Cochabamba.
+          - listitem [ref=f12e161]:
+            - generic [ref=f12e163]: Médico con doble titulación, miembro del Colegio Médico de Lima, Perú.
+    - generic [ref=f12e166]:
+      - generic [ref=f12e167]:
+        - heading "Consultorio" [level=2] [ref=f12e168]
+        - generic [ref=f12e173]:
+          - paragraph [ref=f12e174]: Edificio Vedra planta baja, calle Lanza No 670 entre Chuquisaca y Av. Salamanca, Cochabamba, Bolivia
+          - link "Abrir en Google Maps" [ref=f12e175] [cursor=pointer]:
+            - /url: https://www.google.com/maps/search/?api=1&query=Edificio%20Vedra%20planta%20baja%2C%20calle%20Lanza%20No%20670%20entre%20Chuquisaca%20y%20Av.%20Salamanca%2C%20Cochabamba%2C%20Bolivia
+        - generic [ref=f12e176]:
+          - paragraph [ref=f12e180]: +591 65359810
+          - paragraph [ref=f12e185]: info@novaged.com
+        - generic [ref=f12e186]:
+          - paragraph [ref=f12e187]: Horarios de atención
+          - paragraph [ref=f12e188]: Lunes a viernes 09:00 - 13:00
+          - paragraph [ref=f12e189]: 14:00 - 20:00
+          - paragraph [ref=f12e190]: Sábado 09:00 - 16:00
+      - generic [ref=f12e191]:
+        - iframe [ref=f12e193]
+        - link "Ver ruta en Google Maps" [ref=f12e194] [cursor=pointer]:
+          - /url: https://www.google.com/maps/dir/?api=1&destination=Edificio%20Vedra%20planta%20baja%2C%20calle%20Lanza%20No%20670%20entre%20Chuquisaca%20y%20Av.%20Salamanca%2C%20Cochabamba%2C%20Bolivia
+    - generic [ref=f12e196]:
+      - paragraph [ref=f12e197]: Dé el primer paso
+      - heading [level=2] [ref=f12e198]:
+        - text: INICIE SU
+        - emphasis [ref=f12e199]: transformación
+      - paragraph [ref=f12e200]: Agende una evaluación personalizada y descubra el tratamiento ideal para resaltar su belleza natural.
+      - button "Agenda tu cita" [ref=f12e201] [cursor=pointer]
+    - generic [ref=f12e203]:
+      - generic [ref=f12e204]:
+        - img "Clinic NovagED" [ref=f12e205]
+        - paragraph [ref=f12e206]: Un espacio profesional y confiable donde la ciencia y la estética se encuentran para revelar tu mejor versión.
+        - generic [ref=f12e207]:
+          - link "Instagram" [ref=f12e208] [cursor=pointer]:
+            - /url: "#"
+          - link "TikTok" [ref=f12e213] [cursor=pointer]:
+            - /url: "#"
+      - generic [ref=f12e216]:
+        - paragraph [ref=f12e217]: Navegación
+        - list [ref=f12e218]:
+          - listitem [ref=f12e219]:
+            - link "Tratamientos" [ref=f12e220] [cursor=pointer]:
+              - /url: "#tratamientos"
+          - listitem [ref=f12e221]:
+            - link "Nosotros" [ref=f12e222] [cursor=pointer]:
+              - /url: "#nosotros"
+          - listitem [ref=f12e223]:
+            - link "Ubicación" [ref=f12e224] [cursor=pointer]:
+              - /url: "#ubicacion"
+      - generic [ref=f12e225]:
+        - paragraph [ref=f12e226]: © 2026 Clinic NovagED. Todos los derechos reservados.
+        - paragraph [ref=f12e227]: Cochabamba · Bolivia
+    - button "Agenda tu cita" [ref=f12e228] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f12e234] [cursor=pointer]

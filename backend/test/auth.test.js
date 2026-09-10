@@ -12,10 +12,6 @@ describe('OTP auth flow', () => {
     await db.sequelize.sync({ force: true });
   });
 
-  afterAll(async () => {
-    await db.sequelize.close();
-  });
-
   test('request OTP creates paciente and sends WhatsApp code', async () => {
     const res = await request(app)
       .post('/auth/otp/request')
@@ -66,5 +62,89 @@ describe('OTP auth flow', () => {
       .post('/auth/otp/verify')
       .send({ telefono, codigo: otp.codigo });
     expect(res.status).toBe(401);
+  });
+});
+
+describe('Login con codigo de paciente', () => {
+  beforeAll(async () => {
+    await db.sequelize.sync({ force: true });
+    await db.Paciente.create({
+      codigo_paciente: 'PAC-000001',
+      nombre_completo: 'Cliente Recurrente',
+      telefono: '59170000050',
+      carnet_identidad: '1112223',
+      carnet_expedido: 'CB',
+    });
+  });
+
+  test('codigo + telefono correctos devuelven un JWT', async () => {
+    const res = await request(app)
+      .post('/auth/codigo/login')
+      .send({ codigo_paciente: 'PAC-000001', telefono: '59170000050' });
+    expect(res.status).toBe(200);
+    expect(res.body.token).toBeDefined();
+  });
+
+  test('telefono que no coincide con el codigo devuelve 401', async () => {
+    const res = await request(app)
+      .post('/auth/codigo/login')
+      .send({ codigo_paciente: 'PAC-000001', telefono: '59170000099' });
+    expect(res.status).toBe(401);
+  });
+
+  test('codigo inexistente devuelve 401', async () => {
+    const res = await request(app)
+      .post('/auth/codigo/login')
+      .send({ codigo_paciente: 'PAC-999999', telefono: '59170000050' });
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('Registro directo (sin OTP)', () => {
+  beforeAll(async () => {
+    await db.sequelize.sync({ force: true });
+  });
+
+  afterAll(async () => {
+    await db.sequelize.close();
+  });
+
+  test('crea un paciente nuevo y devuelve token sin pedir OTP', async () => {
+    const res = await request(app).post('/auth/registro').send({
+      telefono: '59170000060',
+      nombre_completo: 'Registro Directo',
+      carnet_identidad: '2223334',
+      carnet_expedido: 'CB',
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.token).toBeDefined();
+    expect(res.body.codigo_paciente).toMatch(/^NOVA-/);
+
+    const paciente = await db.Paciente.findOne({ where: { telefono: '59170000060' } });
+    expect(paciente).not.toBeNull();
+  });
+
+  test('un telefono ya registrado reutiliza el mismo paciente', async () => {
+    const primero = await request(app).post('/auth/registro').send({
+      telefono: '59170000061',
+      nombre_completo: 'Cliente Repetido',
+      carnet_identidad: '4445556',
+      carnet_expedido: 'LP',
+    });
+    const segundo = await request(app).post('/auth/registro').send({
+      telefono: '59170000061',
+      nombre_completo: 'Cliente Repetido',
+      carnet_identidad: '4445556',
+      carnet_expedido: 'LP',
+    });
+    expect(segundo.body.codigo_paciente).toBe(primero.body.codigo_paciente);
+
+    const count = await db.Paciente.count({ where: { telefono: '59170000061' } });
+    expect(count).toBe(1);
+  });
+
+  test('rechaza datos incompletos', async () => {
+    const res = await request(app).post('/auth/registro').send({ telefono: '59170000062' });
+    expect(res.status).toBe(400);
   });
 });

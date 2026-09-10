@@ -12,6 +12,7 @@ import ArtePerfeccion from '@/components/ArtePerfeccion';
 import Nosotros from '@/components/Nosotros';
 import Ubicacion from '@/components/Ubicacion';
 import CtaFinal from '@/components/CtaFinal';
+import Reveal from '@/components/Reveal';
 
 function HomeContent() {
   const { open } = useBooking();
@@ -20,13 +21,13 @@ function HomeContent() {
     <main>
       <Nav onReservar={open} />
       <Hero onReservar={open} />
-      <EsenciaMarca />
-      <Tratamientos />
+      <Reveal><EsenciaMarca /></Reveal>
+      <Reveal><Tratamientos onReservar={open} /></Reveal>
       <Silencio />
-      <ArtePerfeccion onReservar={open} />
-      <Nosotros />
-      <Ubicacion />
-      <CtaFinal onReservar={open} />
+      <Reveal><ArtePerfeccion onReservar={open} /></Reveal>
+      <Reveal><Nosotros /></Reveal>
+      <Reveal><Ubicacion /></Reveal>
+      <Reveal><CtaFinal onReservar={open} /></Reveal>
       <Footer />
       <FloatingCta onClick={open} />
       <BookingModal />

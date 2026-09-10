@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const db = require('../models');
 const { enviarPlantillaWhatsApp } = require('../services/whatsapp');
+const { generarCodigoCliente } = require('../services/codigoCliente');
 
 const router = express.Router();
 
@@ -17,12 +18,24 @@ const otpRequestLimiter = rateLimit({
   message: { error: 'Demasiadas solicitudes, intenta de nuevo mas tarde' },
 });
 
+const codigoLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados intentos, intenta de nuevo mas tarde' },
+});
+
+const registroLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes, intenta de nuevo mas tarde' },
+});
+
 function generarCodigo() {
   return String(crypto.randomInt(100000, 1000000));
-}
-
-function generarCodigoPaciente(id) {
-  return `PAC-${String(id).padStart(6, '0')}`;
 }
 
 router.post('/otp/request', otpRequestLimiter, async (req, res) => {
@@ -32,15 +45,13 @@ router.post('/otp/request', otpRequestLimiter, async (req, res) => {
   let paciente = await db.Paciente.findOne({ where: { telefono } });
   if (!paciente) {
     paciente = await db.Paciente.create({
-      codigo_paciente: `PAC-TMP-${Date.now()}`,
+      codigo_paciente: await generarCodigoCliente(db),
       nombre_completo: nombre_completo || 'Sin nombre',
       telefono,
       carnet_identidad: carnet_identidad || 'pendiente',
       carnet_complemento: carnet_complemento || null,
       carnet_expedido: carnet_expedido || 'pendiente',
     });
-    paciente.codigo_paciente = generarCodigoPaciente(paciente.id);
-    await paciente.save();
   }
 
   const codigo = generarCodigo();
@@ -79,6 +90,48 @@ router.post('/otp/verify', async (req, res) => {
   const paciente = await db.Paciente.findOne({ where: { telefono } });
   const token = jwt.sign({ pacienteId: paciente.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
+  res.json({ token });
+});
+
+// Registro directo para la reserva publica: crea (o reconoce) al paciente por
+// telefono y entrega el token de una vez, sin paso de verificacion por
+// WhatsApp. A diferencia de /otp/*, no prueba que quien reserva es dueno de
+// ese telefono -- decision de producto para agilizar la reserva en el sitio
+// publico. El pago siempre se hace en la app bancaria de quien reserva.
+router.post('/registro', registroLimiter, async (req, res) => {
+  const { telefono, nombre_completo, carnet_identidad, carnet_complemento, carnet_expedido } = req.body;
+  if (!telefono || !nombre_completo || !carnet_identidad || !carnet_expedido) {
+    return res.status(400).json({ error: 'telefono, nombre_completo, carnet_identidad y carnet_expedido son requeridos' });
+  }
+
+  let paciente = await db.Paciente.findOne({ where: { telefono } });
+  if (!paciente) {
+    paciente = await db.Paciente.create({
+      codigo_paciente: await generarCodigoCliente(db),
+      nombre_completo,
+      telefono,
+      carnet_identidad,
+      carnet_complemento: carnet_complemento || null,
+      carnet_expedido,
+    });
+  }
+
+  const token = jwt.sign({ pacienteId: paciente.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  res.json({ token, codigo_paciente: paciente.codigo_paciente });
+});
+
+router.post('/codigo/login', codigoLoginLimiter, async (req, res) => {
+  const { codigo_paciente, telefono } = req.body;
+  if (!codigo_paciente || !telefono) {
+    return res.status(400).json({ error: 'codigo_paciente y telefono son requeridos' });
+  }
+
+  const paciente = await db.Paciente.findOne({ where: { codigo_paciente, telefono } });
+  if (!paciente) {
+    return res.status(401).json({ error: 'Codigo o telefono incorrectos' });
+  }
+
+  const token = jwt.sign({ pacienteId: paciente.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
   res.json({ token });
 });
 
