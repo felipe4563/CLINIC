@@ -211,7 +211,7 @@ describe('Staff (sistema interno)', () => {
           pacienteId: paciente.id,
           profesionalId: profesional.id,
           servicioId: servicio.id,
-          fecha: '2026-09-11',
+          fecha: '2030-09-11',
           horaInicio: '10:00',
           pagada: true,
         });
@@ -227,7 +227,7 @@ describe('Staff (sistema interno)', () => {
           pacienteId: paciente.id,
           profesionalId: profesional.id,
           servicioId: servicio.id,
-          fecha: '2026-09-11',
+          fecha: '2030-09-11',
           horaInicio: '10:00',
         });
       expect(chocar.status).toBe(409);

@@ -11,7 +11,10 @@
     "dev": "nodemon src/server.js",
     "test": "jest --runInBand",
     "seed": "node src/seed.js",
-    "seed:admin": "node src/scripts/seedAdmin.js"
+    "seed:admin": "node src/scripts/seedAdmin.js",
+    "migrate": "sequelize-cli db:migrate",
+    "migrate:undo": "sequelize-cli db:migrate:undo",
+    "migrate:baseline": "node src/scripts/baselineMigrations.js"
   },
   "keywords": [],
   "author": "",
@@ -29,7 +32,8 @@
     "mysql2": "^3.24.2",
     "node-cron": "^4.6.0",
     "pdfkit": "^0.20.2",
-    "sequelize": "^6.37.8"
+    "sequelize": "^6.37.8",
+    "sequelize-cli": "^6.6.5"
   },
   "devDependencies": {
     "jest": "^30.5.1",

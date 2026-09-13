@@ -13,8 +13,6 @@ async function seedAdmin() {
     process.exit(1);
   }
 
-  await db.sequelize.sync();
-
   const [rolAdmin] = await db.Rol.findOrCreate({
     where: { nombre: 'Admin' },
     defaults: { permisos: PERMISOS_POR_DEFECTO.Admin },

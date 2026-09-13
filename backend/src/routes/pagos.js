@@ -3,8 +3,12 @@ const db = require('../models');
 const { requirePaciente } = require('./auth.middleware');
 const { generarQR, consultarEstadoQR } = require('../services/bancoEconomico');
 const { enviarPlantillaWhatsApp } = require('../services/whatsapp');
+const { crearLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
+
+const qrLimiter = crearLimiter(20, 'Demasiadas solicitudes de QR, intenta de nuevo mas tarde');
+const webhookLimiter = crearLimiter(120, 'Demasiadas solicitudes, intenta de nuevo mas tarde');
 
 // Marca un Pago como pagado y confirma su Cita. Se usa tanto desde el
 // webhook del banco como desde la verificacion activa (GET /estado), para
@@ -20,7 +24,7 @@ async function confirmarPago(pago) {
   await enviarPlantillaWhatsApp(paciente.telefono, 'cita_confirmada', [pago.Cita.fecha, pago.Cita.hora_inicio]);
 }
 
-router.post('/pagos/:citaId/qr', requirePaciente, async (req, res) => {
+router.post('/pagos/:citaId/qr', qrLimiter, requirePaciente, async (req, res) => {
   const cita = await db.Cita.findOne({
     where: { id: req.params.citaId, paciente_id: req.pacienteId },
     include: [db.Pago, db.Servicio],
@@ -72,7 +76,7 @@ router.get('/pagos/:citaId/estado', requirePaciente, async (req, res) => {
 // confiamos en el contenido del body: lo usamos solo como aviso de "revisa
 // este qrId", y confirmamos el pago consultando nosotros mismos statusQR con
 // nuestro propio token autenticado antes de mutar cualquier estado.
-router.post('/pagos/webhook', async (req, res) => {
+router.post('/pagos/webhook', webhookLimiter, async (req, res) => {
   const qrId = req.body && req.body.payment && req.body.payment.qrId;
   if (!qrId) return res.json({ responseCode: 1, message: 'qrId no encontrado en el payload' });
 

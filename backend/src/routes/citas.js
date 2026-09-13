@@ -2,12 +2,15 @@ const express = require('express');
 const db = require('../models');
 const { requirePaciente } = require('./auth.middleware');
 const { getSlotsDisponibles } = require('../services/disponibilidad');
+const { crearLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
 
 const PORCENTAJES_VALIDOS = [50, 100];
 
-router.post('/citas', requirePaciente, async (req, res) => {
+const crearCitaLimiter = crearLimiter(20, 'Demasiadas reservas seguidas, intenta de nuevo mas tarde');
+
+router.post('/citas', crearCitaLimiter, requirePaciente, async (req, res) => {
   const { profesionalId, servicioId, fecha, horaInicio, porcentajePago } = req.body;
   if (!profesionalId || !servicioId || !fecha || !horaInicio) {
     return res.status(400).json({ error: 'profesionalId, servicioId, fecha y horaInicio son requeridos' });

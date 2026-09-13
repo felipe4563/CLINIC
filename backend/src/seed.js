@@ -2,8 +2,6 @@ const bcrypt = require('bcryptjs');
 const db = require('./models');
 
 async function seed() {
-  await db.sequelize.sync();
-
   const [adminRol] = await db.Rol.findOrCreate({ where: { nombre: 'Admin' } });
   await db.Rol.findOrCreate({ where: { nombre: 'Recepcion' } });
   await db.Rol.findOrCreate({ where: { nombre: 'Profesional' } });

@@ -6,6 +6,10 @@
 #   1. Trae los últimos cambios de git (rama actual).
 #   2. Reconstruye las imágenes que hayan cambiado.
 #   3. Recrea solo los contenedores afectados (sin downtime de los que no cambiaron).
+#      Al arrancar, el contenedor api corre las migraciones pendientes solo
+#      (ver backend/Dockerfile) -- no hace falta correrlas a mano despues
+#      de la primera vez que se bautizo la base existente (ver
+#      backend/src/scripts/baselineMigrations.js).
 #   4. Limpia imágenes viejas sin usar.
 #
 # No toca la config de nginx del sistema ni los certificados HTTPS: eso vive
