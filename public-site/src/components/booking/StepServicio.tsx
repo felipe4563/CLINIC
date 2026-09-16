@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
+import { Servicio, mensajeError } from '@/lib/types';
 
 export default function StepServicio() {
   const { setServicioId, setServicio, setStep } = useBooking();
-  const [servicios, setServicios] = useState<any[]>([]);
+  const [servicios, setServicios] = useState<Servicio[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -13,11 +14,11 @@ export default function StepServicio() {
     api
       .getServicios()
       .then(setServicios)
-      .catch((e) => setError(e.message))
+      .catch((e: unknown) => setError(mensajeError(e)))
       .finally(() => setLoading(false));
   }, []);
 
-  function elegir(s: any) {
+  function elegir(s: Servicio) {
     setServicioId(s.id);
     setServicio(s);
     setStep('profesional');

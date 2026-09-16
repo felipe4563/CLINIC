@@ -52,11 +52,8 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
       { href: '/personal', label: 'Control de Personal', icon: IconUserCheck, permiso: 'personal' },
       { href: '/reportes', label: 'Reportes', icon: IconBarChart, permiso: 'reportes' },
       { href: '/configuracion', label: 'Configuración', icon: IconSettings, permiso: 'configuracion' },
+      { href: '/fidelizacion', label: 'Fidelización', icon: IconHeart, permiso: 'fidelizacion' },
     ],
-  },
-  {
-    label: 'Próximamente',
-    items: [{ href: '/fidelizacion', label: 'Fidelización', icon: IconHeart, permiso: 'catalogo' }],
   },
 ];
 

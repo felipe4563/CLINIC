@@ -1,16 +1,27 @@
+'use client';
+
 import Image from 'next/image';
+import { useRef } from 'react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 
 export default function Nosotros() {
+  const ref = useRef<HTMLDivElement>(null);
+  const reducirMovimiento = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const yFoto = useTransform(scrollYProgress, [0, 1], reducirMovimiento ? [0, 0] : [-30, 30]);
+
   return (
-    <section id="nosotros" className="bg-cream px-6 py-28">
+    <section id="nosotros" ref={ref} className="bg-cream px-6 py-28">
       <div className="mx-auto grid max-w-6xl items-center gap-16 md:grid-cols-2">
         <div className="relative mx-auto aspect-[400/530] w-full max-w-md overflow-hidden rounded-full bg-espresso/10">
-          <Image
-            src="/novaged-assets/DraNovaged-CZHbEtUk.jpeg"
-            alt="Dra. Maria Noemi Ponce Caisiri"
-            fill
-            className="object-cover object-top"
-          />
+          <motion.div className="absolute inset-0" style={{ y: yFoto }}>
+            <Image
+              src="/novaged-assets/DraNovaged-CZHbEtUk.jpeg"
+              alt="Dra. Maria Noemi Ponce Caisiri"
+              fill
+              className="object-cover object-top scale-[1.15]"
+            />
+          </motion.div>
         </div>
         <div>
           <p className="text-xs tracking-widest uppercase text-tan">Dirección Médica</p>
@@ -25,6 +36,11 @@ export default function Nosotros() {
           <h2 className="mt-6 font-serif text-3xl md:text-4xl xl:text-[46px] text-espresso">
             Dra. Maria Noemi Ponce Caisiri
           </h2>
+
+          <blockquote className="mt-6 font-serif italic text-xl md:text-2xl leading-snug text-espresso">
+            &ldquo;En ClinicNovagED tu salud es nuestra prioridad.&rdquo;
+          </blockquote>
+
           <div className="mt-6 space-y-4 text-sm leading-relaxed text-espresso">
             <p>
               Médico cirujano-ultrasonografista. Médico estético especialista en
@@ -36,11 +52,10 @@ export default function Nosotros() {
               seguimiento médico especializado.
             </p>
             <p>
-              En ClinicNovagED tu salud es nuestra prioridad. Brindamos
-              tratamientos seguros y de alta calidad, asegurando resultados
-              naturales y armónicos, con características únicas que realzan tu
-              belleza natural mediante protocolos personalizados acordes a
-              cada paciente, superando tus expectativas.
+              Brindamos tratamientos seguros y de alta calidad, asegurando
+              resultados naturales y armónicos, con características únicas que
+              realzan tu belleza natural mediante protocolos personalizados
+              acordes a cada paciente, superando tus expectativas.
             </p>
             <p>
               ClinicNovagED tiene un enfoque integral donde cada paciente es

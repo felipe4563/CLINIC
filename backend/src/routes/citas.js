@@ -29,6 +29,8 @@ router.post('/citas', crearCitaLimiter, requirePaciente, async (req, res) => {
   }
 
   const servicio = await db.Servicio.findByPk(servicioId);
+  const config = await db.ConfiguracionClinica.obtenerConfig();
+  const requierePago = config.cobra_adelanto_online;
 
   const cita = await db.Cita.create({
     paciente_id: req.pacienteId,
@@ -37,21 +39,22 @@ router.post('/citas', crearCitaLimiter, requirePaciente, async (req, res) => {
     fecha,
     hora_inicio: `${slot.hora_inicio}:00`,
     hora_fin: `${slot.hora_fin}:00`,
-    estado: 'pendiente_pago',
+    estado: requierePago ? 'pendiente_pago' : 'confirmada',
   });
 
   const montoTotal = Number(servicio.precio);
-  const monto = Math.round(montoTotal * (porcentaje / 100) * 100) / 100;
+  const porcentajeFinal = requierePago ? porcentaje : 100;
+  const monto = Math.round(montoTotal * (porcentajeFinal / 100) * 100) / 100;
 
   const pago = await db.Pago.create({
     cita_id: cita.id,
     monto,
     monto_total: montoTotal,
-    porcentaje,
+    porcentaje: porcentajeFinal,
     estado: 'pendiente',
   });
 
-  res.status(201).json({ cita, pago });
+  res.status(201).json({ cita, pago, requierePago });
 });
 
 router.get('/citas/mias', requirePaciente, async (req, res) => {

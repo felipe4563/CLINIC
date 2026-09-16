@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import MagneticButton from './MagneticButton';
 
 const puntos = [
   { n: '01', titulo: 'Resultados Naturales', texto: 'Evitamos el exceso, buscando siempre la elegancia de lo sutil.' },
@@ -29,12 +30,14 @@ export default function ArtePerfeccion({ onReservar }: { onReservar: () => void 
             ))}
           </div>
 
-          <button
-            onClick={onReservar}
-            className="mt-12 inline-block text-xs tracking-widest uppercase border-b border-cream/40 pb-1"
-          >
-            Iniciar Transformación
-          </button>
+          <MagneticButton>
+            <button
+              onClick={onReservar}
+              className="mt-12 inline-block text-xs tracking-widest uppercase border-b border-cream/40 pb-1"
+            >
+              Iniciar Transformación
+            </button>
+          </MagneticButton>
         </div>
       </div>
 

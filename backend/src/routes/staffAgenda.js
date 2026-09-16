@@ -5,6 +5,7 @@ const { requirePermiso } = require('./auth.middleware');
 const { getSlotsDisponibles } = require('../services/disponibilidad');
 const { enviarSiCorresponde } = require('../services/notificacionesAutomaticas');
 const { crearReportePDF, dibujarTabla, formatoFecha } = require('../services/pdf');
+const { otorgarPuntosPorGasto } = require('../services/fidelizacion');
 
 const router = express.Router();
 
@@ -181,8 +182,21 @@ router.patch('/staff/citas/:id/estado', requirePermiso('agenda'), async (req, re
   const cita = await db.Cita.findByPk(req.params.id, { include: [db.Paciente] });
   if (!cita) return res.status(404).json({ error: 'Cita no encontrada' });
 
+  const estadoAnterior = cita.estado;
   cita.estado = estado;
   await cita.save();
+
+  if (estado === 'completada' && estadoAnterior !== 'completada') {
+    const pago = await db.Pago.findOne({ where: { cita_id: cita.id } });
+    if (pago) {
+      await otorgarPuntosPorGasto({
+        pacienteId: cita.paciente_id,
+        monto: pago.monto_total,
+        motivo: `Cita completada #${cita.id}`,
+        citaId: cita.id,
+      });
+    }
+  }
 
   const evento = TEMPLATE_POR_ESTADO[estado];
   if (evento) {

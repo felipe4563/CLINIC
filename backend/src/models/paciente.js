@@ -9,6 +9,7 @@ const Paciente = sequelize.define('Paciente', {
   carnet_complemento: { type: DataTypes.STRING, allowNull: true },
   carnet_expedido: { type: DataTypes.STRING, allowNull: false },
   fecha_nacimiento: { type: DataTypes.DATEONLY, allowNull: true },
+  puntos_actuales: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
 }, { tableName: 'pacientes', underscored: true });
 
 module.exports = Paciente;

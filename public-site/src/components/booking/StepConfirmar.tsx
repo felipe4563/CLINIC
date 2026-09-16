@@ -1,13 +1,22 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
+import { mensajeError } from '@/lib/types';
 
 export default function StepConfirmar() {
   const { profesionalId, servicioId, servicio, profesional, fecha, horaInicio, setCitaId, setPago, setStep } = useBooking();
   const [porcentaje, setPorcentaje] = useState<50 | 100>(100);
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [cobraAdelanto, setCobraAdelanto] = useState(true);
+
+  useEffect(() => {
+    api
+      .getConfiguracionPublica()
+      .then((c) => setCobraAdelanto(c.cobra_adelanto_online ?? true))
+      .catch(() => setCobraAdelanto(true));
+  }, []);
 
   const precio = servicio?.precio ? Number(servicio.precio) : null;
   const montoAPagar = precio !== null ? Math.round(precio * (porcentaje / 100) * 100) / 100 : null;
@@ -16,12 +25,12 @@ export default function StepConfirmar() {
     setError('');
     setCargando(true);
     try {
-      const { cita, pago } = await api.crearCita(profesionalId, servicioId, fecha, horaInicio, porcentaje);
+      const { cita, pago, requierePago } = await api.crearCita(profesionalId, servicioId, fecha, horaInicio, porcentaje);
       setCitaId(cita.id);
       setPago(pago);
-      setStep('pago');
-    } catch (e: any) {
-      setError(e.message);
+      setStep(requierePago ? 'pago' : 'confirmada');
+    } catch (e: unknown) {
+      setError(mensajeError(e));
     } finally {
       setCargando(false);
     }
@@ -37,7 +46,7 @@ export default function StepConfirmar() {
         <p>Hora: {horaInicio}</p>
       </div>
 
-      {precio !== null && (
+      {cobraAdelanto && precio !== null && (
         <div className="mt-6">
           <p className="text-xs uppercase tracking-widest text-muted">¿Cuánto pagas ahora?</p>
           <div className="mt-2 grid grid-cols-2 gap-2">
@@ -67,6 +76,9 @@ export default function StepConfirmar() {
           )}
         </div>
       )}
+      {!cobraAdelanto && precio !== null && (
+        <p className="mt-6 text-sm text-muted">Pagas el total (Bs. {precio}) en la clínica el día de tu cita.</p>
+      )}
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       <button
@@ -74,7 +86,11 @@ export default function StepConfirmar() {
         disabled={cargando}
         className="mt-8 w-full rounded-full bg-espresso text-cream text-xs tracking-widest uppercase px-6 py-3 disabled:opacity-50"
       >
-        {cargando ? 'Confirmando…' : montoAPagar !== null ? `Confirmar y pagar Bs. ${montoAPagar}` : 'Confirmar reserva'}
+        {cargando
+          ? 'Confirmando…'
+          : cobraAdelanto && montoAPagar !== null
+            ? `Confirmar y pagar Bs. ${montoAPagar}`
+            : 'Confirmar reserva'}
       </button>
     </div>
   );

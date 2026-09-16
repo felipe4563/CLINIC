@@ -17,6 +17,8 @@ type Config = {
   sitio_web: string | null;
   logo_url: string | null;
   pie_pdf: string | null;
+  cobra_adelanto_online: boolean;
+  bs_por_punto: number;
 };
 
 const VACIO: Config = {
@@ -30,9 +32,13 @@ const VACIO: Config = {
   sitio_web: '',
   logo_url: '',
   pie_pdf: '',
+  cobra_adelanto_online: true,
+  bs_por_punto: 10,
 };
 
-const CAMPOS: { key: keyof Config; label: string; placeholder?: string; span?: string; textarea?: boolean }[] = [
+type CampoTexto = Exclude<keyof Config, 'logo_url' | 'cobra_adelanto_online' | 'bs_por_punto'>;
+
+const CAMPOS: { key: CampoTexto; label: string; placeholder?: string; span?: string; textarea?: boolean }[] = [
   { key: 'nombre_consultorio', label: 'Nombre del consultorio' },
   { key: 'nit', label: 'NIT / Registro fiscal' },
   { key: 'direccion', label: 'Dirección' },
@@ -162,6 +168,40 @@ export default function ConfiguracionPage() {
             className="hidden"
           />
         </div>
+      </div>
+
+      <div className="mb-4 rounded-xl border border-border bg-panel p-5">
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={form.cobra_adelanto_online}
+            onChange={(e) => setForm({ ...form, cobra_adelanto_online: e.target.checked })}
+            className="mt-0.5 h-4 w-4 shrink-0"
+          />
+          <span>
+            <span className="block font-medium">Cobrar adelanto en reservas online</span>
+            <span className="block text-xs text-muted-foreground">
+              Si lo desactivas, las reservas del sitio público se confirman directo, sin pedir pago por QR — el paciente paga el total en la clínica.
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <div className="mb-4 rounded-xl border border-border bg-panel p-5">
+        <label className="flex flex-col gap-1 text-sm sm:max-w-xs">
+          <span className="font-medium">Bs. por cada punto de fidelidad</span>
+          <span className="text-xs text-muted-foreground">
+            Por cada este monto gastado (en citas completadas o ventas), el paciente gana 1 punto de fidelidad.
+          </span>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={form.bs_por_punto}
+            onChange={(e) => setForm({ ...form, bs_por_punto: Number(e.target.value) })}
+            className="mt-1 rounded-lg border border-border px-3 py-2"
+          />
+        </label>
       </div>
 
       <form onSubmit={guardar} className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-panel p-5 sm:grid-cols-2">

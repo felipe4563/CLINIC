@@ -23,6 +23,8 @@ const AutomatizacionConfig = require('./automatizacionConfig');
 const RegistroAsistencia = require('./registroAsistencia');
 const Ausencia = require('./ausencia');
 const ConfiguracionClinica = require('./configuracionClinica');
+const Recompensa = require('./recompensa');
+const MovimientoPuntos = require('./movimientoPuntos');
 
 Rol.hasMany(Usuario, { foreignKey: 'rol_id' });
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id' });
@@ -101,6 +103,14 @@ Usuario.hasMany(Ausencia, { foreignKey: 'usuario_id' });
 
 Ausencia.belongsTo(Usuario, { foreignKey: { name: 'aprobado_por_id', allowNull: true }, as: 'AprobadoPor' });
 
+Paciente.hasMany(MovimientoPuntos, { foreignKey: 'paciente_id' });
+MovimientoPuntos.belongsTo(Paciente, { foreignKey: 'paciente_id' });
+
+MovimientoPuntos.belongsTo(Cita, { foreignKey: { name: 'cita_id', allowNull: true } });
+MovimientoPuntos.belongsTo(Venta, { foreignKey: { name: 'venta_id', allowNull: true } });
+MovimientoPuntos.belongsTo(Recompensa, { foreignKey: { name: 'recompensa_id', allowNull: true } });
+MovimientoPuntos.belongsTo(Usuario, { foreignKey: { name: 'usuario_id', allowNull: true } });
+
 module.exports = {
   sequelize,
   Paciente,
@@ -127,4 +137,6 @@ module.exports = {
   RegistroAsistencia,
   Ausencia,
   ConfiguracionClinica,
+  Recompensa,
+  MovimientoPuntos,
 };

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
+import { mensajeError } from '@/lib/types';
 
 type Slot = { hora_inicio: string; hora_fin: string };
 
@@ -20,17 +21,23 @@ export default function StepHorario() {
   const hoy = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
-    if (servicioId && profesionalId && fecha) {
+    (async () => {
+      if (!servicioId || !profesionalId || !fecha) {
+        setSlots([]);
+        return;
+      }
+
       setLoading(true);
       setError('');
-      api
-        .getDisponibilidad(profesionalId, servicioId, fecha)
-        .then(setSlots)
-        .catch((e) => setError(e.message))
-        .finally(() => setLoading(false));
-    } else {
-      setSlots([]);
-    }
+      try {
+        const data = await api.getDisponibilidad(profesionalId, servicioId, fecha);
+        setSlots(data);
+      } catch (e: unknown) {
+        setError(mensajeError(e));
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [servicioId, profesionalId, fecha]);
 
   function elegir(hora: string) {

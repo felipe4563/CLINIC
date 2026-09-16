@@ -21,8 +21,8 @@ router.get('/profesionales', async (req, res) => {
 
 router.get('/configuracion-publica', async (req, res) => {
   const config = await db.ConfiguracionClinica.obtenerConfig();
-  const { nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url } = config;
-  res.json({ nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url });
+  const { nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url, cobra_adelanto_online } = config;
+  res.json({ nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url, cobra_adelanto_online });
 });
 
 module.exports = router;

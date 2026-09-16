@@ -1,7 +1,9 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
+import { mensajeError } from '@/lib/types';
 
 export default function StepPago() {
   const { citaId, pago, close } = useBooking();
@@ -16,7 +18,7 @@ export default function StepPago() {
     api
       .generarQR(citaId)
       .then((res) => setQr(res.qrImageBase64))
-      .catch((e) => setError(e.message));
+      .catch((e: unknown) => setError(mensajeError(e)));
   }, [citaId]);
 
   useEffect(() => {
@@ -52,8 +54,8 @@ export default function StepPago() {
       } else {
         setError('Todavía no detectamos tu pago. Si ya pagaste, espera unos segundos e intenta de nuevo.');
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(mensajeError(e));
     } finally {
       setVerificando(false);
     }
@@ -84,7 +86,14 @@ export default function StepPago() {
       </h3>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {qr && (
-        <img src={`data:image/png;base64,${qr}`} alt="QR de pago" className="mx-auto mt-6 w-64" />
+        <Image
+          src={`data:image/png;base64,${qr}`}
+          alt="QR de pago"
+          width={256}
+          height={256}
+          unoptimized
+          className="mx-auto mt-6 w-64"
+        />
       )}
       <p className="mt-6 text-sm text-muted">
         Escanea el código con tu app bancaria. Estamos revisando automáticamente si ya llegó tu pago.

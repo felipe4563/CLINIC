@@ -4,7 +4,18 @@ import Image from 'next/image';
 
 type Columna = { titulo: string; items: string[] };
 type Grupo = { titulo: string; descripcion: string; columnas?: Columna[] };
-type Categoria = { numero: string; titulo: string; descripcion: string; imagen: string; grupos: Grupo[] };
+type Icono = 'pulso' | 'onda' | 'movimiento' | 'cruz';
+type Categoria = {
+  numero: string;
+  titulo: string;
+  descripcion: string;
+  imagen: string;
+  grupos: Grupo[];
+  icono?: Icono;
+  respaldo?: string;
+};
+
+const RESPALDO_MEDICO = 'Parte del enfoque integral de ClinicNovagED, con seguimiento médico especializado.';
 
 const categorias: Categoria[] = [
   {
@@ -59,6 +70,8 @@ const categorias: Categoria[] = [
     titulo: 'Ginecología y Obstetricia',
     descripcion: 'Atención integral femenina con enfoque preventivo, diagnóstico y seguimiento especializado.',
     imagen: '/novaged-assets/ginecologia-BjPYN0D4.png',
+    icono: 'pulso',
+    respaldo: RESPALDO_MEDICO,
     grupos: [
       { titulo: 'Consulta ginecológica', descripcion: 'Evaluación ginecológica completa con historial clínico y examen físico.' },
       { titulo: 'Obstetricia', descripcion: 'Seguimiento especializado del embarazo, parto y puerperio.' },
@@ -73,6 +86,8 @@ const categorias: Categoria[] = [
     titulo: 'Ecografía',
     descripcion: 'Servicios de diagnóstico por imagen orientados a evaluación médica precisa y especializada.',
     imagen: '/novaged-assets/ecografia-De6bdoYN.png',
+    icono: 'onda',
+    respaldo: RESPALDO_MEDICO,
     grupos: [
       { titulo: 'Ecografía abdominal', descripcion: 'Evaluación de órganos y estructuras abdominales mediante ultrasonido.' },
       { titulo: 'Ecografía ginecológica', descripcion: 'Diagnóstico de estructuras pélvicas y reproductivas femeninas.' },
@@ -85,6 +100,8 @@ const categorias: Categoria[] = [
     titulo: 'Fisioterapia',
     descripcion: 'Tratamientos terapéuticos orientados a rehabilitación, bienestar físico y recuperación funcional.',
     imagen: '/novaged-assets/fisioterapia-Dya6snx4.png',
+    icono: 'movimiento',
+    respaldo: RESPALDO_MEDICO,
     grupos: [
       { titulo: 'Terapia manual', descripcion: 'Técnicas manuales especializadas para alivio del dolor y recuperación funcional.' },
       { titulo: 'Masajes relajantes', descripcion: 'Sesiones orientadas a reducir tensión muscular y promover bienestar general.' },
@@ -98,6 +115,8 @@ const categorias: Categoria[] = [
     titulo: 'Enfermería',
     descripcion: 'Servicios básicos de apoyo clínico y control médico.',
     imagen: '/novaged-assets/enfermeria-BQQNcDdH.png',
+    icono: 'cruz',
+    respaldo: RESPALDO_MEDICO,
     grupos: [
       { titulo: 'Curaciones', descripcion: 'Tratamiento y seguimiento de heridas y lesiones cutáneas.' },
       { titulo: 'Control de presión arterial', descripcion: 'Medición y registro de valores de tensión arterial.' },
@@ -108,6 +127,45 @@ const categorias: Categoria[] = [
     ],
   },
 ];
+
+function IconoCategoria({ tipo }: { tipo: Icono }) {
+  const props = {
+    className: 'h-4 w-4 text-tan',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.5,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+  switch (tipo) {
+    case 'pulso':
+      return (
+        <svg {...props}>
+          <path d="M12 21s-7-4.35-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.65-9.5 9-9.5 9z" />
+        </svg>
+      );
+    case 'onda':
+      return (
+        <svg {...props}>
+          <path d="M2 12h3l2-7 3 14 3-11 2 4h7" />
+        </svg>
+      );
+    case 'movimiento':
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="5" r="2" />
+          <path d="M12 7v6l-3 8M12 13l3 8M9 10l-4 2M15 10l4 2" />
+        </svg>
+      );
+    case 'cruz':
+      return (
+        <svg {...props}>
+          <path d="M12 4v16M4 12h16" />
+        </svg>
+      );
+  }
+}
 
 function Chevron({ abierto }: { abierto: boolean }) {
   return (
@@ -138,11 +196,21 @@ export default function Tratamientos() {
           <div className={`relative h-[60vh] md:h-screen md:w-1/2 md:sticky md:top-0 ${i % 2 === 1 ? 'md:order-2' : ''}`}>
             <Image src={cat.imagen} alt={cat.titulo} fill priority={i === 0} className="object-cover" />
           </div>
-          <div className="flex md:w-1/2 md:min-h-screen items-center px-6 py-16 md:px-16">
+          <div
+            className={`flex md:w-1/2 md:min-h-screen items-center px-6 py-16 md:px-16 ${
+              cat.icono ? 'bg-[#F5F5F3]' : ''
+            }`}
+          >
             <div className="max-w-md">
-              <p className="text-xs tracking-widest uppercase text-manhattan">{cat.numero}</p>
+              <div className="flex items-center gap-2">
+                {cat.icono && <IconoCategoria tipo={cat.icono} />}
+                <p className="text-xs tracking-widest uppercase text-manhattan">{cat.numero}</p>
+              </div>
               <h2 className="mt-3 font-serif text-4xl md:text-[57.6px] leading-[1] text-espresso">{cat.titulo}</h2>
               <p className="mt-6 max-w-sm text-muted">{cat.descripcion}</p>
+              {cat.respaldo && (
+                <p className="mt-4 max-w-sm border-t border-manhattan/30 pt-4 text-xs text-muted">{cat.respaldo}</p>
+              )}
 
               <button
                 onClick={() => setDetalleAbierto(detalleAbierto === i ? null : i)}

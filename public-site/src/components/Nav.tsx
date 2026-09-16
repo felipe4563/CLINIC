@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import MagneticButton from './MagneticButton';
 
 export default function Nav({ onReservar }: { onReservar: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,16 +44,18 @@ export default function Nav({ onReservar }: { onReservar: () => void }) {
           <a href="#nosotros" className="hover:opacity-70">Nosotros</a>
           <a href="#ubicacion" className="hover:opacity-70">Ubicación</a>
         </nav>
-        <button
-          onClick={onReservar}
-          className={`hidden md:inline-flex rounded-full text-[10px] tracking-[0.2em] uppercase px-7 py-[11px] transition-colors duration-500 ${
-            solid
-              ? 'bg-espresso text-cream hover:bg-tan'
-              : 'border border-cream/40 text-cream hover:border-cream/80'
-          }`}
-        >
-          Reservar Consulta
-        </button>
+        <MagneticButton>
+          <button
+            onClick={onReservar}
+            className={`hidden md:inline-flex rounded-full text-[10px] tracking-[0.2em] uppercase px-7 py-[11px] transition-colors duration-500 ${
+              solid
+                ? 'bg-espresso text-cream hover:bg-tan'
+                : 'border border-cream/40 text-cream hover:border-cream/80'
+            }`}
+          >
+            Reservar Consulta
+          </button>
+        </MagneticButton>
         <button
           onClick={() => setMenuOpen((v) => !v)}
           className={`md:hidden p-2 transition-colors duration-500 ${solid ? 'text-ink' : 'text-cream'}`}

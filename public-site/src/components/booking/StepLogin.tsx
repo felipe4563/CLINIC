@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
+import { mensajeError } from '@/lib/types';
 
 export default function StepLogin() {
   const { setStep } = useBooking();
@@ -29,8 +30,8 @@ export default function StepLogin() {
       const { token } = await api.registro(telefono, nombre, carnet, complemento, expedido);
       api.setToken(token);
       setStep('confirmar');
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(mensajeError(e));
     } finally {
       setCargando(false);
     }
@@ -44,8 +45,8 @@ export default function StepLogin() {
       const { token } = await api.loginConCodigo(codigoCliente.trim(), telefonoCliente.trim());
       api.setToken(token);
       setStep('confirmar');
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(mensajeError(e));
     } finally {
       setCargando(false);
     }

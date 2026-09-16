@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { generarQR, consultarEstadoQR } = require('../services/bancoEconomico');
+const { otorgarPuntosPorGasto } = require('../services/fidelizacion');
 
 const router = express.Router();
 const onlyVentas = requirePermiso('ventas');
@@ -81,6 +82,14 @@ router.post('/staff/ventas', onlyVentas, async (req, res) => {
 
   if (metodoPago === 'efectivo') {
     await registrarIngresoCaja(venta, req.usuarioId);
+    if (venta.paciente_id) {
+      await otorgarPuntosPorGasto({
+        pacienteId: venta.paciente_id,
+        monto: venta.total,
+        motivo: `Venta #${venta.id}`,
+        ventaId: venta.id,
+      });
+    }
     const ventaCompleta = await db.Venta.findByPk(venta.id, { include: [{ model: db.VentaItem, include: [db.Producto] }] });
     return res.status(201).json({ venta: ventaCompleta });
   }
@@ -107,6 +116,14 @@ router.get('/staff/ventas/:id/estado', onlyVentas, async (req, res) => {
   if (pagado) {
     venta.estado = 'pagado';
     await venta.save();
+    if (venta.paciente_id) {
+      await otorgarPuntosPorGasto({
+        pacienteId: venta.paciente_id,
+        monto: venta.total,
+        motivo: `Venta #${venta.id}`,
+        ventaId: venta.id,
+      });
+    }
   }
 
   res.json({ pagado });

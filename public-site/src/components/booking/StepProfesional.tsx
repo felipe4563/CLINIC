@@ -2,25 +2,31 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
+import { Profesional, mensajeError } from '@/lib/types';
 
 export default function StepProfesional() {
   const { servicioId, setProfesionalId, setProfesional, setStep } = useBooking();
-  const [profesionales, setProfesionales] = useState<any[]>([]);
+  const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (servicioId) {
+    if (!servicioId) return;
+
+    (async () => {
       setLoading(true);
-      api
-        .getProfesionales(servicioId)
-        .then(setProfesionales)
-        .catch((e) => setError(e.message))
-        .finally(() => setLoading(false));
-    }
+      try {
+        const data = await api.getProfesionales(servicioId);
+        setProfesionales(data);
+      } catch (e: unknown) {
+        setError(mensajeError(e));
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [servicioId]);
 
-  function elegir(p: any) {
+  function elegir(p: Profesional) {
     setProfesionalId(p.id);
     setProfesional(p);
     setStep('horario');

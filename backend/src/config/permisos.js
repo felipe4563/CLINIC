@@ -27,13 +27,18 @@ const MODULOS = [
     etiqueta: 'Reportes',
     descripcion: 'Ver y exportar en PDF los reportes financieros, de citas, pacientes, ventas y personal',
   },
+  {
+    clave: 'fidelizacion',
+    etiqueta: 'Fidelización',
+    descripcion: 'Ver y ajustar puntos de pacientes, y gestionar el catálogo de recompensas',
+  },
 ];
 
 const CLAVES_VALIDAS = MODULOS.map((m) => m.clave);
 
 const PERMISOS_POR_DEFECTO = {
-  Admin: ['dashboard', 'agenda', 'pacientes', 'catalogo', 'usuarios', 'caja', 'inventario', 'ventas', 'automatizacion', 'personal', 'configuracion', 'reportes'],
-  Recepcion: ['dashboard', 'agenda', 'pacientes', 'caja', 'inventario', 'ventas'],
+  Admin: ['dashboard', 'agenda', 'pacientes', 'catalogo', 'usuarios', 'caja', 'inventario', 'ventas', 'automatizacion', 'personal', 'configuracion', 'reportes', 'fidelizacion'],
+  Recepcion: ['dashboard', 'agenda', 'pacientes', 'caja', 'inventario', 'ventas', 'fidelizacion'],
   Profesional: ['dashboard', 'agenda', 'pacientes'],
 };
 

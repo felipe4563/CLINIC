@@ -165,6 +165,16 @@ export const api = {
   },
   eliminarLogoConfiguracion: () => apiFetch('/staff/configuracion/logo', { method: 'DELETE' }),
 
+  getFidelizacionPaciente: (id) => apiFetch(`/staff/fidelizacion/pacientes/${id}`),
+  ajustarPuntos: (id, datos) =>
+    apiFetch(`/staff/fidelizacion/pacientes/${id}/ajuste`, { method: 'POST', body: JSON.stringify(datos) }),
+  canjearRecompensa: (id, recompensaId) =>
+    apiFetch(`/staff/fidelizacion/pacientes/${id}/canjear`, { method: 'POST', body: JSON.stringify({ recompensaId }) }),
+  getRecompensas: () => apiFetch('/staff/fidelizacion/recompensas'),
+  crearRecompensa: (datos) => apiFetch('/staff/fidelizacion/recompensas', { method: 'POST', body: JSON.stringify(datos) }),
+  actualizarRecompensa: (id, datos) =>
+    apiFetch(`/staff/fidelizacion/recompensas/${id}`, { method: 'PUT', body: JSON.stringify(datos) }),
+
   getReporte: (tipo, params = {}) => {
     const qs = new URLSearchParams(params);
     return apiFetch(`/staff/reportes/${tipo}${qs.toString() ? `?${qs.toString()}` : ''}`);

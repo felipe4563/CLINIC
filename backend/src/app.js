@@ -22,6 +22,7 @@ const staffAutomatizacionRoutes = require('./routes/staffAutomatizacion');
 const staffPersonalRoutes = require('./routes/staffPersonal');
 const staffConfiguracionRoutes = require('./routes/staffConfiguracion');
 const staffReportesRoutes = require('./routes/staffReportes');
+const staffFidelizacionRoutes = require('./routes/staffFidelizacion');
 
 const app = express();
 app.use(cors());
@@ -48,6 +49,7 @@ app.use('/', staffAutomatizacionRoutes);
 app.use('/', staffPersonalRoutes);
 app.use('/', staffConfiguracionRoutes);
 app.use('/', staffReportesRoutes);
+app.use('/', staffFidelizacionRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 

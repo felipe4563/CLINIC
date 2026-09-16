@@ -10,8 +10,7 @@ import Tratamientos from '@/components/Tratamientos';
 import Silencio from '@/components/Silencio';
 import ArtePerfeccion from '@/components/ArtePerfeccion';
 import Nosotros from '@/components/Nosotros';
-import Ubicacion from '@/components/Ubicacion';
-import CtaFinal from '@/components/CtaFinal';
+import Contacto from '@/components/Contacto';
 import Reveal from '@/components/Reveal';
 
 function HomeContent() {
@@ -21,13 +20,12 @@ function HomeContent() {
     <main>
       <Nav onReservar={open} />
       <Hero onReservar={open} />
+      <Reveal><Nosotros /></Reveal>
       <Reveal><EsenciaMarca /></Reveal>
       <Reveal><Tratamientos /></Reveal>
       <Silencio />
       <Reveal><ArtePerfeccion onReservar={open} /></Reveal>
-      <Reveal><Nosotros /></Reveal>
-      <Reveal><Ubicacion /></Reveal>
-      <Reveal><CtaFinal onReservar={open} /></Reveal>
+      <Reveal><Contacto onReservar={open} /></Reveal>
       <Footer />
       <FloatingCta onClick={open} />
       <BookingModal />

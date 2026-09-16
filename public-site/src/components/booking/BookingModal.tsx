@@ -7,6 +7,7 @@ import StepHorario from './StepHorario';
 import StepLogin from './StepLogin';
 import StepConfirmar from './StepConfirmar';
 import StepPago from './StepPago';
+import StepConfirmada from './StepConfirmada';
 
 export default function BookingModal() {
   const { isOpen, close, step } = useBooking();
@@ -57,6 +58,7 @@ export default function BookingModal() {
         {step === 'login' && <StepLogin />}
         {step === 'confirmar' && <StepConfirmar />}
         {step === 'pago' && <StepPago />}
+        {step === 'confirmada' && <StepConfirmada />}
       </div>
     </div>
   );

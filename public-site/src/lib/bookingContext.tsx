@@ -1,7 +1,8 @@
 'use client';
 import { createContext, useContext, useState, ReactNode } from 'react';
+import type { Servicio, Profesional, Pago } from './types';
 
-type Step = 'servicio' | 'profesional' | 'horario' | 'login' | 'confirmar' | 'pago';
+type Step = 'servicio' | 'profesional' | 'horario' | 'login' | 'confirmar' | 'pago' | 'confirmada';
 
 interface BookingState {
   isOpen: boolean;
@@ -11,20 +12,20 @@ interface BookingState {
   setStep: (s: Step) => void;
   servicioId: number | null;
   setServicioId: (id: number | null) => void;
-  servicio: any | null;
-  setServicio: (s: any | null) => void;
+  servicio: Servicio | null;
+  setServicio: (s: Servicio | null) => void;
   profesionalId: number | null;
   setProfesionalId: (id: number | null) => void;
-  profesional: any | null;
-  setProfesional: (p: any | null) => void;
+  profesional: Profesional | null;
+  setProfesional: (p: Profesional | null) => void;
   fecha: string;
   setFecha: (f: string) => void;
   horaInicio: string | null;
   setHoraInicio: (h: string | null) => void;
   citaId: number | null;
   setCitaId: (id: number | null) => void;
-  pago: any | null;
-  setPago: (p: any | null) => void;
+  pago: Pago | null;
+  setPago: (p: Pago | null) => void;
 }
 
 const BookingContext = createContext<BookingState | null>(null);
@@ -33,13 +34,13 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<Step>('servicio');
   const [servicioId, setServicioId] = useState<number | null>(null);
-  const [servicio, setServicio] = useState<any | null>(null);
+  const [servicio, setServicio] = useState<Servicio | null>(null);
   const [profesionalId, setProfesionalId] = useState<number | null>(null);
-  const [profesional, setProfesional] = useState<any | null>(null);
+  const [profesional, setProfesional] = useState<Profesional | null>(null);
   const [fecha, setFecha] = useState('');
   const [horaInicio, setHoraInicio] = useState<string | null>(null);
   const [citaId, setCitaId] = useState<number | null>(null);
-  const [pago, setPago] = useState<any | null>(null);
+  const [pago, setPago] = useState<Pago | null>(null);
 
   function open() {
     setStep('servicio');

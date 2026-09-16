@@ -60,6 +60,16 @@ router.put('/staff/configuracion', onlyConfiguracion, async (req, res) => {
       config[campo] = req.body[campo];
     }
   }
+  if (typeof req.body.cobra_adelanto_online === 'boolean') {
+    config.cobra_adelanto_online = req.body.cobra_adelanto_online;
+  }
+  if (req.body.bs_por_punto !== undefined) {
+    const bsPorPunto = Number(req.body.bs_por_punto);
+    if (!bsPorPunto || bsPorPunto <= 0) {
+      return res.status(400).json({ error: 'bs_por_punto debe ser un numero mayor a cero' });
+    }
+    config.bs_por_punto = bsPorPunto;
+  }
   await config.save();
   res.json(config);
 });
