@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!usuario && !enLogin) {
       router.replace('/login');
     } else if (usuario && (enLogin || pathname === '/')) {
-      router.replace('/dashboard');
+      router.replace('/inicio');
     }
   }, [loading, usuario, pathname, router]);
 
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await api.login(email, password);
     api.setSession(res.token, res.usuario);
     setUsuario(res.usuario);
-    router.replace('/agenda');
+    router.replace('/inicio');
   }
 
   function logout() {

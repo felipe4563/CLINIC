@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useReducedMotion } from 'framer-motion';
 
 const imagenes = [
   '/novaged-assets/espacioNovaged1-QkEOIec4.png',
@@ -11,14 +12,24 @@ const imagenes = [
 
 export default function Silencio() {
   const [activo, setActivo] = useState(0);
+  const [pausado, setPausado] = useState(false);
+  const reducirMovimiento = useReducedMotion();
 
   useEffect(() => {
+    if (pausado || reducirMovimiento) return;
     const id = setInterval(() => setActivo((v) => (v + 1) % imagenes.length), 5000);
     return () => clearInterval(id);
-  }, []);
+  }, [pausado, reducirMovimiento]);
 
   return (
-    <section id="nuestros-espacios" className="relative flex h-screen items-center justify-center overflow-hidden text-cream text-center">
+    <section
+      id="nuestros-espacios"
+      className="relative flex h-screen items-center justify-center overflow-hidden text-cream text-center"
+      onMouseEnter={() => setPausado(true)}
+      onMouseLeave={() => setPausado(false)}
+      onFocus={() => setPausado(true)}
+      onBlur={() => setPausado(false)}
+    >
       {imagenes.map((src, i) => (
         <Image
           key={src}
@@ -39,8 +50,12 @@ export default function Silencio() {
             key={src}
             onClick={() => setActivo(i)}
             aria-label={`Ver imagen ${i + 1}`}
-            className={`h-1.5 rounded-full transition-all duration-300 ${i === activo ? 'w-6 bg-cream' : 'w-1.5 bg-cream/50'}`}
-          />
+            className="flex h-6 w-6 items-center justify-center"
+          >
+            <span
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === activo ? 'w-6 bg-cream' : 'w-1.5 bg-cream/50'}`}
+            />
+          </button>
         ))}
       </div>
     </section>

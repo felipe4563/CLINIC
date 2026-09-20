@@ -2,16 +2,16 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f5f4f2;
-  --foreground: #24211d;
+  --background: #f3eeec;
+  --foreground: #3a2e22;
   --panel: #ffffff;
   --sidebar: #ffffff;
-  --border: #e5e1da;
-  --accent: #8b6f4e;
-  --accent-soft: #f1e9df;
+  --border: #eae2d6;
+  --accent: #73593f;
+  --accent-soft: #efe7dc;
   --accent-foreground: #ffffff;
   --danger: #b3413a;
-  --muted-foreground: #6b6357;
+  --muted-foreground: #7d6b56;
 
   --stat-blue: #2563eb;
   --stat-blue-soft: #eaf0fe;
@@ -23,20 +23,20 @@
   --stat-green-soft: #eaf7ee;
 
   --banner-from: #3a2e22;
-  --banner-to: #8b6f4e;
+  --banner-to: #73593f;
 }
 
 :root.dark {
-  --background: #17140f;
-  --foreground: #f1ede6;
-  --panel: #211c15;
-  --sidebar: #1b170f;
-  --border: #322b20;
-  --accent: #c9a877;
-  --accent-soft: #362c1e;
-  --accent-foreground: #17140f;
+  --background: #1c1611;
+  --foreground: #f3eeec;
+  --panel: #241c15;
+  --sidebar: #1f1811;
+  --border: #3a2e22;
+  --accent: #c5b198;
+  --accent-soft: #33291d;
+  --accent-foreground: #1c1611;
   --danger: #f0837a;
-  --muted-foreground: #b3a892;
+  --muted-foreground: #b7a58c;
 
   --stat-blue: #60a5fa;
   --stat-blue-soft: #1c2942;
@@ -47,7 +47,7 @@
   --stat-green: #4ade80;
   --stat-green-soft: #16301f;
 
-  --banner-from: #1b170f;
+  --banner-from: #1c1611;
   --banner-to: #4a3a26;
 }
 
@@ -79,8 +79,38 @@ body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+html::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 8px;
+  border: 2px solid var(--background);
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent);
+}
+
 a, button {
   cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+  .grid-rows-dynamic-lg {
+    grid-template-rows: repeat(var(--filas), minmax(0, 1fr));
+  }
 }
 
 a:focus-visible,
@@ -120,72 +150,80 @@ textarea:focus-visible {
   display: none;
 }
 
-.login-bg {
+.ambient-bg {
   position: fixed;
   inset: 0;
   overflow: hidden;
   background: var(--background);
 }
 
-.login-bg::before {
+.ambient-bg::before {
   content: "";
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, var(--border) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+    linear-gradient(to right, var(--accent) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--accent) 1px, transparent 1px);
   background-size: 56px 56px;
-  opacity: 0.35;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  opacity: 0.14;
+  mask-image: radial-gradient(ellipse 90% 75% at 50% 0%, black 50%, transparent 100%);
 }
 
-.login-blob {
+.ambient-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 40% 45% at 50% 48%, var(--panel) 0%, transparent 70%);
+  opacity: 0.6;
+}
+
+.ambient-blob {
   position: absolute;
   border-radius: 9999px;
   filter: blur(90px);
 }
 
-.login-blob-1 {
+.ambient-blob-1 {
   left: -10%;
   top: -15%;
   width: 46vw;
   height: 46vw;
   background: var(--banner-to);
-  opacity: 0.35;
-  animation: login-drift-a 26s ease-in-out infinite;
+  opacity: 0.5;
+  animation: ambient-drift-a 26s ease-in-out infinite;
 }
 
-.login-blob-2 {
+.ambient-blob-2 {
   right: -12%;
   bottom: -18%;
   width: 40vw;
   height: 40vw;
   background: var(--accent);
-  opacity: 0.28;
-  animation: login-drift-b 32s ease-in-out infinite;
+  opacity: 0.42;
+  animation: ambient-drift-b 32s ease-in-out infinite;
 }
 
-.login-blob-3 {
+.ambient-blob-3 {
   right: 18%;
   top: 8%;
   width: 24vw;
   height: 24vw;
   background: var(--banner-from);
-  opacity: 0.25;
-  animation: login-drift-c 20s ease-in-out infinite;
+  opacity: 0.38;
+  animation: ambient-drift-c 20s ease-in-out infinite;
 }
 
-@keyframes login-drift-a {
+@keyframes ambient-drift-a {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(6vw, 5vh) scale(1.12); }
 }
 
-@keyframes login-drift-b {
+@keyframes ambient-drift-b {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(-5vw, -6vh) scale(1.08); }
 }
 
-@keyframes login-drift-c {
+@keyframes ambient-drift-c {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(-4vw, 4vh) scale(0.9); }
 }

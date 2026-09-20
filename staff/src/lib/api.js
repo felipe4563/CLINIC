@@ -155,6 +155,7 @@ export const api = {
   actualizarEstadoAusencia: (id, estado) =>
     apiFetch(`/staff/ausencias/${id}/estado`, { method: 'PATCH', body: JSON.stringify({ estado }) }),
 
+  getConfiguracionPublica: () => apiFetch('/configuracion-publica'),
   getConfiguracion: () => apiFetch('/staff/configuracion'),
   actualizarConfiguracion: (datos) =>
     apiFetch('/staff/configuracion', { method: 'PUT', body: JSON.stringify(datos) }),

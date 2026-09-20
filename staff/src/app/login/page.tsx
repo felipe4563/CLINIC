@@ -46,10 +46,10 @@ export default function LoginPage() {
 
   return (
     <div className="no-scrollbar fixed inset-0 flex items-center justify-center overflow-y-auto px-4 py-10 sm:px-6">
-      <div className="login-bg" aria-hidden>
-        <div className="login-blob login-blob-1" />
-        <div className="login-blob login-blob-2" />
-        <div className="login-blob login-blob-3" />
+      <div className="ambient-bg" aria-hidden>
+        <div className="ambient-blob ambient-blob-1" />
+        <div className="ambient-blob ambient-blob-2" />
+        <div className="ambient-blob ambient-blob-3" />
       </div>
 
       <button
