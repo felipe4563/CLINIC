@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { api } from './api';
+import { GRUPOS_NAV } from './navItems';
 
 type Usuario = { id: number; nombre: string; email: string; rol: string; permisos: string[] };
 
@@ -32,8 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const enLogin = pathname === '/login';
     if (!usuario && !enLogin) {
       router.replace('/login');
-    } else if (usuario && (enLogin || pathname === '/')) {
+      return;
+    }
+    if (usuario && (enLogin || pathname === '/')) {
       router.replace('/inicio');
+      return;
+    }
+    if (usuario && pathname !== '/inicio') {
+      const item = GRUPOS_NAV.flatMap((g) => g.items).find(
+        (i) => i.href !== '/inicio' && pathname.startsWith(i.href),
+      );
+      if (item && !usuario.permisos?.includes(item.permiso)) {
+        router.replace('/inicio');
+      }
     }
   }, [loading, usuario, pathname, router]);
 

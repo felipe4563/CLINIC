@@ -198,7 +198,7 @@ export default function Tratamientos() {
           </div>
           <div
             className={`flex md:w-1/2 md:min-h-screen items-center px-6 py-16 md:px-16 ${
-              cat.icono ? 'bg-[#F5F5F3]' : ''
+              cat.icono ? 'bg-pearl' : ''
             }`}
           >
             <div className="max-w-md">

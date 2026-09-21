@@ -35,7 +35,7 @@ export default function Contacto({ onReservar }: { onReservar: () => void }) {
   const mapsQuery = encodeURIComponent(direccion);
 
   return (
-    <section id="ubicacion" className="bg-[#1a1109] text-cream">
+    <section id="ubicacion" className="bg-espresso-950 text-cream">
       <div className="px-6 py-28 text-center">
         <p className="text-xs tracking-widest uppercase text-manhattan">Dé el primer paso</p>
         <h2 className="mt-6 font-serif text-5xl md:text-7xl xl:text-[80px] font-bold not-italic">

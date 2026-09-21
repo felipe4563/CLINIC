@@ -10,7 +10,7 @@ const puntos = [
 
 export default function ArtePerfeccion({ onReservar }: { onReservar: () => void }) {
   return (
-    <section className="bg-[#2d241e] text-cream md:flex md:min-h-screen">
+    <section className="bg-espresso-900 text-cream md:flex md:min-h-screen">
       <div className="flex md:min-h-screen md:w-1/2 items-center px-6 py-20 md:px-16">
         <div>
           <p className="text-xs tracking-widest uppercase text-manhattan/60">¿Por qué elegirnos?</p>
@@ -48,7 +48,7 @@ export default function ArtePerfeccion({ onReservar }: { onReservar: () => void 
           fill
           className="object-cover"
         />
-        <blockquote className="absolute inset-x-6 bottom-10 rounded-lg bg-[#2d241e]/90 p-8 shadow-xl backdrop-blur-sm md:inset-x-auto md:left-10 md:right-auto md:w-80">
+        <blockquote className="absolute inset-x-6 bottom-10 rounded-lg bg-espresso-900/90 p-8 shadow-xl backdrop-blur-sm md:inset-x-auto md:left-10 md:right-auto md:w-80">
           <p className="font-serif italic text-xl text-cream">
             &ldquo;La verdadera belleza reside en la armonía, no en el cambio
             drástico.&rdquo;

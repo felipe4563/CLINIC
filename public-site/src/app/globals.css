@@ -8,6 +8,10 @@
   --color-manhattan: #C5B198;/* su "manhattan": acento suave, texto secundario sobre fondo oscuro */
   --color-ink: #3A2E22;
   --color-muted: #73593F;
+  --color-neutral-cream: #EAE2D6; /* su "neutral cream": paneles suaves sobre fondo claro */
+  --color-pearl: #F5F5F3;         /* variante casi-blanca para chips/iconos sobre fondo claro */
+  --color-espresso-900: #2D241E;  /* marron muy oscuro para secciones full-bleed */
+  --color-espresso-950: #1A1109;  /* el mas oscuro de la familia espresso, casi negro */
   --font-serif: "Bodoni Moda", "Bodoni Moda Fallback", Georgia, serif;
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }

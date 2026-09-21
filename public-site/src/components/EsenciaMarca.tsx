@@ -6,7 +6,7 @@ const pilares = [
 
 export default function EsenciaMarca() {
   return (
-    <section id="esencia" className="bg-[#EAE2D6] px-6 py-28">
+    <section id="esencia" className="bg-neutral-cream px-6 py-28">
       <div className="mx-auto max-w-5xl text-center">
         <p className="text-xs tracking-widest uppercase text-manhattan">Esencia de Marca</p>
         <h2 className="mt-4 font-serif text-4xl md:text-5xl xl:text-[64px] text-espresso">

@@ -126,13 +126,8 @@ export default function AutomatizacionPage() {
               style={{ background: config?.[t.clave] ? 'var(--accent)' : 'var(--border)' }}
             >
               <span
-                className="absolute top-0.5 h-5 w-5 rounded-full transition-transform"
-                style={{
-                  left: 2,
-                  background: '#ffffff',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-                  transform: config?.[t.clave] ? 'translateX(20px)' : 'translateX(0)',
-                }}
+                className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-transform"
+                style={{ transform: config?.[t.clave] ? 'translateX(20px)' : 'translateX(0)' }}
               />
             </button>
           </div>
