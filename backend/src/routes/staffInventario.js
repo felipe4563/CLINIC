@@ -1,10 +1,53 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
+const multer = require('multer');
 const { Op } = require('sequelize');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 
 const router = express.Router();
 const onlyInventario = requirePermiso('inventario');
+
+const PRODUCTOS_DIR = path.join(__dirname, '..', '..', 'uploads', 'productos');
+fs.mkdirSync(PRODUCTOS_DIR, { recursive: true });
+
+const ACTIVOS_DIR = path.join(__dirname, '..', '..', 'uploads', 'activos');
+fs.mkdirSync(ACTIVOS_DIR, { recursive: true });
+
+const EXT_POR_MIME = {
+  'image/png': '.png',
+  'image/jpeg': '.jpg',
+  'image/webp': '.webp',
+};
+
+function crearUploaderImagen(dir, prefijo) {
+  return multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => cb(null, dir),
+      filename: (req, file, cb) => cb(null, `${prefijo}-${req.params.id}-${Date.now()}${EXT_POR_MIME[file.mimetype]}`),
+    }),
+    limits: { fileSize: 3 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      if (!EXT_POR_MIME[file.mimetype]) return cb(new Error('Formato no soportado. Usa PNG, JPG o WEBP.'));
+      cb(null, true);
+    },
+  });
+}
+
+function crearBorradorImagen(dir, subcarpeta) {
+  return function borrarImagen(imagenUrl) {
+    if (!imagenUrl || !imagenUrl.startsWith(`/uploads/${subcarpeta}/`)) return;
+    const archivo = path.join(dir, path.basename(imagenUrl));
+    fs.unlink(archivo, () => {});
+  };
+}
+
+const uploadImagenProducto = crearUploaderImagen(PRODUCTOS_DIR, 'producto');
+const borrarImagenProducto = crearBorradorImagen(PRODUCTOS_DIR, 'productos');
+
+const uploadImagenActivo = crearUploaderImagen(ACTIVOS_DIR, 'activo');
+const borrarImagenActivo = crearBorradorImagen(ACTIVOS_DIR, 'activos');
 
 // --- Marcas ---
 
@@ -117,8 +160,34 @@ router.delete('/staff/productos/:id', onlyInventario, async (req, res) => {
     return res.status(409).json({ error: 'No se puede eliminar: el producto tiene ventas registradas. Desactívalo en su lugar.' });
   }
 
+  borrarImagenProducto(producto.imagen_url);
   await producto.destroy();
   res.status(204).end();
+});
+
+router.post('/staff/productos/:id/imagen', onlyInventario, async (req, res) => {
+  const producto = await db.Producto.findByPk(req.params.id);
+  if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
+
+  uploadImagenProducto.single('imagen')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo' });
+
+    borrarImagenProducto(producto.imagen_url);
+    producto.imagen_url = `/uploads/productos/${req.file.filename}`;
+    await producto.save();
+    res.json(producto);
+  });
+});
+
+router.delete('/staff/productos/:id/imagen', onlyInventario, async (req, res) => {
+  const producto = await db.Producto.findByPk(req.params.id);
+  if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
+
+  borrarImagenProducto(producto.imagen_url);
+  producto.imagen_url = null;
+  await producto.save();
+  res.json(producto);
 });
 
 // --- Activos de la clinica ---
@@ -184,8 +253,34 @@ router.post('/staff/activos/:id/baja', onlyInventario, async (req, res) => {
 router.delete('/staff/activos/:id', onlyInventario, async (req, res) => {
   const activo = await db.ActivoClinica.findByPk(req.params.id);
   if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
+  borrarImagenActivo(activo.imagen_url);
   await activo.destroy();
   res.status(204).end();
+});
+
+router.post('/staff/activos/:id/imagen', onlyInventario, async (req, res) => {
+  const activo = await db.ActivoClinica.findByPk(req.params.id);
+  if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
+
+  uploadImagenActivo.single('imagen')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo' });
+
+    borrarImagenActivo(activo.imagen_url);
+    activo.imagen_url = `/uploads/activos/${req.file.filename}`;
+    await activo.save();
+    res.json(activo);
+  });
+});
+
+router.delete('/staff/activos/:id/imagen', onlyInventario, async (req, res) => {
+  const activo = await db.ActivoClinica.findByPk(req.params.id);
+  if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
+
+  borrarImagenActivo(activo.imagen_url);
+  activo.imagen_url = null;
+  await activo.save();
+  res.json(activo);
 });
 
 module.exports = router;

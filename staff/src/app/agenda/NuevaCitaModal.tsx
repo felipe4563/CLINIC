@@ -87,8 +87,14 @@ export default function NuevaCitaModal({
   }, []);
 
   useEffect(() => {
-    buscarPacientes('');
-  }, [buscarPacientes]);
+    const texto = q.trim();
+    if (texto.length < 2) {
+      setResultados([]);
+      return;
+    }
+    const id = setTimeout(() => buscarPacientes(texto), 300);
+    return () => clearTimeout(id);
+  }, [q, buscarPacientes]);
 
   async function crearPacienteNuevo(e: FormEvent) {
     e.preventDefault();
@@ -177,10 +183,7 @@ export default function NuevaCitaModal({
                 type="search"
                 placeholder="Buscar paciente por nombre, teléfono o carnet…"
                 value={q}
-                onChange={(e) => {
-                  setQ(e.target.value);
-                  buscarPacientes(e.target.value);
-                }}
+                onChange={(e) => setQ(e.target.value)}
                 className="mb-2 w-full rounded border border-border px-3 py-1.5 text-sm"
               />
               <div className="thin-scroll mb-2 flex max-h-36 flex-col gap-1 overflow-y-auto">
@@ -193,7 +196,12 @@ export default function NuevaCitaModal({
                     {p.nombre_completo} · {p.telefono}
                   </button>
                 ))}
-                {resultados.length === 0 && <p className="text-xs text-muted-foreground">Sin resultados.</p>}
+                {resultados.length === 0 && q.trim().length < 2 && (
+                  <p className="text-xs text-muted-foreground">Escribe al menos 2 letras para buscar.</p>
+                )}
+                {resultados.length === 0 && q.trim().length >= 2 && (
+                  <p className="text-xs text-muted-foreground">Sin resultados.</p>
+                )}
               </div>
               <button onClick={() => setMostrarNuevoPaciente(true)} className="text-sm text-accent hover:underline">
                 + Crear paciente nuevo

@@ -105,6 +105,12 @@ export const api = {
   crearProducto: (datos) => apiFetch('/staff/productos', { method: 'POST', body: JSON.stringify(datos) }),
   actualizarProducto: (id, datos) => apiFetch(`/staff/productos/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
   eliminarProducto: (id) => apiFetch(`/staff/productos/${id}`, { method: 'DELETE' }),
+  subirImagenProducto: (id, archivo) => {
+    const formData = new FormData();
+    formData.append('imagen', archivo);
+    return apiFetch(`/staff/productos/${id}/imagen`, { method: 'POST', body: formData });
+  },
+  eliminarImagenProducto: (id) => apiFetch(`/staff/productos/${id}/imagen`, { method: 'DELETE' }),
 
   getMarcas: () => apiFetch('/staff/marcas'),
   crearMarca: (nombre) => apiFetch('/staff/marcas', { method: 'POST', body: JSON.stringify({ nombre }) }),
@@ -124,11 +130,25 @@ export const api = {
   actualizarActivo: (id, datos) => apiFetch(`/staff/activos/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
   darDeBajaActivo: (id, motivo) => apiFetch(`/staff/activos/${id}/baja`, { method: 'POST', body: JSON.stringify({ motivo }) }),
   eliminarActivo: (id) => apiFetch(`/staff/activos/${id}`, { method: 'DELETE' }),
+  subirImagenActivo: (id, archivo) => {
+    const formData = new FormData();
+    formData.append('imagen', archivo);
+    return apiFetch(`/staff/activos/${id}/imagen`, { method: 'POST', body: formData });
+  },
+  eliminarImagenActivo: (id) => apiFetch(`/staff/activos/${id}/imagen`, { method: 'DELETE' }),
 
   getVentas: (fecha) => apiFetch(`/staff/ventas${fecha ? `?fecha=${fecha}` : ''}`),
   crearVenta: (datos) => apiFetch('/staff/ventas', { method: 'POST', body: JSON.stringify(datos) }),
   estadoVentaQR: (id) => apiFetch(`/staff/ventas/${id}/estado`),
   cancelarVenta: (id) => apiFetch(`/staff/ventas/${id}`, { method: 'DELETE' }),
+
+  getProveedores: () => apiFetch('/staff/proveedores'),
+  crearProveedor: (datos) => apiFetch('/staff/proveedores', { method: 'POST', body: JSON.stringify(datos) }),
+  eliminarProveedor: (id) => apiFetch(`/staff/proveedores/${id}`, { method: 'DELETE' }),
+
+  getCompras: (fecha) => apiFetch(`/staff/compras${fecha ? `?fecha=${fecha}` : ''}`),
+  crearCompra: (datos) => apiFetch('/staff/compras', { method: 'POST', body: JSON.stringify(datos) }),
+  cancelarCompra: (id) => apiFetch(`/staff/compras/${id}`, { method: 'DELETE' }),
 
   getAutomatizacion: () => apiFetch('/staff/automatizacion'),
   actualizarAutomatizacion: (datos) =>
@@ -224,10 +244,20 @@ export const api = {
   eliminarRol: (id) => apiFetch(`/staff/roles/${id}`, { method: 'DELETE' }),
   getPermisosDisponibles: () => apiFetch('/staff/permisos-disponibles'),
 
+  subirAvatar: (archivo) => {
+    const formData = new FormData();
+    formData.append('avatar', archivo);
+    return apiFetch('/staff/perfil/avatar', { method: 'POST', body: formData });
+  },
+  eliminarAvatar: () => apiFetch('/staff/perfil/avatar', { method: 'DELETE' }),
+  cambiarPassword: (passwordActual, passwordNueva) =>
+    apiFetch('/staff/perfil/password', { method: 'POST', body: JSON.stringify({ passwordActual, passwordNueva }) }),
+
   setSession: (token, usuario) => {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(usuario));
   },
+  getTokenActual: () => getToken(),
   getUsuarioActual: () => {
     if (typeof window === 'undefined') return null;
     const raw = localStorage.getItem(USER_KEY);

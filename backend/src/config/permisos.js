@@ -7,6 +7,7 @@ const MODULOS = [
   { clave: 'caja', etiqueta: 'Caja', descripcion: 'Registrar ingresos y egresos de efectivo, y ver el cierre de caja del día' },
   { clave: 'inventario', etiqueta: 'Inventario', descripcion: 'Gestionar productos y activos de la clínica' },
   { clave: 'ventas', etiqueta: 'Ventas (POS)', descripcion: 'Vender productos en el punto de venta' },
+  { clave: 'compras', etiqueta: 'Compras', descripcion: 'Registrar compras a proveedores y reponer stock de productos' },
   {
     clave: 'automatizacion',
     etiqueta: 'Automatización',
@@ -37,8 +38,8 @@ const MODULOS = [
 const CLAVES_VALIDAS = MODULOS.map((m) => m.clave);
 
 const PERMISOS_POR_DEFECTO = {
-  Admin: ['dashboard', 'agenda', 'pacientes', 'catalogo', 'usuarios', 'caja', 'inventario', 'ventas', 'automatizacion', 'personal', 'configuracion', 'reportes', 'fidelizacion'],
-  Recepcion: ['dashboard', 'agenda', 'pacientes', 'caja', 'inventario', 'ventas', 'fidelizacion'],
+  Admin: ['dashboard', 'agenda', 'pacientes', 'catalogo', 'usuarios', 'caja', 'inventario', 'ventas', 'compras', 'automatizacion', 'personal', 'configuracion', 'reportes', 'fidelizacion'],
+  Recepcion: ['dashboard', 'agenda', 'pacientes', 'caja', 'inventario', 'ventas', 'compras', 'fidelizacion'],
   Profesional: ['dashboard', 'agenda', 'pacientes'],
 };
 

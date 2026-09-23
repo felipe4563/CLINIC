@@ -25,6 +25,9 @@ const Ausencia = require('./ausencia');
 const ConfiguracionClinica = require('./configuracionClinica');
 const Recompensa = require('./recompensa');
 const MovimientoPuntos = require('./movimientoPuntos');
+const Proveedor = require('./proveedor');
+const Compra = require('./compra');
+const CompraItem = require('./compraItem');
 
 Rol.hasMany(Usuario, { foreignKey: 'rol_id' });
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id' });
@@ -111,6 +114,21 @@ MovimientoPuntos.belongsTo(Venta, { foreignKey: { name: 'venta_id', allowNull: t
 MovimientoPuntos.belongsTo(Recompensa, { foreignKey: { name: 'recompensa_id', allowNull: true } });
 MovimientoPuntos.belongsTo(Usuario, { foreignKey: { name: 'usuario_id', allowNull: true } });
 
+Compra.belongsTo(Usuario, { foreignKey: { name: 'usuario_id', allowNull: false } });
+Usuario.hasMany(Compra, { foreignKey: 'usuario_id' });
+
+Compra.belongsTo(Proveedor, { foreignKey: { name: 'proveedor_id', allowNull: true } });
+Proveedor.hasMany(Compra, { foreignKey: 'proveedor_id' });
+
+Compra.hasMany(CompraItem, { foreignKey: { name: 'compra_id', allowNull: false } });
+CompraItem.belongsTo(Compra, { foreignKey: 'compra_id' });
+
+CompraItem.belongsTo(Producto, { foreignKey: { name: 'producto_id', allowNull: false } });
+Producto.hasMany(CompraItem, { foreignKey: 'producto_id' });
+
+MovimientoCaja.belongsTo(Compra, { foreignKey: { name: 'compra_id', allowNull: true } });
+Compra.hasOne(MovimientoCaja, { foreignKey: 'compra_id' });
+
 module.exports = {
   sequelize,
   Paciente,
@@ -139,4 +157,7 @@ module.exports = {
   ConfiguracionClinica,
   Recompensa,
   MovimientoPuntos,
+  Proveedor,
+  Compra,
+  CompraItem,
 };

@@ -2,16 +2,25 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { IconTrash } from '@/components/icons';
+import { IconTrash, IconPhoto } from '@/components/icons';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 type Producto = {
   id: number;
   nombre: string;
   Marca: { nombre: string } | null;
   stock: number;
+  stock_minimo: number;
   precio_venta: string;
+  imagen_url: string | null;
   activo: boolean;
 };
+
+function imagenSrc(imagenUrl: string | null) {
+  if (!imagenUrl) return null;
+  return imagenUrl.startsWith('/uploads/') ? `${API_URL}${imagenUrl}` : imagenUrl;
+}
 
 type ItemCarrito = { producto: Producto; cantidad: number };
 
@@ -197,20 +206,61 @@ export default function VentasPage() {
             onChange={(e) => setQ(e.target.value)}
             className="mb-3 w-full rounded border border-border px-3 py-2 text-sm"
           />
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
-            {productosFiltrados.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => agregarAlCarrito(p)}
-                disabled={p.stock === 0}
-                className="rounded-lg border border-border bg-panel p-3 text-left text-sm hover:border-accent disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <p className="truncate font-medium">{p.nombre}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{p.Marca?.nombre}</p>
-                <p className="mt-1.5 text-sm font-medium text-accent">Bs {p.precio_venta}</p>
-                <p className="text-xs text-muted-foreground">Stock: {p.stock}</p>
-              </button>
-            ))}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+            {productosFiltrados.map((p) => {
+              const enCarrito = carrito.find((i) => i.producto.id === p.id)?.cantidad || 0;
+              const stockBajo = p.stock > 0 && p.stock <= p.stock_minimo;
+              const src = imagenSrc(p.imagen_url);
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => agregarAlCarrito(p)}
+                  disabled={p.stock === 0}
+                  className="group relative overflow-hidden rounded-xl border border-border bg-panel text-left shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-accent hover:shadow-md active:translate-y-0 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden bg-accent-soft">
+                    {src ? (
+                      <img
+                        src={src}
+                        alt={p.nombre}
+                        className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 ${p.stock === 0 ? 'grayscale' : ''}`}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-accent/50">
+                        <IconPhoto className="h-8 w-8" />
+                      </div>
+                    )}
+
+                    {enCarrito > 0 && (
+                      <span className="absolute left-1.5 top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-accent-foreground shadow">
+                        {enCarrito}
+                      </span>
+                    )}
+
+                    {stockBajo && p.stock > 0 && (
+                      <span className="absolute right-1.5 top-1.5 rounded-full bg-stat-rose-soft px-2 py-0.5 text-[10px] font-medium text-stat-rose shadow-sm">
+                        Quedan {p.stock}
+                      </span>
+                    )}
+
+                    {p.stock === 0 && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-panel/70">
+                        <span className="rounded-full bg-panel px-2.5 py-1 text-[11px] font-semibold text-muted-foreground shadow">Agotado</span>
+                      </div>
+                    )}
+
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4">
+                      <p className="text-sm font-semibold text-white">Bs {p.precio_venta}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-2">
+                    <p className="truncate text-sm font-medium">{p.nombre}</p>
+                    <p className="truncate text-xs text-muted-foreground">{p.Marca?.nombre || 'Sin marca'}</p>
+                  </div>
+                </button>
+              );
+            })}
             {productosFiltrados.length === 0 && <p className="col-span-full text-sm text-muted-foreground">Sin productos disponibles.</p>}
           </div>
         </div>
@@ -218,8 +268,13 @@ export default function VentasPage() {
         <div className="flex flex-col rounded-lg border border-border bg-panel p-3">
           <p className="mb-2 text-sm font-semibold">Carrito</p>
           <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
-            {carrito.map((i) => (
+            {carrito.map((i) => {
+              const src = imagenSrc(i.producto.imagen_url);
+              return (
               <div key={i.producto.id} className="flex items-center justify-between gap-2 text-sm">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-accent-soft">
+                  {src ? <img src={src} alt={i.producto.nombre} className="h-full w-full object-cover" /> : <IconPhoto className="h-4 w-4 text-accent/50" />}
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate">{i.producto.nombre}</p>
                   <p className="text-xs text-muted-foreground">Bs {i.producto.precio_venta} c/u</p>
@@ -237,7 +292,8 @@ export default function VentasPage() {
                   <IconTrash className="h-4 w-4" />
                 </button>
               </div>
-            ))}
+              );
+            })}
             {carrito.length === 0 && <p className="text-xs text-muted-foreground">Toca un producto para agregarlo.</p>}
           </div>
 

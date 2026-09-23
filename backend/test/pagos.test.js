@@ -11,6 +11,7 @@ const db = require('../src/models');
 const app = require('../src/app');
 const { enviarPlantillaWhatsApp } = require('../src/services/whatsapp');
 const { consultarEstadoQR } = require('../src/services/bancoEconomico');
+const { proximoLunes } = require('./helpers/fechas');
 
 async function loginPaciente(telefono) {
   await request(app).post('/auth/otp/request').send({ telefono, nombre_completo: 'Test' });
@@ -21,6 +22,8 @@ async function loginPaciente(telefono) {
 
 describe('pagos routes', () => {
   let cita, token;
+  const lunes = proximoLunes(0);
+  const lunesSiguiente = proximoLunes(1);
 
   beforeAll(async () => {
     await db.sequelize.sync({ force: true });
@@ -35,7 +38,7 @@ describe('pagos routes', () => {
     const bookRes = await request(app)
       .post('/citas')
       .set('Authorization', `Bearer ${token}`)
-      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: '2026-09-14', horaInicio: '09:00' });
+      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00' });
     cita = bookRes.body.cita;
   });
 
@@ -120,7 +123,7 @@ describe('pagos routes', () => {
       const bookRes = await request(app)
         .post('/citas')
         .set('Authorization', `Bearer ${token}`)
-        .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: '2026-09-21', horaInicio: '09:00' });
+        .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunesSiguiente, horaInicio: '09:00' });
       cita2 = bookRes.body.cita;
 
       await db.Pago.update({ referencia_qr_banco: 'QR-456' }, { where: { cita_id: cita2.id } });
@@ -131,7 +134,7 @@ describe('pagos routes', () => {
       const otraCita = await request(app)
         .post('/citas')
         .set('Authorization', `Bearer ${token}`)
-        .send({ profesionalId: cita2.profesional_id, servicioId: cita2.servicio_id, fecha: '2026-09-21', horaInicio: '09:30' });
+        .send({ profesionalId: cita2.profesional_id, servicioId: cita2.servicio_id, fecha: lunesSiguiente, horaInicio: '09:30' });
 
       const res = await request(app)
         .get(`/pagos/${otraCita.body.cita.id}/estado`)

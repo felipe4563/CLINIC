@@ -7,6 +7,8 @@ import { useAuth } from '@/lib/authContext';
 import { useTheme } from '@/lib/themeContext';
 import { IconMenu, IconSun, IconMoon, IconLogout, IconHome } from './icons';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+
 function iniciales(nombre: string) {
   return nombre
     .trim()
@@ -16,9 +18,13 @@ function iniciales(nombre: string) {
     .join('');
 }
 
+function avatarSrc(avatarUrl?: string | null) {
+  if (!avatarUrl) return null;
+  return avatarUrl.startsWith('/uploads/') ? `${API_URL}${avatarUrl}` : avatarUrl;
+}
+
 function MenuUsuario() {
   const { usuario, logout } = useAuth();
-  const { dark, toggle } = useTheme();
   const [abierto, setAbierto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -40,6 +46,8 @@ function MenuUsuario() {
 
   if (!usuario) return null;
 
+  const src = avatarSrc(usuario.avatar_url);
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -49,9 +57,13 @@ function MenuUsuario() {
         aria-label="Menú de usuario"
         className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-accent-soft"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
-          {iniciales(usuario.nombre)}
-        </span>
+        {src ? (
+          <img src={src} alt={usuario.nombre} className="h-8 w-8 rounded-full object-cover" />
+        ) : (
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
+            {iniciales(usuario.nombre)}
+          </span>
+        )}
         <div className="hidden text-left leading-tight sm:block">
           <p className="text-sm font-medium">{usuario.nombre}</p>
           <p className="text-xs text-muted-foreground">{usuario.rol}</p>
@@ -67,14 +79,14 @@ function MenuUsuario() {
             <p className="text-sm font-medium">{usuario.nombre}</p>
             <p className="text-xs text-muted-foreground">{usuario.rol}</p>
           </div>
-          <button
+          <Link
+            href="/perfil"
             role="menuitem"
-            onClick={toggle}
+            onClick={() => setAbierto(false)}
             className="flex w-full items-center gap-2 px-3 pt-2 text-sm hover:bg-accent-soft"
           >
-            {dark ? <IconSun className="h-4 w-4" /> : <IconMoon className="h-4 w-4" />}
-            {dark ? 'Modo claro' : 'Modo oscuro'}
-          </button>
+            Mi perfil
+          </Link>
           <button
             role="menuitem"
             onClick={logout}
@@ -86,6 +98,21 @@ function MenuUsuario() {
         </div>
       )}
     </div>
+  );
+}
+
+function BotonTema() {
+  const { dark, toggle } = useTheme();
+
+  return (
+    <button
+      onClick={toggle}
+      aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      title={dark ? 'Modo claro' : 'Modo oscuro'}
+      className="rounded-lg p-2 text-foreground/70 hover:bg-accent-soft hover:text-foreground"
+    >
+      {dark ? <IconSun className="h-5 w-5" /> : <IconMoon className="h-5 w-5" />}
+    </button>
   );
 }
 
@@ -114,7 +141,10 @@ export default function Topbar({ onToggleSidebar }: { onToggleSidebar: () => voi
         </Link>
       </div>
 
-      <MenuUsuario />
+      <div className="flex items-center gap-2">
+        <BotonTema />
+        <MenuUsuario />
+      </div>
     </header>
   );
 }

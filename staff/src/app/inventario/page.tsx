@@ -17,11 +17,13 @@ export default function InventarioPage() {
   const [categorias, setCategorias] = useState<Etiqueta[]>([]);
   const [formProductoAbierto, setFormProductoAbierto] = useState(false);
   const [nuevoProducto, setNuevoProducto] = useState(VACIO_PRODUCTO);
+  const [imagenProducto, setImagenProducto] = useState<File | null>(null);
   const [guardandoProducto, setGuardandoProducto] = useState(false);
 
   const [activos, setActivos] = useState<Activo[]>([]);
   const [formActivoAbierto, setFormActivoAbierto] = useState(false);
   const [nuevoActivo, setNuevoActivo] = useState(VACIO_ACTIVO);
+  const [imagenActivo, setImagenActivo] = useState<File | null>(null);
   const [guardandoActivo, setGuardandoActivo] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +54,7 @@ export default function InventarioPage() {
     setGuardandoProducto(true);
     setError(null);
     try {
-      await api.crearProducto({
+      const creado = await api.crearProducto({
         nombre: nuevoProducto.nombre,
         marcaId: nuevoProducto.marcaId ? Number(nuevoProducto.marcaId) : null,
         categoriaId: nuevoProducto.categoriaId ? Number(nuevoProducto.categoriaId) : null,
@@ -60,7 +62,11 @@ export default function InventarioPage() {
         precio_venta: Number(nuevoProducto.precio_venta),
         fecha_vencimiento: nuevoProducto.fecha_vencimiento || null,
       });
+      if (imagenProducto) {
+        await api.subirImagenProducto(creado.id, imagenProducto);
+      }
       setNuevoProducto(VACIO_PRODUCTO);
+      setImagenProducto(null);
       setFormProductoAbierto(false);
       cargar();
     } catch (err) {
@@ -75,13 +81,17 @@ export default function InventarioPage() {
     setGuardandoActivo(true);
     setError(null);
     try {
-      await api.crearActivo({
+      const creado = await api.crearActivo({
         nombre: nuevoActivo.nombre,
         categoria: nuevoActivo.categoria || null,
         marca: nuevoActivo.marca || null,
         ubicacion: nuevoActivo.ubicacion || null,
       });
+      if (imagenActivo) {
+        await api.subirImagenActivo(creado.id, imagenActivo);
+      }
       setNuevoActivo(VACIO_ACTIVO);
+      setImagenActivo(null);
       setFormActivoAbierto(false);
       cargar();
     } catch (err) {
@@ -234,6 +244,15 @@ export default function InventarioPage() {
                 className="rounded border border-border px-2.5 py-1.5"
                 title="Fecha de vencimiento (opcional)"
               />
+              <label className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 text-xs text-muted-foreground">
+                <span className="shrink-0">Imagen (opcional)</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(e) => setImagenProducto(e.target.files?.[0] || null)}
+                  className="min-w-0 flex-1 text-xs"
+                />
+              </label>
               <button
                 type="submit"
                 disabled={guardandoProducto}
@@ -294,6 +313,15 @@ export default function InventarioPage() {
                 onChange={(e) => setNuevoActivo({ ...nuevoActivo, ubicacion: e.target.value })}
                 className="rounded border border-border px-2.5 py-1.5"
               />
+              <label className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 text-xs text-muted-foreground">
+                <span className="shrink-0">Imagen (opcional)</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(e) => setImagenActivo(e.target.files?.[0] || null)}
+                  className="min-w-0 flex-1 text-xs"
+                />
+              </label>
               <button
                 type="submit"
                 disabled={guardandoActivo}

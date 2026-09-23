@@ -1,9 +1,11 @@
 const request = require('supertest');
 const db = require('../src/models');
 const app = require('../src/app');
+const { proximoLunes } = require('./helpers/fechas');
 
 describe('catalogo + disponibilidad routes', () => {
   let profesional, servicio;
+  const lunes = proximoLunes(0);
 
   beforeAll(async () => {
     await db.sequelize.sync({ force: true });
@@ -35,7 +37,7 @@ describe('catalogo + disponibilidad routes', () => {
 
   test('GET /disponibilidad returns slots', async () => {
     const res = await request(app).get(
-      `/disponibilidad?profesionalId=${profesional.id}&servicioId=${servicio.id}&fecha=2026-09-14`
+      `/disponibilidad?profesionalId=${profesional.id}&servicioId=${servicio.id}&fecha=${lunes}`
     );
     expect(res.status).toBe(200);
     expect(res.body).toEqual([

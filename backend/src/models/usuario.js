@@ -6,6 +6,7 @@ const Usuario = sequelize.define('Usuario', {
   email: { type: DataTypes.STRING, allowNull: false, unique: true },
   password_hash: { type: DataTypes.STRING, allowNull: false },
   activo: { type: DataTypes.BOOLEAN, defaultValue: true },
+  avatar_url: { type: DataTypes.STRING, allowNull: true },
 }, { tableName: 'usuarios', underscored: true });
 
 module.exports = Usuario;

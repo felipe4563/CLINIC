@@ -275,6 +275,27 @@ export function IconShoppingCart({ className = base }: IconProps) {
   );
 }
 
+export function IconPhoto({ className = base }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4.5" width="18" height="15" rx="2.2" />
+      <circle cx="8.5" cy="9.5" r="1.6" />
+      <path d="M21 15.5 15.5 11 6 19.5" />
+    </svg>
+  );
+}
+
+export function IconTruck({ className = base }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 6.5h11v10H2z" />
+      <path d="M13 10h4.5l3.5 3.5v3h-8z" />
+      <circle cx="6.5" cy="18" r="1.7" />
+      <circle cx="16.5" cy="18" r="1.7" />
+    </svg>
+  );
+}
+
 export function IconTrash({ className = base }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/lib/authContext';
 import { useTheme } from '@/lib/themeContext';
+import { api } from '@/lib/api';
 import {
   IconMail,
   IconLock,
@@ -16,11 +17,18 @@ import {
   IconCatalog,
 } from '@/components/icons';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+
 const DESTACADOS = [
   { icon: IconCalendar, texto: 'Agenda diaria con vista de calendario' },
   { icon: IconUsers, texto: 'Historial y datos de cada paciente' },
   { icon: IconCatalog, texto: 'Catálogo de servicios y profesionales' },
 ];
+
+function logoSrc(logoUrl: string | null | undefined) {
+  if (!logoUrl) return null;
+  return logoUrl.startsWith('/uploads/') ? `${API_URL}${logoUrl}` : logoUrl;
+}
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -30,6 +38,20 @@ export default function LoginPage() {
   const [verPassword, setVerPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [nombreClinica, setNombreClinica] = useState('Clinic NovagED');
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const config = await api.getConfiguracionPublica();
+        setLogoUrl(config.logo_url || null);
+        if (config.nombre_consultorio) setNombreClinica(config.nombre_consultorio);
+      } catch {
+        /* usa los valores por defecto */
+      }
+    })();
+  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -39,7 +61,6 @@ export default function LoginPage() {
       await login(email, password);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
-    } finally {
       setEnviando(false);
     }
   }
@@ -63,19 +84,41 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <span
-            className="flex h-12 w-12 items-center justify-center rounded-full text-base font-semibold text-white shadow-lg shadow-black/10"
-            style={{ background: 'linear-gradient(135deg, var(--banner-from), var(--banner-to))' }}
-          >
-            N
-          </span>
-          <span className="mt-3 text-lg font-semibold tracking-tight">Clinic NovagED</span>
+          {logoSrc(logoUrl) ? (
+            <span className="flex h-24 w-24 items-center justify-center rounded-full border border-border bg-panel p-3 shadow-lg shadow-black/10">
+              <img src={logoSrc(logoUrl)!} alt={nombreClinica} className="h-full w-full object-contain" />
+            </span>
+          ) : (
+            <span
+              className="flex h-12 w-12 items-center justify-center rounded-full text-base font-semibold text-white shadow-lg shadow-black/10"
+              style={{ background: 'linear-gradient(135deg, var(--banner-from), var(--banner-to))' }}
+            >
+              {nombreClinica.charAt(0).toUpperCase()}
+            </span>
+          )}
+          <span className="mt-3 text-lg font-semibold tracking-tight">{nombreClinica}</span>
           <span className="text-xs text-muted-foreground">Sistema interno de gestión</span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-panel/75 p-7 shadow-2xl shadow-black/5 backdrop-blur-xl sm:p-9">
-          <h2 className="text-2xl font-semibold tracking-tight">Bienvenido de nuevo</h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">Ingresa con tu cuenta del sistema interno.</p>
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-panel/75 p-7 shadow-2xl shadow-black/5 backdrop-blur-xl sm:p-9">
+          {enviando && (
+            <div className="absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-accent/15">
+              <div className="h-full w-1/3 animate-[login-progress_1.1s_ease-in-out_infinite] rounded-full bg-accent" />
+            </div>
+          )}
+
+          {enviando && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-panel/90 backdrop-blur-sm">
+              <span className="relative flex h-12 w-12 items-center justify-center">
+                <span className="absolute inset-0 animate-ping rounded-full bg-accent/30" />
+                <span className="h-9 w-9 animate-spin rounded-full border-[3px] border-accent/25 border-t-accent" />
+              </span>
+              <p className="text-sm font-medium text-foreground">Verificando credenciales…</p>
+            </div>
+          )}
+
+          <h2 className="text-center text-2xl font-semibold tracking-tight">Bienvenido de nuevo</h2>
+          <p className="mt-1.5 text-center text-sm text-muted-foreground">Ingresa con tu cuenta del sistema interno.</p>
 
           <form onSubmit={onSubmit} className="mt-7 flex flex-col gap-4">
             <label className="block text-sm">

@@ -47,6 +47,7 @@ router.post('/staff/login', loginLimiter, async (req, res) => {
       email: usuario.email,
       rol: usuario.Rol.nombre,
       permisos,
+      avatar_url: usuario.avatar_url,
     },
   });
 });

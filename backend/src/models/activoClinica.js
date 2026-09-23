@@ -17,6 +17,7 @@ const ActivoClinica = sequelize.define('ActivoClinica', {
   },
   fecha_baja: { type: DataTypes.DATEONLY, allowNull: true },
   motivo_baja: { type: DataTypes.TEXT, allowNull: true },
+  imagen_url: { type: DataTypes.STRING, allowNull: true },
 }, { tableName: 'activos_clinica', underscored: true });
 
 module.exports = ActivoClinica;

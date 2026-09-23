@@ -4,7 +4,7 @@ const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { getSlotsDisponibles } = require('../services/disponibilidad');
 const { enviarSiCorresponde } = require('../services/notificacionesAutomaticas');
-const { crearReportePDF, dibujarTabla, formatoFecha } = require('../services/pdf');
+const { crearReportePDF, dibujarTabla, formatoFecha, COLOR } = require('../services/pdf');
 const { otorgarPuntosPorGasto } = require('../services/fidelizacion');
 
 const router = express.Router();
@@ -88,6 +88,17 @@ const ESTADO_LABEL = {
   no_asistio: 'No asistió',
 };
 
+// Badges en escala de grises: se diferencian por intensidad de relleno
+// (confirmada/completada = mas oscuro = estado "cerrado") y "cancelada" usa
+// solo borde para distinguirla como estado negativo sin depender del color.
+const ESTADO_BADGE = {
+  pendiente_pago: { label: 'Pendiente de pago', bg: '#E8E8E8', fg: '#1A1A1A' },
+  confirmada: { label: 'Confirmada', bg: '#4A4A4A', fg: '#FFFFFF' },
+  cancelada: { label: 'Cancelada', bg: null, fg: '#1A1A1A', outline: true },
+  completada: { label: 'Completada', bg: '#1A1A1A', fg: '#FFFFFF' },
+  no_asistio: { label: 'No asistió', bg: '#D0D0D0', fg: '#4A4A4A' },
+};
+
 function pad(n) {
   return String(n).padStart(2, '0');
 }
@@ -120,32 +131,34 @@ router.get('/staff/agenda/pdf', requirePermiso('agenda'), async (req, res) => {
   const doc = crearReportePDF(res, config, {
     titulo: esRango ? 'Agenda de Citas' : 'Agenda del Día',
     nombreArchivo,
-    desde: fechaDesde,
-    hasta: fechaHasta,
+    desde: esRango ? fechaDesde : null,
+    hasta: esRango ? fechaHasta : null,
   });
 
   if (!esRango) {
-    doc.font('Helvetica').fontSize(9).fillColor('#555555').text(formatoFecha(fechaDesde), { continued: false });
+    doc.font('Helvetica-Bold').fontSize(10).fillColor(COLOR.tan).text(formatoFecha(fechaDesde), { continued: false });
     doc.moveDown(0.5);
-    doc.fillColor('#1a1a1a');
+    doc.fillColor(COLOR.ink);
   }
+
+  const columnaEstado = { titulo: 'Estado', ancho: 95, badge: (estado) => ESTADO_BADGE[estado] || { label: ESTADO_LABEL[estado] || estado, bg: '#E8E8E8', fg: '#1A1A1A' } };
 
   const columnas = esRango
     ? [
         { titulo: 'Fecha', ancho: 65 },
         { titulo: 'Hora', ancho: 50 },
-        { titulo: 'Paciente', ancho: 120 },
-        { titulo: 'Servicio', ancho: 105 },
-        { titulo: 'Profesional', ancho: 95 },
-        { titulo: 'Estado', ancho: 85 },
+        { titulo: 'Paciente', ancho: 115 },
+        { titulo: 'Servicio', ancho: 100 },
+        { titulo: 'Profesional', ancho: 90 },
+        columnaEstado,
       ]
     : [
-        { titulo: 'Hora', ancho: 55 },
-        { titulo: 'Paciente', ancho: 130 },
-        { titulo: 'Servicio', ancho: 115 },
-        { titulo: 'Profesional', ancho: 105 },
-        { titulo: 'Teléfono', ancho: 75 },
-        { titulo: 'Estado', ancho: 90 },
+        { titulo: 'Hora', ancho: 50 },
+        { titulo: 'Paciente', ancho: 125 },
+        { titulo: 'Servicio', ancho: 105 },
+        { titulo: 'Profesional', ancho: 100 },
+        { titulo: 'Teléfono', ancho: 70 },
+        columnaEstado,
       ];
 
   const filas = citas.map((c) => {
@@ -155,14 +168,21 @@ router.get('/staff/agenda/pdf', requirePermiso('agenda'), async (req, res) => {
       c.Servicio ? c.Servicio.nombre : 'Sin servicio',
       c.Profesional ? c.Profesional.nombre : 'Sin profesional',
     ];
-    const cola = esRango ? [ESTADO_LABEL[c.estado] || c.estado] : [c.Paciente ? c.Paciente.telefono : '', ESTADO_LABEL[c.estado] || c.estado];
+    const cola = esRango ? [c.estado] : [c.Paciente ? c.Paciente.telefono : '', c.estado];
     return [...base, ...comunes, ...cola];
   });
 
   dibujarTabla(doc, { columnas, filas });
 
-  doc.moveDown(0.5);
-  doc.font('Helvetica-Bold').fontSize(10).fillColor('#1a1a1a').text(`Total de citas: ${citas.length}`);
+  doc.moveDown(0.6);
+  const textoTotal = `Total de citas: ${citas.length}`;
+  doc.font('Helvetica-Bold').fontSize(10);
+  const anchoTexto = doc.widthOfString(textoTotal);
+  const xChip = doc.page.margins.left;
+  const yChip = doc.y;
+  doc.roundedRect(xChip, yChip, anchoTexto + 20, 22, 4).fill(COLOR.ink);
+  doc.fillColor(COLOR.white).text(textoTotal, xChip + 10, yChip + 6);
+  doc.fillColor(COLOR.ink);
 
   doc.end();
 });

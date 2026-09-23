@@ -5,13 +5,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import { api } from './api';
 import { GRUPOS_NAV } from './navItems';
 
-type Usuario = { id: number; nombre: string; email: string; rol: string; permisos: string[] };
+type Usuario = { id: number; nombre: string; email: string; rol: string; permisos: string[]; avatar_url?: string | null };
 
 type AuthContextValue = {
   usuario: Usuario | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  actualizarUsuario: (parcial: Partial<Usuario>) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -62,7 +63,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace('/login');
   }
 
-  return <AuthContext.Provider value={{ usuario, loading, login, logout }}>{children}</AuthContext.Provider>;
+  function actualizarUsuario(parcial: Partial<Usuario>) {
+    setUsuario((actual) => {
+      if (!actual) return actual;
+      const actualizado = { ...actual, ...parcial };
+      api.setSession(api.getTokenActual(), actualizado);
+      return actualizado;
+    });
+  }
+
+  return <AuthContext.Provider value={{ usuario, loading, login, logout, actualizarUsuario }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

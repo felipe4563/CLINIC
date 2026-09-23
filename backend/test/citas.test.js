@@ -5,6 +5,7 @@ jest.mock('../src/services/whatsapp', () => ({
 const request = require('supertest');
 const db = require('../src/models');
 const app = require('../src/app');
+const { proximoLunes, sumarDias } = require('./helpers/fechas');
 
 async function loginPaciente(telefono) {
   await request(app).post('/auth/otp/request').send({ telefono, nombre_completo: 'Test' });
@@ -15,6 +16,8 @@ async function loginPaciente(telefono) {
 
 describe('citas routes', () => {
   let profesional, servicio, token;
+  const lunes = proximoLunes(0);
+  const martes = sumarDias(lunes, 1);
 
   beforeAll(async () => {
     await db.sequelize.sync({ force: true });
@@ -33,7 +36,7 @@ describe('citas routes', () => {
 
   test('rejects booking without auth', async () => {
     const res = await request(app).post('/citas').send({
-      profesionalId: profesional.id, servicioId: servicio.id, fecha: '2026-09-14', horaInicio: '09:00',
+      profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00',
     });
     expect(res.status).toBe(401);
   });
@@ -42,7 +45,7 @@ describe('citas routes', () => {
     const res = await request(app)
       .post('/citas')
       .set('Authorization', `Bearer ${token}`)
-      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: '2026-09-14', horaInicio: '09:00' });
+      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00' });
 
     expect(res.status).toBe(201);
     expect(res.body.cita.estado).toBe('pendiente_pago');
@@ -54,7 +57,7 @@ describe('citas routes', () => {
     const res = await request(app)
       .post('/citas')
       .set('Authorization', `Bearer ${token}`)
-      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: '2026-09-14', horaInicio: '09:00' });
+      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00' });
     expect(res.status).toBe(409);
   });
 
@@ -71,7 +74,7 @@ describe('citas routes', () => {
       .send({
         profesionalId: profesional.id,
         servicioId: servicio.id,
-        fecha: '2026-09-14',
+        fecha: lunes,
         horaInicio: '09:30',
         porcentajePago: 50,
       });
@@ -89,7 +92,7 @@ describe('citas routes', () => {
       .send({
         profesionalId: profesional.id,
         servicioId: servicio.id,
-        fecha: '2026-09-15',
+        fecha: martes,
         horaInicio: '09:00',
         porcentajePago: 75,
       });

@@ -24,6 +24,9 @@
 
   --banner-from: #3a2e22;
   --banner-to: #73593f;
+
+  --ambient-line-opacity: 0.32;
+  --ambient-icon-opacity: 0.4;
 }
 
 :root.dark {
@@ -49,6 +52,9 @@
 
   --banner-from: #1c1611;
   --banner-to: #4a3a26;
+
+  --ambient-line-opacity: 0.16;
+  --ambient-icon-opacity: 0.18;
 }
 
 @theme inline {
@@ -105,6 +111,16 @@ html::-webkit-scrollbar-thumb:hover {
 
 a, button {
   cursor: pointer;
+}
+
+select {
+  color: var(--foreground);
+  background-color: var(--panel);
+}
+
+select option {
+  color: var(--foreground);
+  background-color: var(--panel);
 }
 
 @media (min-width: 1024px) {
@@ -226,6 +242,55 @@ textarea:focus-visible {
 @keyframes ambient-drift-c {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(-4vw, 4vh) scale(0.9); }
+}
+
+.ambient-lineart {
+  position: absolute;
+  color: var(--accent);
+  opacity: var(--ambient-line-opacity);
+}
+
+.ambient-lineart-1 {
+  left: -2vw;
+  bottom: -4vh;
+  width: 26vw;
+  max-width: 360px;
+  animation: ambient-float-a 22s ease-in-out infinite;
+}
+
+.ambient-lineart-2 {
+  right: 2vw;
+  top: 4vh;
+  width: 18vw;
+  max-width: 240px;
+  animation: ambient-float-b 26s ease-in-out infinite;
+}
+
+@keyframes ambient-float-a {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(1.5vw, -1.5vh) rotate(-3deg); }
+}
+
+@keyframes ambient-float-b {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-1.2vw, 1.2vh) rotate(3deg); }
+}
+
+.ambient-icon {
+  position: absolute;
+  color: var(--accent);
+  opacity: var(--ambient-icon-opacity);
+  animation: ambient-icon-float 9s ease-in-out infinite;
+}
+
+@keyframes ambient-icon-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(-4deg); }
+}
+
+@keyframes login-progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
 }
 
 @media (prefers-reduced-motion: reduce) {

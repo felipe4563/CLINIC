@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import type { Etiqueta } from './EtiquetaManager';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export type Producto = {
   id: number;
@@ -16,8 +18,14 @@ export type Producto = {
   precio_costo: string | null;
   lote: string | null;
   fecha_vencimiento: string | null;
+  imagen_url: string | null;
   activo: boolean;
 };
+
+function imagenSrc(imagenUrl: string | null) {
+  if (!imagenUrl) return null;
+  return imagenUrl.startsWith('/uploads/') ? `${API_URL}${imagenUrl}` : imagenUrl;
+}
 
 function diasParaVencer(fecha: string) {
   const hoy = new Date();
@@ -54,6 +62,37 @@ export default function ProductoItem({
   const [fechaVencimiento, setFechaVencimiento] = useState(producto.fecha_vencimiento || '');
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
+  const inputImagenRef = useRef<HTMLInputElement>(null);
+
+  async function seleccionarImagen(e: React.ChangeEvent<HTMLInputElement>) {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+    setSubiendoImagen(true);
+    setError('');
+    try {
+      await api.subirImagenProducto(producto.id, archivo);
+      onChange();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo subir la imagen');
+    } finally {
+      setSubiendoImagen(false);
+      if (inputImagenRef.current) inputImagenRef.current.value = '';
+    }
+  }
+
+  async function quitarImagen() {
+    setSubiendoImagen(true);
+    setError('');
+    try {
+      await api.eliminarImagenProducto(producto.id);
+      onChange();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo quitar la imagen');
+    } finally {
+      setSubiendoImagen(false);
+    }
+  }
 
   function empezarEdicion() {
     setNombre(producto.nombre);
@@ -99,6 +138,31 @@ export default function ProductoItem({
   if (editando) {
     return (
       <div className="rounded-lg border border-accent bg-panel p-3 text-sm">
+        <div className="mb-2 flex items-center gap-3">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
+            {imagenSrc(producto.imagen_url) ? (
+              <img src={imagenSrc(producto.imagen_url)!} alt={producto.nombre} className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-[10px] text-muted-foreground">Sin imagen</span>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <input ref={inputImagenRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={seleccionarImagen} className="hidden" />
+            <button
+              type="button"
+              onClick={() => inputImagenRef.current?.click()}
+              disabled={subiendoImagen}
+              className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft disabled:opacity-50"
+            >
+              {subiendoImagen ? 'Subiendo…' : producto.imagen_url ? 'Cambiar imagen' : 'Subir imagen'}
+            </button>
+            {producto.imagen_url && (
+              <button type="button" onClick={quitarImagen} disabled={subiendoImagen} className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft disabled:opacity-50">
+                Quitar
+              </button>
+            )}
+          </div>
+        </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" className="rounded border border-border px-2 py-1.5" />
           <input value={lote} onChange={(e) => setLote(e.target.value)} placeholder="Lote (opcional)" className="rounded border border-border px-2 py-1.5" />
@@ -169,14 +233,25 @@ export default function ProductoItem({
   return (
     <div className="flex h-full flex-col justify-between gap-3 rounded-lg border border-border bg-panel p-3 text-sm">
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="truncate font-medium">{producto.nombre}</p>
-          <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent">Bs {producto.precio_venta}</span>
+        <div className="flex items-start gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
+            {imagenSrc(producto.imagen_url) ? (
+              <img src={imagenSrc(producto.imagen_url)!} alt={producto.nombre} className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-[9px] text-muted-foreground">Sin foto</span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="truncate font-medium">{producto.nombre}</p>
+              <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent">Bs {producto.precio_venta}</span>
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {producto.Marca ? `${producto.Marca.nombre} · ` : ''}
+              {producto.CategoriaProducto?.nombre || 'Sin categoría'}
+            </p>
+          </div>
         </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {producto.Marca ? `${producto.Marca.nombre} · ` : ''}
-          {producto.CategoriaProducto?.nombre || 'Sin categoría'}
-        </p>
         <p className={`mt-1.5 text-xs font-medium ${stockBajo ? 'text-danger' : 'text-foreground/70'}`}>
           Stock: {producto.stock} {producto.unidad}
           {stockBajo ? ' · Stock bajo' : ''}

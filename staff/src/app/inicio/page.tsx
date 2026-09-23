@@ -6,9 +6,34 @@ import { useAuth } from '@/lib/authContext';
 import { useTheme } from '@/lib/themeContext';
 import { GRUPOS_NAV } from '@/lib/navItems';
 import { api } from '@/lib/api';
-import { IconUserCircle, IconLogout, IconSun, IconMoon } from '@/components/icons';
+import { IconUserCircle, IconLogout, IconSun, IconMoon, IconHeart, IconSparkle } from '@/components/icons';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+function IconDrop({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2.5C12 2.5 5.5 11.5 5.5 15.5a6.5 6.5 0 0 0 13 0c0-4-6.5-13-6.5-13Z" />
+      <path d="M8.5 15.5a3.5 3.5 0 0 0 3.5 3.5" />
+    </svg>
+  );
+}
+
+function IconLeaf({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 4c-9 0-15 5-15 14 9 0 14-6 14-14Z" />
+      <path d="M5 18C10 13 14 10 19.5 4.5" />
+    </svg>
+  );
+}
+
+const AMBIENT_ICONS: { Icon: Icono; style: React.CSSProperties; size: string }[] = [
+  { Icon: IconLeaf, style: { left: '3vw', top: '26vh', animationDelay: '0s', animationDuration: '11s' }, size: 'h-7 w-7' },
+  { Icon: IconDrop, style: { left: '5vw', top: '62vh', animationDelay: '1.5s', animationDuration: '9s' }, size: 'h-6 w-6' },
+  { Icon: IconSparkle, style: { right: '5vw', top: '38vh', animationDelay: '0.8s', animationDuration: '10s' }, size: 'h-6 w-6' },
+  { Icon: IconHeart, style: { right: '4vw', top: '68vh', animationDelay: '2.2s', animationDuration: '12s' }, size: 'h-6 w-6' },
+];
 
 function logoSrc(logoUrl: string | null | undefined) {
   if (!logoUrl) return null;
@@ -108,6 +133,40 @@ export default function InicioPage() {
         <div className="ambient-blob ambient-blob-1" />
         <div className="ambient-blob ambient-blob-2" />
         <div className="ambient-blob ambient-blob-3" />
+
+        <svg
+          className="ambient-lineart ambient-lineart-1"
+          viewBox="0 0 300 300"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        >
+          <path d="M20 260C70 230 60 170 100 150C140 130 150 80 130 30" />
+          <path d="M100 150C130 160 165 145 175 110" />
+          <path d="M60 200C85 205 105 195 115 175" />
+          <circle cx="130" cy="30" r="5" />
+        </svg>
+
+        <svg
+          className="ambient-lineart ambient-lineart-2"
+          viewBox="0 0 220 220"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        >
+          <path d="M15 40C60 20 100 45 110 90C120 135 165 155 200 140" />
+          <path d="M110 90C90 100 70 95 55 78" />
+          <circle cx="200" cy="140" r="4.5" />
+          <circle cx="15" cy="40" r="4.5" />
+        </svg>
+
+        {AMBIENT_ICONS.map(({ Icon, style, size }, i) => (
+          <span key={i} className="ambient-icon" style={style}>
+            <Icon className={size} />
+          </span>
+        ))}
       </div>
 
       <span

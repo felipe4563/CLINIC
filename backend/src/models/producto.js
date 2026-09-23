@@ -10,6 +10,7 @@ const Producto = sequelize.define('Producto', {
   precio_costo: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
   lote: { type: DataTypes.STRING, allowNull: true },
   fecha_vencimiento: { type: DataTypes.DATEONLY, allowNull: true },
+  imagen_url: { type: DataTypes.STRING, allowNull: true },
   activo: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
 }, { tableName: 'productos', underscored: true });
 
