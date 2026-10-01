@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { api } from '@/lib/api';
+import { validarImagen } from '@/lib/validarImagen';
 import type { Etiqueta } from './EtiquetaManager';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -68,6 +69,12 @@ export default function ProductoItem({
   async function seleccionarImagen(e: React.ChangeEvent<HTMLInputElement>) {
     const archivo = e.target.files?.[0];
     if (!archivo) return;
+    const errorImagen = validarImagen(archivo);
+    if (errorImagen) {
+      setError(errorImagen);
+      if (inputImagenRef.current) inputImagenRef.current.value = '';
+      return;
+    }
     setSubiendoImagen(true);
     setError('');
     try {

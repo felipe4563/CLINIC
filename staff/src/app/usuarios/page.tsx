@@ -148,11 +148,24 @@ export default function UsuariosPage() {
         </form>
       )}
 
-      <div className="mb-8 flex flex-col gap-2">
-        {usuarios.map((u) => (
-          <UsuarioItem key={u.id} usuario={u} esUnoMismo={u.id === yo?.id} roles={roles} onChange={cargar} />
-        ))}
-        {usuarios.length === 0 && !error && <p className="text-sm text-muted-foreground">No hay usuarios todavía.</p>}
+      <div className="mb-8 overflow-x-auto rounded-lg border border-border">
+        <table className="w-full min-w-[640px] text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs text-muted-foreground">
+              <th className="px-3 py-2 font-medium">Nombre</th>
+              <th className="px-3 py-2 font-medium">Email</th>
+              <th className="px-3 py-2 font-medium">Rol</th>
+              <th className="px-3 py-2 font-medium">Estado</th>
+              <th className="px-3 py-2 text-right font-medium">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {usuarios.map((u) => (
+              <UsuarioItem key={u.id} usuario={u} esUnoMismo={u.id === yo?.id} roles={roles} onChange={cargar} />
+            ))}
+          </tbody>
+        </table>
+        {usuarios.length === 0 && !error && <p className="p-3 text-sm text-muted-foreground">No hay usuarios todavía.</p>}
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -203,7 +216,7 @@ export default function UsuariosPage() {
         </form>
       )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid items-start gap-3 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
         {roles.map((r) => (
           <RolItem key={r.id} rol={r} permisosDisponibles={permisosDisponibles} onChange={cargar} />
         ))}

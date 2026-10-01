@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, FormEvent } from 'react';
 import { api } from '@/lib/api';
+import { validarImagen } from '@/lib/validarImagen';
 import ProductoItem, { type Producto } from './ProductoItem';
 import ActivoItem, { type Activo } from './ActivoItem';
 import EtiquetaManager, { type Etiqueta } from './EtiquetaManager';
@@ -51,8 +52,17 @@ export default function InventarioPage() {
 
   async function crearProducto(e: FormEvent) {
     e.preventDefault();
-    setGuardandoProducto(true);
     setError(null);
+
+    if (imagenProducto) {
+      const errorImagen = validarImagen(imagenProducto);
+      if (errorImagen) {
+        setError(errorImagen);
+        return;
+      }
+    }
+
+    setGuardandoProducto(true);
     try {
       const creado = await api.crearProducto({
         nombre: nuevoProducto.nombre,
@@ -62,12 +72,17 @@ export default function InventarioPage() {
         precio_venta: Number(nuevoProducto.precio_venta),
         fecha_vencimiento: nuevoProducto.fecha_vencimiento || null,
       });
-      if (imagenProducto) {
-        await api.subirImagenProducto(creado.id, imagenProducto);
-      }
       setNuevoProducto(VACIO_PRODUCTO);
       setImagenProducto(null);
       setFormProductoAbierto(false);
+
+      if (imagenProducto) {
+        try {
+          await api.subirImagenProducto(creado.id, imagenProducto);
+        } catch {
+          setError('El producto se creó, pero la imagen no se pudo subir. Puedes agregarla editando el producto.');
+        }
+      }
       cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear el producto');
@@ -78,8 +93,17 @@ export default function InventarioPage() {
 
   async function crearActivo(e: FormEvent) {
     e.preventDefault();
-    setGuardandoActivo(true);
     setError(null);
+
+    if (imagenActivo) {
+      const errorImagen = validarImagen(imagenActivo);
+      if (errorImagen) {
+        setError(errorImagen);
+        return;
+      }
+    }
+
+    setGuardandoActivo(true);
     try {
       const creado = await api.crearActivo({
         nombre: nuevoActivo.nombre,
@@ -87,12 +111,17 @@ export default function InventarioPage() {
         marca: nuevoActivo.marca || null,
         ubicacion: nuevoActivo.ubicacion || null,
       });
-      if (imagenActivo) {
-        await api.subirImagenActivo(creado.id, imagenActivo);
-      }
       setNuevoActivo(VACIO_ACTIVO);
       setImagenActivo(null);
       setFormActivoAbierto(false);
+
+      if (imagenActivo) {
+        try {
+          await api.subirImagenActivo(creado.id, imagenActivo);
+        } catch {
+          setError('El activo se creó, pero la imagen no se pudo subir. Puedes agregarla editando el activo.');
+        }
+      }
       cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear el activo');

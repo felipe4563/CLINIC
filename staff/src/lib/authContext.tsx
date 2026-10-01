@@ -17,6 +17,18 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function rutaAutorizada(pathname: string, usuario: Usuario | null): boolean {
+  const enLogin = pathname === '/login';
+  if (!usuario) return enLogin;
+  if (enLogin || pathname === '/') return false;
+  if (pathname === '/inicio') return true;
+  const item = GRUPOS_NAV.flatMap((g) => g.items).find(
+    (i) => i.href !== '/inicio' && pathname.startsWith(i.href),
+  );
+  if (item && !usuario.permisos?.includes(item.permiso)) return false;
+  return true;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,24 +43,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    const enLogin = pathname === '/login';
-    if (!usuario && !enLogin) {
-      router.replace('/login');
-      return;
-    }
-    if (usuario && (enLogin || pathname === '/')) {
-      router.replace('/inicio');
-      return;
-    }
-    if (usuario && pathname !== '/inicio') {
-      const item = GRUPOS_NAV.flatMap((g) => g.items).find(
-        (i) => i.href !== '/inicio' && pathname.startsWith(i.href),
-      );
-      if (item && !usuario.permisos?.includes(item.permiso)) {
-        router.replace('/inicio');
-      }
+    if (!rutaAutorizada(pathname, usuario)) {
+      router.replace(usuario ? '/inicio' : '/login');
     }
   }, [loading, usuario, pathname, router]);
+
+  // No renderizamos la página hasta confirmar que esta ruta esta autorizada:
+  // si montáramos el contenido mientras el redirect anterior aún está en
+  // vuelo, la página dispararía sus propios fetch (p.ej. /staff/usuarios)
+  // antes de ser desmontada, generando 403 innecesarios contra el backend.
+  const autorizado = !loading && rutaAutorizada(pathname, usuario);
 
   async function login(email: string, password: string) {
     const res = await api.login(email, password);
@@ -72,7 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  return <AuthContext.Provider value={{ usuario, loading, login, logout, actualizarUsuario }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ usuario, loading, login, logout, actualizarUsuario }}>
+      {autorizado ? children : null}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
