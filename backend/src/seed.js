@@ -1,10 +1,20 @@
 const bcrypt = require('bcryptjs');
 const db = require('./models');
+const { PERMISOS_POR_DEFECTO } = require('./config/permisos');
 
 async function seed() {
-  const [adminRol] = await db.Rol.findOrCreate({ where: { nombre: 'Admin' } });
-  await db.Rol.findOrCreate({ where: { nombre: 'Recepcion' } });
-  await db.Rol.findOrCreate({ where: { nombre: 'Profesional' } });
+  const [adminRol] = await db.Rol.findOrCreate({
+    where: { nombre: 'Admin' },
+    defaults: { permisos: PERMISOS_POR_DEFECTO.Admin },
+  });
+  await db.Rol.findOrCreate({
+    where: { nombre: 'Recepcion' },
+    defaults: { permisos: PERMISOS_POR_DEFECTO.Recepcion },
+  });
+  await db.Rol.findOrCreate({
+    where: { nombre: 'Profesional' },
+    defaults: { permisos: PERMISOS_POR_DEFECTO.Profesional },
+  });
 
   const passwordHash = await bcrypt.hash('changeme123', 10);
   await db.Usuario.findOrCreate({

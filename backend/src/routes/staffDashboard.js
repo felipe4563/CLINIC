@@ -34,6 +34,7 @@ router.get('/staff/dashboard', requirePermiso('dashboard'), async (req, res) => 
   const puedeVerCaja = permisos.includes('caja');
   const puedeVerInventario = permisos.includes('inventario');
   const puedeVerVentas = permisos.includes('ventas');
+  const puedeVerPacientes = permisos.includes('pacientes');
 
   const periodo = ['dia', 'mes', 'anio'].includes(req.query.periodo) ? req.query.periodo : 'mes';
   const hoy = new Date();
@@ -55,6 +56,7 @@ router.get('/staff/dashboard', requirePermiso('dashboard'), async (req, res) => 
     productosPorVencer,
     activosOperativos,
     activosMantenimiento,
+    pacientesTotal,
   ] = await Promise.all([
     db.Cita.count({ where: { fecha: hoyISO, estado: { [Op.ne]: 'cancelada' } } }),
     db.Cita.count({ where: { fecha: { [Op.between]: [desde, hasta] }, estado: { [Op.ne]: 'cancelada' } } }),
@@ -87,6 +89,7 @@ router.get('/staff/dashboard', requirePermiso('dashboard'), async (req, res) => 
       : 0,
     puedeVerInventario ? db.ActivoClinica.count({ where: { estado: 'operativo' } }) : 0,
     puedeVerInventario ? db.ActivoClinica.count({ where: { estado: 'mantenimiento' } }) : 0,
+    puedeVerPacientes ? db.Paciente.count() : 0,
   ]);
 
   const ingresosPeriodo =
@@ -126,6 +129,7 @@ router.get('/staff/dashboard', requirePermiso('dashboard'), async (req, res) => 
     ventasHoy: puedeVerVentas ? ventasHoy : null,
     inventario: puedeVerInventario ? { stockBajo, porVencer: productosPorVencer } : null,
     activos: puedeVerInventario ? { operativos: activosOperativos, mantenimiento: activosMantenimiento } : null,
+    pacientesTotal: puedeVerPacientes ? pacientesTotal : null,
   });
 });
 

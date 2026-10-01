@@ -346,6 +346,90 @@ router.get('/staff/reportes/ventas/pdf', onlyReportes, async (req, res) => {
 });
 
 // --------------------------------------------------------------------
+// Compras
+// --------------------------------------------------------------------
+async function datosCompras(desde, hasta) {
+  const compras = await db.Compra.findAll({
+    where: { fecha: { [Op.between]: [desde, hasta] } },
+    include: [db.Proveedor, { model: db.CompraItem, include: [db.Producto] }],
+  });
+
+  const totalCompras = compras.reduce((sum, c) => sum + Number(c.total), 0);
+
+  const porProveedorMap = new Map();
+  const topProductosMap = new Map();
+  for (const compra of compras) {
+    const nombreProveedor = compra.Proveedor ? compra.Proveedor.nombre : 'Sin proveedor';
+    if (!porProveedorMap.has(nombreProveedor)) porProveedorMap.set(nombreProveedor, { proveedor: nombreProveedor, cantidad: 0, total: 0 });
+    const accProveedor = porProveedorMap.get(nombreProveedor);
+    accProveedor.cantidad += 1;
+    accProveedor.total += Number(compra.total);
+
+    for (const item of compra.CompraItems || []) {
+      const nombre = item.Producto ? item.Producto.nombre : 'Producto eliminado';
+      if (!topProductosMap.has(nombre)) topProductosMap.set(nombre, { producto: nombre, cantidad: 0, subtotal: 0 });
+      const acc = topProductosMap.get(nombre);
+      acc.cantidad += item.cantidad;
+      acc.subtotal += Number(item.subtotal);
+    }
+  }
+
+  return {
+    desde,
+    hasta,
+    totalCompras,
+    cantidadCompras: compras.length,
+    porProveedor: Array.from(porProveedorMap.values()).sort((a, b) => b.total - a.total),
+    topProductos: Array.from(topProductosMap.values()).sort((a, b) => b.subtotal - a.subtotal).slice(0, 15),
+  };
+}
+
+router.get('/staff/reportes/compras', onlyReportes, async (req, res) => {
+  const { desde, hasta } = rangoQuery(req);
+  res.json(await datosCompras(desde, hasta));
+});
+
+router.get('/staff/reportes/compras/pdf', onlyReportes, async (req, res) => {
+  const { desde, hasta } = rangoQuery(req);
+  const datos = await datosCompras(desde, hasta);
+  const config = await db.ConfiguracionClinica.obtenerConfig();
+
+  const doc = crearReportePDF(res, config, {
+    titulo: 'Reporte de Compras',
+    nombreArchivo: `reporte-compras-${desde}_${hasta}.pdf`,
+    desde,
+    hasta,
+  });
+
+  doc.font('Helvetica-Bold').fontSize(11);
+  doc.text(`Total comprado: ${formatoMoneda(datos.totalCompras)}`);
+  doc.text(`Cantidad de compras: ${datos.cantidadCompras}`);
+  doc.moveDown(0.8);
+
+  doc.font('Helvetica-Bold').fontSize(11).text('Gasto por proveedor');
+  dibujarTabla(doc, {
+    columnas: [
+      { titulo: 'Proveedor', ancho: 250 },
+      { titulo: 'Compras', ancho: 125, align: 'right' },
+      { titulo: 'Total', ancho: 125, align: 'right' },
+    ],
+    filas: datos.porProveedor.map((p) => [p.proveedor, p.cantidad, formatoMoneda(p.total)]),
+  });
+
+  doc.font('Helvetica-Bold').fontSize(11).text('Productos más comprados');
+  dibujarTabla(doc, {
+    columnas: [
+      { titulo: 'Producto', ancho: 250 },
+      { titulo: 'Cantidad', ancho: 125, align: 'right' },
+      { titulo: 'Subtotal', ancho: 125, align: 'right' },
+    ],
+    filas: datos.topProductos.map((p) => [p.producto, p.cantidad, formatoMoneda(p.subtotal)]),
+  });
+
+  doc.end();
+});
+
+// --------------------------------------------------------------------
 // Personal
 // --------------------------------------------------------------------
 async function datosPersonal(desde, hasta) {

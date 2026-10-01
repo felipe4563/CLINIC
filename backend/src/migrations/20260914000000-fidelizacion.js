@@ -14,13 +14,15 @@ module.exports = {
       defaultValue: 10,
     });
 
-    // Nota: las tablas existentes (pacientes, citas, ventas, usuarios) fueron
-    // creadas originalmente por sequelize.sync() con INT firmado (no UNSIGNED)
-    // como PK, aunque el DDL documentado en la migracion baseline diga
-    // "INT UNSIGNED". Las FK de aqui deben coincidir con el tipo REAL de la
-    // base de datos existente (INT firmado), no con el documentado.
+    // Nota: la migracion baseline crea pacientes/citas/ventas/usuarios con
+    // `id` INT UNSIGNED, asi que las FK de aqui deben ser UNSIGNED tambien
+    // para que esta migracion funcione en una base nueva (dev local, CI,
+    // otro entorno). La base de produccion original tiene esos PKs como INT
+    // firmado (por haber sido creada via sequelize.sync() antes de que
+    // existieran las migraciones), pero esta migracion ya quedo aplicada
+    // ahi hace tiempo, asi que este cambio de tipo no la vuelve a ejecutar.
     await queryInterface.createTable('recompensas', {
-      id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+      id: { type: Sequelize.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
       nombre: { type: Sequelize.STRING, allowNull: false },
       descripcion: { type: Sequelize.TEXT, allowNull: true },
       costo_puntos: { type: Sequelize.INTEGER, allowNull: false },
@@ -30,9 +32,9 @@ module.exports = {
     });
 
     await queryInterface.createTable('movimientos_puntos', {
-      id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+      id: { type: Sequelize.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
       paciente_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: false,
         references: { model: 'pacientes', key: 'id' },
         onUpdate: 'CASCADE',
@@ -42,28 +44,28 @@ module.exports = {
       puntos: { type: Sequelize.INTEGER, allowNull: false },
       motivo: { type: Sequelize.STRING, allowNull: false },
       cita_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: true,
         references: { model: 'citas', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
       venta_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: true,
         references: { model: 'ventas', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
       recompensa_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: true,
         references: { model: 'recompensas', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
       usuario_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: true,
         references: { model: 'usuarios', key: 'id' },
         onUpdate: 'CASCADE',

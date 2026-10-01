@@ -19,8 +19,17 @@ router.get('/staff/pacientes', requirePermiso('pacientes'), async (req, res) => 
       }
     : {};
 
-  const pacientes = await db.Paciente.findAll({ where, order: [['nombre_completo', 'ASC']] });
-  res.json(pacientes);
+  const pagina = Math.max(1, parseInt(req.query.pagina, 10) || 1);
+  const porPagina = Math.min(100, Math.max(1, parseInt(req.query.porPagina, 10) || 30));
+
+  const { count, rows } = await db.Paciente.findAndCountAll({
+    where,
+    order: [['nombre_completo', 'ASC']],
+    limit: porPagina,
+    offset: (pagina - 1) * porPagina,
+  });
+
+  res.json({ pacientes: rows, total: count, pagina, totalPaginas: Math.max(1, Math.ceil(count / porPagina)) });
 });
 
 router.post('/staff/pacientes', requirePermiso('pacientes'), async (req, res) => {

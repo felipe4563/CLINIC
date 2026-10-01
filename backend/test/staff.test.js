@@ -165,7 +165,8 @@ describe('Staff (sistema interno)', () => {
         .get('/staff/pacientes?q=Prueba')
         .set('Authorization', `Bearer ${token}`);
       expect(res.status).toBe(200);
-      expect(res.body.length).toBe(1);
+      expect(res.body.pacientes.length).toBe(1);
+      expect(res.body.total).toBe(1);
     });
 
     test('obtiene ficha de paciente con su historial de citas', async () => {

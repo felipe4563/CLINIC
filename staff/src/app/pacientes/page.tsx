@@ -25,6 +25,9 @@ const VACIO = {
 export default function PacientesPage() {
   const [q, setQ] = useState('');
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [pagina, setPagina] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,11 +36,15 @@ export default function PacientesPage() {
   const [guardando, setGuardando] = useState(false);
   const [errorForm, setErrorForm] = useState<string | null>(null);
 
-  const buscar = useCallback(async (texto: string) => {
+  const buscar = useCallback(async (texto: string, paginaBuscar: number) => {
     setLoading(true);
     setError(null);
     try {
-      setPacientes(await api.getPacientes(texto));
+      const res = await api.getPacientes(texto, paginaBuscar);
+      setPacientes(res.pacientes);
+      setPagina(res.pagina);
+      setTotalPaginas(res.totalPaginas);
+      setTotal(res.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al buscar pacientes');
     } finally {
@@ -46,7 +53,7 @@ export default function PacientesPage() {
   }, []);
 
   useEffect(() => {
-    buscar('');
+    buscar('', 1);
   }, [buscar]);
 
   function abrirForm() {
@@ -66,7 +73,7 @@ export default function PacientesPage() {
         fecha_nacimiento: nuevo.fecha_nacimiento || null,
       });
       setFormAbierto(false);
-      buscar(q);
+      buscar(q, 1);
     } catch (err) {
       setErrorForm(err instanceof Error ? err.message : 'No se pudo crear el paciente');
     } finally {
@@ -165,7 +172,7 @@ export default function PacientesPage() {
         placeholder="Buscar por nombre, teléfono, carnet o código…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && buscar(q)}
+        onKeyDown={(e) => e.key === 'Enter' && buscar(q, 1)}
         className="mb-4 w-full max-w-md rounded border border-border px-3 py-2 text-sm"
       />
 
@@ -189,6 +196,30 @@ export default function PacientesPage() {
         ))}
         {!loading && pacientes.length === 0 && <p className="text-sm text-foreground/70">Sin resultados.</p>}
       </div>
+
+      {!loading && total > 0 && (
+        <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+          <span>
+            {total} paciente{total === 1 ? '' : 's'} · página {pagina} de {totalPaginas}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => buscar(q, pagina - 1)}
+              disabled={pagina <= 1}
+              className="rounded border border-border px-3 py-1.5 font-medium hover:bg-accent-soft disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => buscar(q, pagina + 1)}
+              disabled={pagina >= totalPaginas}
+              className="rounded border border-border px-3 py-1.5 font-medium hover:bg-accent-soft disabled:opacity-40"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

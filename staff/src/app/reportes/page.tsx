@@ -35,6 +35,13 @@ type Ventas = {
   valorizacionInventario: number;
 };
 
+type Compras = {
+  totalCompras: number;
+  cantidadCompras: number;
+  porProveedor: { proveedor: string; cantidad: number; total: number }[];
+  topProductos: { producto: string; cantidad: number; subtotal: number }[];
+};
+
 type Personal = {
   porEmpleado: { usuario: string; diasTrabajados: number; horasTrabajadas: number; ausencias: unknown[] }[];
 };
@@ -43,6 +50,7 @@ const TABS = [
   { key: 'financiero', label: 'Financiero' },
   { key: 'citas-pacientes', label: 'Citas y Pacientes' },
   { key: 'ventas', label: 'Ventas e Inventario' },
+  { key: 'compras', label: 'Compras' },
   { key: 'personal', label: 'Personal' },
 ] as const;
 
@@ -79,6 +87,7 @@ export default function ReportesPage() {
   const [citas, setCitas] = useState<Citas | null>(null);
   const [pacientes, setPacientes] = useState<Pacientes | null>(null);
   const [ventas, setVentas] = useState<Ventas | null>(null);
+  const [compras, setCompras] = useState<Compras | null>(null);
   const [personal, setPersonal] = useState<Personal | null>(null);
 
   const [cargando, setCargando] = useState(false);
@@ -97,6 +106,7 @@ export default function ReportesPage() {
         setPacientes(p);
       }
       if (tab === 'ventas') setVentas(await api.getReporte('ventas', params));
+      if (tab === 'compras') setCompras(await api.getReporte('compras', params));
       if (tab === 'personal') setPersonal(await api.getReporte('personal', params));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar el reporte');
@@ -249,6 +259,36 @@ export default function ReportesPage() {
               columnas={['Producto', 'Stock', 'Stock mínimo']}
               filas={ventas.stockBajo.map((p) => [p.producto, p.stock, p.stockMinimo])}
               vacio="Ningún producto con stock bajo."
+            />
+          </div>
+        </div>
+      )}
+
+      {!cargando && tab === 'compras' && compras && (
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-end">
+            <button onClick={() => descargarPDF('compras')} disabled={descargando} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-60">
+              {descargando ? 'Generando…' : 'Descargar PDF'}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Card label="Total comprado" valor={moneda(compras.totalCompras)} />
+            <Card label="Cantidad de compras" valor={String(compras.cantidadCompras)} />
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-semibold">Gasto por proveedor</p>
+            <Tabla
+              columnas={['Proveedor', 'Compras', 'Total']}
+              filas={compras.porProveedor.map((p) => [p.proveedor, p.cantidad, moneda(p.total)])}
+              vacio="Sin compras en este periodo."
+            />
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-semibold">Productos más comprados</p>
+            <Tabla
+              columnas={['Producto', 'Cantidad', 'Subtotal']}
+              filas={compras.topProductos.map((p) => [p.producto, p.cantidad, moneda(p.subtotal)])}
+              vacio="Sin compras en este periodo."
             />
           </div>
         </div>

@@ -80,7 +80,8 @@ export default function NuevaCitaModal({
 
   const buscarPacientes = useCallback(async (texto: string) => {
     try {
-      setResultados(await api.getPacientes(texto));
+      const res = await api.getPacientes(texto);
+      setResultados(res.pacientes);
     } catch {
       setResultados([]);
     }

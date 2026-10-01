@@ -22,6 +22,11 @@
   --stat-green: #16a34a;
   --stat-green-soft: #eaf7ee;
 
+  --group-operacion: #7a3230;
+  --group-operacion-foreground: #f7e9e6;
+  --group-administracion: #33504c;
+  --group-administracion-foreground: #e9f2f0;
+
   --banner-from: #3a2e22;
   --banner-to: #73593f;
 
@@ -50,6 +55,11 @@
   --stat-green: #4ade80;
   --stat-green-soft: #16301f;
 
+  --group-operacion: #8c433f;
+  --group-operacion-foreground: #f7e9e6;
+  --group-administracion: #3d5f5b;
+  --group-administracion-foreground: #e9f2f0;
+
   --banner-from: #1c1611;
   --banner-to: #4a3a26;
 
@@ -77,6 +87,11 @@
   --color-stat-rose-soft: var(--stat-rose-soft);
   --color-stat-green: var(--stat-green);
   --color-stat-green-soft: var(--stat-green-soft);
+
+  --color-group-operacion: var(--group-operacion);
+  --color-group-operacion-foreground: var(--group-operacion-foreground);
+  --color-group-administracion: var(--group-administracion);
+  --color-group-administracion-foreground: var(--group-administracion-foreground);
 }
 
 body {

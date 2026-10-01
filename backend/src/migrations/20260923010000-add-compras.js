@@ -2,8 +2,11 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
+    // Nota: usuarios/productos/movimientos_caja tienen `id` INT UNSIGNED
+    // (definido en la migracion baseline), asi que las FK de aqui deben ser
+    // UNSIGNED tambien para que esta migracion funcione en una base nueva.
     await queryInterface.createTable('proveedores', {
-      id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+      id: { type: Sequelize.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
       nombre: { type: Sequelize.STRING, allowNull: false },
       contacto: { type: Sequelize.STRING, allowNull: true },
       telefono: { type: Sequelize.STRING, allowNull: true },
@@ -13,17 +16,17 @@ module.exports = {
     });
 
     await queryInterface.createTable('compras', {
-      id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+      id: { type: Sequelize.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
       fecha: { type: Sequelize.DATEONLY, allowNull: false },
       total: { type: Sequelize.DECIMAL(10, 2), allowNull: false },
       nota: { type: Sequelize.STRING, allowNull: true },
       proveedor_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: true,
         references: { model: 'proveedores', key: 'id' },
       },
       usuario_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: false,
         references: { model: 'usuarios', key: 'id' },
       },
@@ -32,19 +35,19 @@ module.exports = {
     });
 
     await queryInterface.createTable('compra_items', {
-      id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+      id: { type: Sequelize.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
       cantidad: { type: Sequelize.INTEGER, allowNull: false },
       costo_unitario: { type: Sequelize.DECIMAL(10, 2), allowNull: false },
       subtotal: { type: Sequelize.DECIMAL(10, 2), allowNull: false },
       compra_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: false,
         references: { model: 'compras', key: 'id' },
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
       producto_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER.UNSIGNED,
         allowNull: false,
         references: { model: 'productos', key: 'id' },
         onDelete: 'RESTRICT',
@@ -55,7 +58,7 @@ module.exports = {
     });
 
     await queryInterface.addColumn('movimientos_caja', 'compra_id', {
-      type: Sequelize.INTEGER,
+      type: Sequelize.INTEGER.UNSIGNED,
       allowNull: true,
       references: { model: 'compras', key: 'id' },
       onDelete: 'SET NULL',

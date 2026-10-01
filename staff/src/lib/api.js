@@ -77,7 +77,12 @@ export const api = {
     return descargarPDF(`/staff/agenda/pdf?${params.toString()}`);
   },
 
-  getPacientes: (q) => apiFetch(`/staff/pacientes${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  getPacientes: (q, pagina = 1) => {
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    params.set('pagina', String(pagina));
+    return apiFetch(`/staff/pacientes?${params.toString()}`);
+  },
   getPaciente: (id) => apiFetch(`/staff/pacientes/${id}`),
   crearPaciente: (datos) => apiFetch('/staff/pacientes', { method: 'POST', body: JSON.stringify(datos) }),
   actualizarPaciente: (id, datos) =>

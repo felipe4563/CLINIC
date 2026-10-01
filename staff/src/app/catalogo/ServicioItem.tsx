@@ -141,12 +141,12 @@ export default function ServicioItem({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-panel text-sm">
-      <div className="flex h-full flex-col justify-between gap-3 p-3">
+    <div className="rounded-xl border border-border bg-panel text-sm shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex h-full flex-col justify-between gap-3 p-4">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="truncate font-medium">{servicio.nombre}</p>
-            <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent">Bs {servicio.precio}</span>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <p className="truncate font-semibold">{servicio.nombre}</p>
+            <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">Bs {servicio.precio}</span>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">{servicio.duracion_min} min</p>
           {servicio.descripcion && <p className="mt-1.5 text-xs text-foreground/70">{servicio.descripcion}</p>}

@@ -146,13 +146,13 @@ export default function ProfesionalItem({
     .toUpperCase();
 
   return (
-    <div className="rounded-lg border border-border bg-panel text-sm">
-      <div className="flex flex-col gap-3 p-3">
+    <div className="rounded-xl border border-border bg-panel text-sm shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex flex-col gap-3 p-4">
         <button onClick={() => setExpandido((v) => !v)} className="flex min-w-0 items-center gap-3 text-left">
           {profesional.foto_url ? (
-            <img src={profesional.foto_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+            <img src={profesional.foto_url} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
           ) : (
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-soft text-base font-semibold text-accent">
               {iniciales || '?'}
             </span>
           )}

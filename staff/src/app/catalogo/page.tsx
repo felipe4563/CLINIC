@@ -114,7 +114,7 @@ export default function CatalogoPage() {
       </div>
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
 
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
+      <div className="flex flex-col gap-8">
         <section>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
@@ -184,7 +184,7 @@ export default function CatalogoPage() {
             />
           )}
 
-          <div className="grid grid-cols-1 gap-2 2xl:grid-cols-2">
+          <div className="grid items-start gap-3 [grid-template-columns:repeat(auto-fill,minmax(270px,1fr))]">
             {serviciosFiltrados.map((s) => (
               <ServicioItem key={s.id} servicio={s} todosLosProfesionales={profesionales} todosLosProductos={productos} onChange={cargar} />
             ))}
@@ -253,7 +253,7 @@ export default function CatalogoPage() {
             />
           )}
 
-          <div className="grid grid-cols-1 gap-2 2xl:grid-cols-2">
+          <div className="grid items-start gap-3 [grid-template-columns:repeat(auto-fill,minmax(270px,1fr))]">
             {profesionalesFiltrados.map((p) => (
               <ProfesionalItem key={p.id} profesional={p} todosLosServicios={servicios} onChange={cargar} />
             ))}
