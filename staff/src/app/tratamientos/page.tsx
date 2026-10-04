@@ -24,12 +24,19 @@ export default function TratamientosPage() {
   const [notas, setNotas] = useState<NotaClinica[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [pagina, setPagina] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
 
-  const buscar = useCallback(async (texto: string) => {
+  const buscar = useCallback(async (texto: string, paginaDestino = 1) => {
     setLoading(true);
     setError(null);
     try {
-      setNotas(await api.getTratamientos(texto));
+      const res = await api.getTratamientos(texto, paginaDestino);
+      setNotas(res.notas);
+      setTotal(res.total);
+      setPagina(res.pagina);
+      setTotalPaginas(res.totalPaginas);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar el historial clínico');
     } finally {
@@ -79,6 +86,30 @@ export default function TratamientosPage() {
           <p className="text-sm text-muted-foreground">Sin notas clínicas todavía. Se agregan desde la ficha de cada paciente.</p>
         )}
       </div>
+
+      {!loading && total > 0 && (
+        <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+          <span>
+            {total} nota{total === 1 ? '' : 's'} · página {pagina} de {totalPaginas}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => buscar(q, pagina - 1)}
+              disabled={pagina <= 1}
+              className="rounded border border-border px-3 py-1.5 font-medium hover:bg-accent-soft disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => buscar(q, pagina + 1)}
+              disabled={pagina >= totalPaginas}
+              className="rounded border border-border px-3 py-1.5 font-medium hover:bg-accent-soft disabled:opacity-40"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

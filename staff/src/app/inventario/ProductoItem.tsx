@@ -17,8 +17,7 @@ export type Producto = {
   stock_minimo: number;
   precio_venta: string;
   precio_costo: string | null;
-  lote: string | null;
-  fecha_vencimiento: string | null;
+  proximo_vencimiento: string | null;
   imagen_url: string | null;
   activo: boolean;
 };
@@ -59,8 +58,6 @@ export default function ProductoItem({
   const [stock, setStock] = useState(String(producto.stock));
   const [stockMinimo, setStockMinimo] = useState(String(producto.stock_minimo));
   const [precioVenta, setPrecioVenta] = useState(producto.precio_venta);
-  const [lote, setLote] = useState(producto.lote || '');
-  const [fechaVencimiento, setFechaVencimiento] = useState(producto.fecha_vencimiento || '');
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
   const [subiendoImagen, setSubiendoImagen] = useState(false);
@@ -108,8 +105,6 @@ export default function ProductoItem({
     setStock(String(producto.stock));
     setStockMinimo(String(producto.stock_minimo));
     setPrecioVenta(producto.precio_venta);
-    setLote(producto.lote || '');
-    setFechaVencimiento(producto.fecha_vencimiento || '');
     setError('');
     setEditando(true);
   }
@@ -125,8 +120,6 @@ export default function ProductoItem({
         stock: Number(stock),
         stock_minimo: Number(stockMinimo),
         precio_venta: Number(precioVenta),
-        lote: lote || null,
-        fecha_vencimiento: fechaVencimiento || null,
       });
       setEditando(false);
       onChange();
@@ -172,7 +165,6 @@ export default function ProductoItem({
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" className="rounded border border-border px-2 py-1.5" />
-          <input value={lote} onChange={(e) => setLote(e.target.value)} placeholder="Lote (opcional)" className="rounded border border-border px-2 py-1.5" />
           <select value={marcaId} onChange={(e) => setMarcaId(e.target.value)} className="rounded border border-border px-2 py-1.5">
             <option value="">Sin marca</option>
             {marcas.map((m) => (
@@ -210,12 +202,6 @@ export default function ProductoItem({
             placeholder="Precio de venta (Bs)"
             className="rounded border border-border px-2 py-1.5"
           />
-          <input
-            type="date"
-            value={fechaVencimiento}
-            onChange={(e) => setFechaVencimiento(e.target.value)}
-            className="rounded border border-border px-2 py-1.5"
-          />
         </div>
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}
         <div className="mt-2 flex gap-2">
@@ -234,7 +220,7 @@ export default function ProductoItem({
     );
   }
 
-  const dias = producto.fecha_vencimiento ? diasParaVencer(producto.fecha_vencimiento) : null;
+  const dias = producto.proximo_vencimiento ? diasParaVencer(producto.proximo_vencimiento) : null;
   const stockBajo = producto.stock <= producto.stock_minimo;
 
   return (
@@ -263,9 +249,11 @@ export default function ProductoItem({
           Stock: {producto.stock} {producto.unidad}
           {stockBajo ? ' · Stock bajo' : ''}
         </p>
-        {producto.fecha_vencimiento && dias !== null && (
+        {producto.proximo_vencimiento && dias !== null && (
           <p className={`mt-1 text-xs ${dias < 0 ? 'text-danger' : dias <= 30 ? 'text-stat-amber' : 'text-muted-foreground'}`}>
-            {dias < 0 ? `Venció el ${fmtFecha(producto.fecha_vencimiento)}` : `Vence el ${fmtFecha(producto.fecha_vencimiento)} (${dias} días)`}
+            {dias < 0
+              ? `Lote vencido el ${fmtFecha(producto.proximo_vencimiento)}`
+              : `Lote más próximo vence el ${fmtFecha(producto.proximo_vencimiento)} (${dias} días)`}
           </p>
         )}
         {!producto.activo && <span className="mt-2 inline-block rounded-full bg-border px-2 py-0.5 text-[11px] text-muted-foreground">Inactivo</span>}

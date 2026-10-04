@@ -37,6 +37,9 @@ export default function FichaPacientePage() {
   const [ok, setOk] = useState(false);
   const [eliminando, setEliminando] = useState(false);
 
+  const [verTodasCitas, setVerTodasCitas] = useState(false);
+  const CITAS_VISIBLES = 8;
+
   const [notas, setNotas] = useState<NotaClinica[]>([]);
   const [profesionales, setProfesionales] = useState<{ id: number; nombre: string }[]>([]);
   const [formNotaAbierto, setFormNotaAbierto] = useState(false);
@@ -216,14 +219,24 @@ export default function FichaPacientePage() {
         </button>
       </form>
 
-      <h2 className="mb-2 text-sm font-semibold">Historial de citas</h2>
+      <h2 className="mb-2 text-sm font-semibold">
+        Historial de citas{paciente.Cita.length > 0 ? ` (${paciente.Cita.length})` : ''}
+      </h2>
       <div className="mb-8 flex flex-col gap-2">
-        {paciente.Cita.map((cita) => (
+        {(verTodasCitas ? paciente.Cita : paciente.Cita.slice(0, CITAS_VISIBLES)).map((cita) => (
           <div key={cita.id} className="rounded border border-border bg-panel p-3 text-sm">
             {cita.fecha} {cita.hora_inicio.slice(0, 5)} · {cita.Servicio.nombre} con {cita.Profesional.nombre} · {cita.estado}
           </div>
         ))}
         {paciente.Cita.length === 0 && <p className="text-sm text-foreground/70">Sin citas registradas.</p>}
+        {!verTodasCitas && paciente.Cita.length > CITAS_VISIBLES && (
+          <button
+            onClick={() => setVerTodasCitas(true)}
+            className="w-fit rounded border border-border px-3 py-1.5 text-xs hover:bg-accent-soft"
+          >
+            Ver todas ({paciente.Cita.length})
+          </button>
+        )}
       </div>
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

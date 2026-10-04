@@ -21,6 +21,7 @@ import {
   Bell,
   Wallet,
   Settings,
+  ChevronDown,
 } from 'lucide-react';
 
 type IconProps = { className?: string };
@@ -233,6 +234,10 @@ export function IconWallet({ className = base }: IconProps) {
 
 export function IconSettings({ className = base }: IconProps) {
   return <Settings className={className} strokeWidth={1.8} />;
+}
+
+export function IconChevronDown({ className = base }: IconProps) {
+  return <ChevronDown className={className} strokeWidth={1.8} />;
 }
 
 export function IconCruzMedica({ className = base }: IconProps) {

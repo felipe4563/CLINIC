@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { IconTrash, IconPhoto } from '@/components/icons';
+import { IconTrash, IconPhoto, IconChevronDown } from '@/components/icons';
 import ProveedorManager, { type Proveedor } from './ProveedorManager';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -21,7 +21,7 @@ function imagenSrc(imagenUrl: string | null) {
   return imagenUrl.startsWith('/uploads/') ? `${API_URL}${imagenUrl}` : imagenUrl;
 }
 
-type ItemCarrito = { producto: Producto; cantidad: number; costoUnitario: string };
+type ItemCarrito = { producto: Producto; cantidad: number; costoUnitario: string; lote: string; fechaVencimiento: string };
 
 type CompraHistorial = {
   id: number;
@@ -29,8 +29,19 @@ type CompraHistorial = {
   nota: string | null;
   Usuario: { nombre: string };
   Proveedor: { nombre: string } | null;
-  CompraItems: { cantidad: number; costo_unitario: string; Producto: { nombre: string } }[];
+  CompraItems: {
+    cantidad: number;
+    costo_unitario: string;
+    lote: string | null;
+    fecha_vencimiento: string | null;
+    Producto: { nombre: string };
+  }[];
 };
+
+function fmtFecha(fecha: string) {
+  const [a, m, d] = fecha.split('-');
+  return `${d}/${m}/${a}`;
+}
 
 export default function ComprasPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -45,6 +56,17 @@ export default function ComprasPage() {
   const [totalDia, setTotalDia] = useState(0);
 
   const [guardando, setGuardando] = useState(false);
+  const [carritoAbiertoMobile, setCarritoAbiertoMobile] = useState(false);
+  const [comprasExpandidas, setComprasExpandidas] = useState<Set<number>>(new Set());
+
+  function toggleCompraExpandida(id: number) {
+    setComprasExpandidas((actual) => {
+      const nuevo = new Set(actual);
+      if (nuevo.has(id)) nuevo.delete(id);
+      else nuevo.add(id);
+      return nuevo;
+    });
+  }
 
   const cargarProductos = useCallback(async () => {
     try {
@@ -86,7 +108,7 @@ export default function ComprasPage() {
       if (existente) {
         return c.map((i) => (i.producto.id === producto.id ? { ...i, cantidad: i.cantidad + 1 } : i));
       }
-      return [...c, { producto, cantidad: 1, costoUnitario: producto.precio_costo || '' }];
+      return [...c, { producto, cantidad: 1, costoUnitario: producto.precio_costo || '', lote: '', fechaVencimiento: '' }];
     });
   }
 
@@ -96,6 +118,14 @@ export default function ComprasPage() {
 
   function cambiarCosto(productoId: number, costoUnitario: string) {
     setCarrito((c) => c.map((i) => (i.producto.id === productoId ? { ...i, costoUnitario } : i)));
+  }
+
+  function cambiarLote(productoId: number, lote: string) {
+    setCarrito((c) => c.map((i) => (i.producto.id === productoId ? { ...i, lote } : i)));
+  }
+
+  function cambiarFechaVencimiento(productoId: number, fechaVencimiento: string) {
+    setCarrito((c) => c.map((i) => (i.producto.id === productoId ? { ...i, fechaVencimiento } : i)));
   }
 
   function quitarDelCarrito(productoId: number) {
@@ -117,7 +147,13 @@ export default function ComprasPage() {
     setError('');
     try {
       await api.crearCompra({
-        items: carrito.map((i) => ({ productoId: i.producto.id, cantidad: i.cantidad, costoUnitario: Number(i.costoUnitario) })),
+        items: carrito.map((i) => ({
+          productoId: i.producto.id,
+          cantidad: i.cantidad,
+          costoUnitario: Number(i.costoUnitario),
+          lote: i.lote || null,
+          fechaVencimiento: i.fechaVencimiento || null,
+        })),
         proveedorId: proveedorId ? Number(proveedorId) : null,
         nota: nota || null,
       });
@@ -221,8 +257,22 @@ export default function ComprasPage() {
           </div>
         </div>
 
-        <div className="flex flex-col rounded-lg border border-border bg-panel p-3">
-          <p className="mb-2 text-sm font-semibold">Compra en curso</p>
+        <div className="sticky bottom-0 z-10 flex flex-col rounded-lg border border-border bg-panel p-3 shadow-lg lg:sticky lg:top-4 lg:z-auto lg:self-start lg:shadow-sm">
+          <button
+            type="button"
+            onClick={() => setCarritoAbiertoMobile((v) => !v)}
+            className="-m-3 mb-0 flex items-center justify-between rounded-t-lg p-3 lg:hidden"
+          >
+            <span className="text-sm font-semibold">
+              Compra en curso{carrito.length > 0 ? ` · ${carrito.length}` : ''}
+            </span>
+            <span className="flex items-center gap-1.5 text-sm font-semibold">
+              Bs {total.toFixed(2)}
+              <IconChevronDown className={`h-4 w-4 transition-transform ${carritoAbiertoMobile ? 'rotate-180' : ''}`} />
+            </span>
+          </button>
+          <p className="mb-2 hidden text-sm font-semibold lg:block">Compra en curso</p>
+          <div className={`${carritoAbiertoMobile ? 'mt-3' : 'hidden'} lg:mt-0 lg:block`}>
           <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
             {carrito.map((i) => {
               const src = imagenSrc(i.producto.imagen_url);
@@ -239,25 +289,45 @@ export default function ComprasPage() {
                     <IconTrash className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={1}
-                    value={i.cantidad}
-                    onChange={(e) => cambiarCantidad(i.producto.id, Number(e.target.value))}
-                    placeholder="Cant."
-                    className="w-16 rounded border border-border px-2 py-1 text-xs"
-                  />
-                  <span className="text-xs text-muted-foreground">×</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    value={i.costoUnitario}
-                    onChange={(e) => cambiarCosto(i.producto.id, e.target.value)}
-                    placeholder="Costo unit. Bs"
-                    className="min-w-0 flex-1 rounded border border-border px-2 py-1 text-xs"
-                  />
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <label className="block">
+                    <span className="mb-0.5 block text-[10px] font-medium text-muted-foreground">Cantidad</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={i.cantidad}
+                      onChange={(e) => cambiarCantidad(i.producto.id, Number(e.target.value))}
+                      className="w-full rounded border border-border px-2 py-1 text-xs"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-0.5 block text-[10px] font-medium text-muted-foreground">Costo unit. (Bs)</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={i.costoUnitario}
+                      onChange={(e) => cambiarCosto(i.producto.id, e.target.value)}
+                      className="w-full rounded border border-border px-2 py-1 text-xs"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-0.5 block text-[10px] font-medium text-muted-foreground">Lote (opcional)</span>
+                    <input
+                      value={i.lote}
+                      onChange={(e) => cambiarLote(i.producto.id, e.target.value)}
+                      className="w-full rounded border border-border px-2 py-1 text-xs"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-0.5 block text-[10px] font-medium text-muted-foreground">Vencimiento (opcional)</span>
+                    <input
+                      type="date"
+                      value={i.fechaVencimiento}
+                      onChange={(e) => cambiarFechaVencimiento(i.producto.id, e.target.value)}
+                      className="w-full rounded border border-border px-2 py-1 text-xs"
+                    />
+                  </label>
                 </div>
               </div>
               );
@@ -297,28 +367,70 @@ export default function ComprasPage() {
           >
             {guardando ? 'Registrando…' : 'Registrar compra'}
           </button>
+          </div>
         </div>
       </div>
 
       <h2 className="mb-2 mt-6 text-sm font-semibold">Compras de hoy · Bs {totalDia.toFixed(2)}</h2>
       <div className="flex flex-col gap-2">
-        {compras.map((c) => (
-          <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-panel p-3 text-sm">
-            <div className="min-w-0">
-              <p className="truncate">{c.CompraItems.map((it) => `${it.cantidad}× ${it.Producto.nombre}`).join(', ')}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {c.Proveedor?.nombre || 'Sin proveedor'} · {c.Usuario.nombre}
-                {c.nota ? ` · ${c.nota}` : ''}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-medium">Bs {Number(c.total).toFixed(2)}</span>
-              <button onClick={() => anular(c.id)} className="text-xs text-danger hover:underline">
-                Anular
+        {compras.map((c) => {
+          const expandida = comprasExpandidas.has(c.id);
+          return (
+            <div key={c.id} className="rounded-lg border border-border bg-panel text-sm">
+              <button
+                type="button"
+                onClick={() => toggleCompraExpandida(c.id)}
+                className="flex w-full flex-wrap items-center justify-between gap-2 p-3 text-left"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate">{c.CompraItems.map((it) => `${it.cantidad}× ${it.Producto.nombre}`).join(', ')}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {c.Proveedor?.nombre || 'Sin proveedor'} · {c.Usuario.nombre}
+                    {c.nota ? ` · ${c.nota}` : ''}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="font-medium">Bs {Number(c.total).toFixed(2)}</span>
+                  <IconChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandida ? 'rotate-180' : ''}`} />
+                </div>
               </button>
+
+              {expandida && (
+                <div className="border-t border-border px-3 pb-3 pt-2">
+                  <div className="flex flex-col gap-1.5">
+                    {c.CompraItems.map((it, idx) => (
+                      <div key={idx} className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs text-foreground/80">
+                        <span className="min-w-0 flex-1 truncate">{it.Producto.nombre}</span>
+                        <span className="shrink-0 text-muted-foreground">
+                          {it.cantidad} × Bs {Number(it.costo_unitario).toFixed(2)}
+                        </span>
+                        <span className="w-20 shrink-0 text-right font-medium">Bs {(it.cantidad * Number(it.costo_unitario)).toFixed(2)}</span>
+                        {(it.lote || it.fecha_vencimiento) && (
+                          <span className="w-full text-[11px] text-muted-foreground">
+                            {it.lote ? `Lote ${it.lote}` : ''}
+                            {it.lote && it.fecha_vencimiento ? ' · ' : ''}
+                            {it.fecha_vencimiento ? `Vence ${fmtFecha(it.fecha_vencimiento)}` : ''}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex justify-end border-t border-border/50 pt-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        anular(c.id);
+                      }}
+                      className="text-xs text-danger hover:underline"
+                    >
+                      Anular compra
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
         {compras.length === 0 && <p className="text-sm text-muted-foreground">Sin compras registradas hoy.</p>}
       </div>
     </div>

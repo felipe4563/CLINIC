@@ -101,19 +101,32 @@ router.delete('/staff/categorias-producto/:id', onlyInventario, async (req, res)
 
 // --- Productos ---
 
+async function proximosVencimientosPorProducto() {
+  const filas = await db.CompraItem.findAll({
+    attributes: ['producto_id', [db.sequelize.fn('MIN', db.sequelize.col('fecha_vencimiento')), 'proximo_vencimiento']],
+    where: { fecha_vencimiento: { [Op.ne]: null } },
+    group: ['producto_id'],
+    raw: true,
+  });
+  return Object.fromEntries(filas.map((f) => [f.producto_id, f.proximo_vencimiento]));
+}
+
 router.get('/staff/productos', onlyInventario, async (req, res) => {
   const { q } = req.query;
   const where = q ? { nombre: { [Op.like]: `%${q}%` } } : {};
-  const productos = await db.Producto.findAll({
-    where,
-    include: [db.Marca, db.CategoriaProducto],
-    order: [['nombre', 'ASC']],
-  });
-  res.json(productos);
+  const [productos, vencimientos] = await Promise.all([
+    db.Producto.findAll({
+      where,
+      include: [db.Marca, db.CategoriaProducto],
+      order: [['nombre', 'ASC']],
+    }),
+    proximosVencimientosPorProducto(),
+  ]);
+  res.json(productos.map((p) => ({ ...p.toJSON(), proximo_vencimiento: vencimientos[p.id] || null })));
 });
 
 router.post('/staff/productos', onlyInventario, async (req, res) => {
-  const { nombre, marcaId, categoriaId, unidad, stock, stock_minimo, precio_venta, precio_costo, lote, fecha_vencimiento } = req.body;
+  const { nombre, marcaId, categoriaId, unidad, stock, stock_minimo, precio_venta, precio_costo } = req.body;
   if (!nombre || precio_venta === undefined) {
     return res.status(400).json({ error: 'nombre y precio_venta son requeridos' });
   }
@@ -126,11 +139,9 @@ router.post('/staff/productos', onlyInventario, async (req, res) => {
     stock_minimo: stock_minimo || 0,
     precio_venta,
     precio_costo: precio_costo || null,
-    lote: lote || null,
-    fecha_vencimiento: fecha_vencimiento || null,
   });
   const conRelaciones = await db.Producto.findByPk(producto.id, { include: [db.Marca, db.CategoriaProducto] });
-  res.status(201).json(conRelaciones);
+  res.status(201).json({ ...conRelaciones.toJSON(), proximo_vencimiento: null });
 });
 
 router.patch('/staff/productos/:id', onlyInventario, async (req, res) => {
@@ -141,14 +152,15 @@ router.patch('/staff/productos/:id', onlyInventario, async (req, res) => {
   if (marcaId !== undefined) producto.marca_id = marcaId || null;
   if (categoriaId !== undefined) producto.categoria_id = categoriaId || null;
 
-  const campos = ['nombre', 'unidad', 'stock', 'stock_minimo', 'precio_venta', 'precio_costo', 'lote', 'fecha_vencimiento', 'activo'];
+  const campos = ['nombre', 'unidad', 'stock', 'stock_minimo', 'precio_venta', 'precio_costo', 'activo'];
   campos.forEach((campo) => {
     if (resto[campo] !== undefined) producto[campo] = resto[campo];
   });
 
   await producto.save();
   const conRelaciones = await db.Producto.findByPk(producto.id, { include: [db.Marca, db.CategoriaProducto] });
-  res.json(conRelaciones);
+  const vencimientos = await proximosVencimientosPorProducto();
+  res.json({ ...conRelaciones.toJSON(), proximo_vencimiento: vencimientos[producto.id] || null });
 });
 
 router.delete('/staff/productos/:id', onlyInventario, async (req, res) => {

@@ -5,6 +5,8 @@ const CompraItem = sequelize.define('CompraItem', {
   cantidad: { type: DataTypes.INTEGER, allowNull: false },
   costo_unitario: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   subtotal: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+  lote: { type: DataTypes.STRING, allowNull: true },
+  fecha_vencimiento: { type: DataTypes.DATEONLY, allowNull: true },
 }, { tableName: 'compra_items', underscored: true });
 
 module.exports = CompraItem;

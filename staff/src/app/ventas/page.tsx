@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { IconTrash, IconPhoto } from '@/components/icons';
+import { IconTrash, IconPhoto, IconChevronDown } from '@/components/icons';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -31,7 +31,7 @@ type VentaHistorial = {
   estado: 'pendiente' | 'pagado';
   cliente_nombre: string | null;
   Usuario: { nombre: string };
-  VentaItems: { cantidad: number; Producto: { nombre: string } }[];
+  VentaItems: { cantidad: number; precio_unitario: string; Producto: { nombre: string } }[];
 };
 
 export default function VentasPage() {
@@ -43,6 +43,17 @@ export default function VentasPage() {
 
   const [ventas, setVentas] = useState<VentaHistorial[]>([]);
   const [totalDia, setTotalDia] = useState(0);
+
+  const [ventasExpandidas, setVentasExpandidas] = useState<Set<number>>(new Set());
+
+  function toggleVentaExpandida(id: number) {
+    setVentasExpandidas((actual) => {
+      const nuevo = new Set(actual);
+      if (nuevo.has(id)) nuevo.delete(id);
+      else nuevo.add(id);
+      return nuevo;
+    });
+  }
 
   const [cobrando, setCobrando] = useState(false);
   const [ventaQR, setVentaQR] = useState<{ ventaId: number; qr: string } | null>(null);
@@ -330,20 +341,46 @@ export default function VentasPage() {
 
       <h2 className="mb-2 mt-6 text-sm font-semibold">Ventas de hoy · Bs {totalDia.toFixed(2)}</h2>
       <div className="flex flex-col gap-2">
-        {ventas.map((v) => (
-          <div key={v.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-panel p-3 text-sm">
-            <div className="min-w-0">
-              <p className="truncate">
-                {v.VentaItems.map((it) => `${it.cantidad}× ${it.Producto.nombre}`).join(', ')}
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {v.cliente_nombre || 'Cliente mostrador'} · {v.Usuario.nombre}
-                {v.estado === 'pendiente' ? ' · Pendiente de pago' : ''}
-              </p>
+        {ventas.map((v) => {
+          const expandida = ventasExpandidas.has(v.id);
+          return (
+            <div key={v.id} className="rounded-lg border border-border bg-panel text-sm">
+              <button
+                type="button"
+                onClick={() => toggleVentaExpandida(v.id)}
+                className="flex w-full flex-wrap items-center justify-between gap-2 p-3 text-left"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate">{v.VentaItems.map((it) => `${it.cantidad}× ${it.Producto.nombre}`).join(', ')}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {v.cliente_nombre || 'Cliente mostrador'} · {v.Usuario.nombre}
+                    {v.estado === 'pendiente' ? ' · Pendiente de pago' : ''}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="font-medium">Bs {Number(v.total).toFixed(2)}</span>
+                  <IconChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandida ? 'rotate-180' : ''}`} />
+                </div>
+              </button>
+
+              {expandida && (
+                <div className="border-t border-border px-3 pb-3 pt-2">
+                  <div className="flex flex-col gap-1.5">
+                    {v.VentaItems.map((it, idx) => (
+                      <div key={idx} className="flex items-center justify-between gap-2 text-xs text-foreground/80">
+                        <span className="min-w-0 flex-1 truncate">{it.Producto.nombre}</span>
+                        <span className="shrink-0 text-muted-foreground">
+                          {it.cantidad} × Bs {Number(it.precio_unitario).toFixed(2)}
+                        </span>
+                        <span className="w-20 shrink-0 text-right font-medium">Bs {(it.cantidad * Number(it.precio_unitario)).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            <span className="font-medium">Bs {Number(v.total).toFixed(2)}</span>
-          </div>
-        ))}
+          );
+        })}
         {ventas.length === 0 && <p className="text-sm text-muted-foreground">Sin ventas registradas hoy.</p>}
       </div>
     </div>

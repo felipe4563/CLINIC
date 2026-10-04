@@ -99,6 +99,8 @@ router.post('/staff/compras', onlyCompras, async (req, res) => {
       cantidad: item.cantidad,
       costo_unitario: item.costoUnitario,
       subtotal: Number(item.costoUnitario) * item.cantidad,
+      lote: item.lote || null,
+      fecha_vencimiento: item.fechaVencimiento || null,
     });
     producto.stock += item.cantidad;
     producto.precio_costo = item.costoUnitario;

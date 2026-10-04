@@ -7,6 +7,13 @@ function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+function limpiarSesionYRedirigir() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  window.dispatchEvent(new Event('novaged:sesion-expirada'));
+}
+
 async function apiFetch(path, options = {}) {
   const token = getToken();
   const esFormData = options.body instanceof FormData;
@@ -18,6 +25,9 @@ async function apiFetch(path, options = {}) {
       ...options.headers,
     },
   });
+  if (res.status === 401 && path !== '/staff/login') {
+    limpiarSesionYRedirigir();
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || `Error ${res.status}`);
@@ -31,6 +41,9 @@ async function descargarPDF(path) {
   const res = await fetch(`${API_URL}${path}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
+  if (res.status === 401) {
+    limpiarSesionYRedirigir();
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || `Error ${res.status}`);
@@ -94,7 +107,12 @@ export const api = {
   generarQRSaldo: (pagoId) => apiFetch(`/staff/pagos/${pagoId}/saldo/qr`, { method: 'POST' }),
   estadoSaldoQR: (pagoId) => apiFetch(`/staff/pagos/${pagoId}/saldo/estado`),
 
-  getTratamientos: (q) => apiFetch(`/staff/tratamientos${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  getTratamientos: (q, pagina = 1) => {
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    params.set('pagina', String(pagina));
+    return apiFetch(`/staff/tratamientos?${params.toString()}`);
+  },
   getTratamientosPaciente: (pacienteId) => apiFetch(`/staff/pacientes/${pacienteId}/tratamientos`),
   crearTratamiento: (pacienteId, datos) =>
     apiFetch(`/staff/pacientes/${pacienteId}/tratamientos`, { method: 'POST', body: JSON.stringify(datos) }),

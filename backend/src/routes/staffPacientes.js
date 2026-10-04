@@ -57,6 +57,7 @@ router.post('/staff/pacientes', requirePermiso('pacientes'), async (req, res) =>
 router.get('/staff/pacientes/:id', requirePermiso('pacientes'), async (req, res) => {
   const paciente = await db.Paciente.findByPk(req.params.id, {
     include: [{ model: db.Cita, include: [db.Profesional, db.Servicio] }],
+    order: [[db.Cita, 'fecha', 'DESC'], [db.Cita, 'hora_inicio', 'DESC']],
   });
   if (!paciente) return res.status(404).json({ error: 'Paciente no encontrado' });
   res.json(paciente);

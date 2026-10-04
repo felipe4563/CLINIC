@@ -7,7 +7,7 @@ import ProductoItem, { type Producto } from './ProductoItem';
 import ActivoItem, { type Activo } from './ActivoItem';
 import EtiquetaManager, { type Etiqueta } from './EtiquetaManager';
 
-const VACIO_PRODUCTO = { nombre: '', marcaId: '', categoriaId: '', stock: '0', precio_venta: '', fecha_vencimiento: '' };
+const VACIO_PRODUCTO = { nombre: '', marcaId: '', categoriaId: '', stock: '0', precio_venta: '' };
 const VACIO_ACTIVO = { nombre: '', categoria: '', marca: '', ubicacion: '' };
 
 export default function InventarioPage() {
@@ -70,7 +70,6 @@ export default function InventarioPage() {
         categoriaId: nuevoProducto.categoriaId ? Number(nuevoProducto.categoriaId) : null,
         stock: Number(nuevoProducto.stock),
         precio_venta: Number(nuevoProducto.precio_venta),
-        fecha_vencimiento: nuevoProducto.fecha_vencimiento || null,
       });
       setNuevoProducto(VACIO_PRODUCTO);
       setImagenProducto(null);
@@ -131,8 +130,8 @@ export default function InventarioPage() {
   }
 
   const productosVencenPronto = productos.filter((p) => {
-    if (!p.fecha_vencimiento) return false;
-    const dias = Math.round((new Date(p.fecha_vencimiento).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (!p.proximo_vencimiento) return false;
+    const dias = Math.round((new Date(p.proximo_vencimiento).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
     return dias <= 30;
   }).length;
   const productosStockBajo = productos.filter((p) => p.stock <= p.stock_minimo).length;
@@ -265,13 +264,6 @@ export default function InventarioPage() {
                 value={nuevoProducto.precio_venta}
                 onChange={(e) => setNuevoProducto({ ...nuevoProducto, precio_venta: e.target.value })}
                 className="rounded border border-border px-2.5 py-1.5"
-              />
-              <input
-                type="date"
-                value={nuevoProducto.fecha_vencimiento}
-                onChange={(e) => setNuevoProducto({ ...nuevoProducto, fecha_vencimiento: e.target.value })}
-                className="rounded border border-border px-2.5 py-1.5"
-                title="Fecha de vencimiento (opcional)"
               />
               <label className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 text-xs text-muted-foreground">
                 <span className="shrink-0">Imagen (opcional)</span>

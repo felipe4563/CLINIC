@@ -42,6 +42,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    function onSesionExpirada() {
+      setUsuario(null);
+    }
+    window.addEventListener('novaged:sesion-expirada', onSesionExpirada);
+    return () => window.removeEventListener('novaged:sesion-expirada', onSesionExpirada);
+  }, []);
+
+  useEffect(() => {
     if (loading) return;
     if (!rutaAutorizada(pathname, usuario)) {
       router.replace(usuario ? '/inicio' : '/login');

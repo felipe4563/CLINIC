@@ -24,12 +24,19 @@ router.get('/staff/tratamientos', onlyPacientes, async (req, res) => {
   const incluirPaciente = q
     ? { model: db.Paciente, where: { nombre_completo: { [Op.like]: `%${q}%` } } }
     : db.Paciente;
-  const notas = await db.NotaClinica.findAll({
+
+  const pagina = Math.max(1, parseInt(req.query.pagina, 10) || 1);
+  const porPagina = Math.min(100, Math.max(1, parseInt(req.query.porPagina, 10) || 20));
+
+  const { count, rows } = await db.NotaClinica.findAndCountAll({
     include: [incluirPaciente, db.Profesional],
     order: [['fecha', 'DESC'], ['hora', 'DESC'], ['id', 'DESC']],
-    limit: 100,
+    limit: porPagina,
+    offset: (pagina - 1) * porPagina,
+    distinct: true,
   });
-  res.json(notas);
+
+  res.json({ notas: rows, total: count, pagina, totalPaginas: Math.max(1, Math.ceil(count / porPagina)) });
 });
 
 router.get('/staff/pacientes/:id/tratamientos', onlyPacientes, async (req, res) => {

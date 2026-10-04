@@ -85,7 +85,12 @@ router.get('/staff/dashboard', requirePermiso('dashboard'), async (req, res) => 
       ? db.Producto.count({ where: { activo: true, stock: { [Op.lte]: db.sequelize.col('stock_minimo') } } })
       : 0,
     puedeVerInventario
-      ? db.Producto.count({ where: { activo: true, fecha_vencimiento: { [Op.ne]: null, [Op.lte]: treintaDias } } })
+      ? db.CompraItem.count({
+          distinct: true,
+          col: 'producto_id',
+          where: { fecha_vencimiento: { [Op.ne]: null, [Op.lte]: treintaDias } },
+          include: [{ model: db.Producto, attributes: [], where: { activo: true } }],
+        })
       : 0,
     puedeVerInventario ? db.ActivoClinica.count({ where: { estado: 'operativo' } }) : 0,
     puedeVerInventario ? db.ActivoClinica.count({ where: { estado: 'mantenimiento' } }) : 0,
