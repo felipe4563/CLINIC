@@ -51,8 +51,10 @@ type ResumenDashboard = {
   inventario: { stockBajo: number; porVencer: number } | null;
 };
 type Tarjeta =
-  | { tipo: 'link'; href: string; label: string; icon: Icono; badge?: Insignia; grupo?: Grupo }
+  | { tipo: 'link'; href: string; label: string; icon: Icono; badge?: Insignia; grupo?: Grupo; destacada?: boolean }
   | { tipo: 'accion'; label: string; icon: Icono; onClick: () => void; peligro?: boolean };
+
+const HREFS_DESTACADOS = new Set(['/agenda', '/pacientes', '/caja']);
 
 function saludo() {
   const hora = new Date().getHours();
@@ -127,11 +129,12 @@ const ESTILO_GRUPO: Record<Grupo, string> = {
 function TarjetaModulo({ tarjeta }: { tarjeta: Tarjeta }) {
   const Icon = tarjeta.icon;
   const grupo = tarjeta.tipo === 'link' ? tarjeta.grupo : undefined;
+  const destacada = tarjeta.tipo === 'link' && tarjeta.destacada;
   const clases = `group relative flex h-full w-full flex-col items-center justify-center gap-2 rounded-2xl border p-5 text-center shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent lg:m-auto lg:h-28 lg:w-32 lg:p-3 ${
     grupo
       ? ESTILO_GRUPO[grupo]
       : `border-border bg-panel ${tarjeta.tipo === 'accion' && tarjeta.peligro ? 'hover:border-danger/50' : 'hover:border-accent/50'}`
-  }`;
+  } ${destacada ? 'ring-2 ring-inset ring-white/45' : ''}`;
   const colorIcono = grupo
     ? ''
     : tarjeta.tipo === 'accion' && tarjeta.peligro
@@ -226,6 +229,7 @@ export default function InicioPage() {
       icon: item.icon,
       badge: badges[item.href],
       grupo: item.grupo,
+      destacada: HREFS_DESTACADOS.has(item.href),
     }));
 
   const tarjetas: Tarjeta[] = [
@@ -313,6 +317,17 @@ export default function InicioPage() {
       >
         {nombreClinica.charAt(0).toUpperCase()}
       </span>
+
+      <div className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-4 rounded-full border border-border/60 bg-panel/80 px-4 py-1.5 text-[11px] text-muted-foreground shadow-sm backdrop-blur-sm lg:top-4">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-group-operacion" />
+          Operación
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-group-administracion" />
+          Administración
+        </span>
+      </div>
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center gap-8 px-4 py-8 lg:h-full lg:flex-row lg:gap-4 lg:py-6 lg:px-6">
         <div

@@ -12,6 +12,7 @@
     "test": "jest --runInBand",
     "seed": "node src/seed.js",
     "seed:admin": "node src/scripts/seedAdmin.js",
+    "seed:demo": "node src/seedDemoSemana.js",
     "migrate": "sequelize-cli db:migrate",
     "migrate:undo": "sequelize-cli db:migrate:undo",
     "migrate:baseline": "node src/scripts/baselineMigrations.js"

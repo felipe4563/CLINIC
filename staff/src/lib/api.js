@@ -67,7 +67,7 @@ export const api = {
   login: (email, password) =>
     apiFetch('/staff/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
 
-  getDashboard: (periodo) => apiFetch(`/staff/dashboard?periodo=${periodo}`),
+  getDashboard: (periodo, fecha) => apiFetch(`/staff/dashboard?periodo=${periodo}${fecha ? `&fecha=${fecha}` : ''}`),
 
   getCitas: (fecha, profesionalId) => {
     const params = new URLSearchParams();
@@ -114,6 +114,11 @@ export const api = {
     return apiFetch(`/staff/tratamientos?${params.toString()}`);
   },
   getTratamientosPaciente: (pacienteId) => apiFetch(`/staff/pacientes/${pacienteId}/tratamientos`),
+
+  getPaquetesPaciente: (pacienteId) => apiFetch(`/staff/pacientes/${pacienteId}/paquetes`),
+  crearPaquete: (pacienteId, datos) =>
+    apiFetch(`/staff/pacientes/${pacienteId}/paquetes`, { method: 'POST', body: JSON.stringify(datos) }),
+  estadoPaqueteQR: (id) => apiFetch(`/staff/paquetes/${id}/estado`),
   crearTratamiento: (pacienteId, datos) =>
     apiFetch(`/staff/pacientes/${pacienteId}/tratamientos`, { method: 'POST', body: JSON.stringify(datos) }),
   actualizarTratamiento: (id, datos) =>
@@ -178,7 +183,8 @@ export const api = {
     apiFetch('/staff/automatizacion', { method: 'PATCH', body: JSON.stringify(datos) }),
 
   getAsistenciaHoy: () => apiFetch('/staff/asistencia/hoy'),
-  marcarAsistencia: () => apiFetch('/staff/asistencia/marcar', { method: 'POST' }),
+  marcarAsistencia: (ubicacion = {}) =>
+    apiFetch('/staff/asistencia/marcar', { method: 'POST', body: JSON.stringify(ubicacion) }),
   getAsistencia: (params = {}) => {
     const qs = new URLSearchParams(params);
     return apiFetch(`/staff/asistencia${qs.toString() ? `?${qs.toString()}` : ''}`);

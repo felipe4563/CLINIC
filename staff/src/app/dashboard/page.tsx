@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/authContext';
 import { IconCalendar, IconClock, IconUserPlus, IconWallet, IconShoppingCart, IconCashRegister, IconAlertCircle } from '@/components/icons';
@@ -15,6 +16,9 @@ type Cita = {
   Servicio: { nombre: string };
 };
 
+type IngresoDia = { fecha: string; citas: number; ventas: number; total: number };
+type CitaPorServicio = { servicio: string; cantidad: number };
+
 type Dashboard = {
   periodo: 'dia' | 'mes' | 'anio';
   citasHoy: number;
@@ -27,6 +31,8 @@ type Dashboard = {
   ventasHoy: { cantidad: number; total: number } | null;
   inventario: { stockBajo: number; porVencer: number } | null;
   activos: { operativos: number; mantenimiento: number } | null;
+  ingresosPorDia: IngresoDia[];
+  citasPorServicio: CitaPorServicio[];
 };
 
 const PERIODOS: { value: Dashboard['periodo']; label: string }[] = [
@@ -50,24 +56,52 @@ function formatBs(monto: number) {
   return new Intl.NumberFormat('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(monto);
 }
 
+function pad(n: number) {
+  return String(n).padStart(2, '0');
+}
+
+function hoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function mesActualISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+}
+
+const ANIO_ACTUAL = new Date().getFullYear();
+const ANIOS_DISPONIBLES = Array.from({ length: 6 }, (_, i) => ANIO_ACTUAL - i);
+
+const MESES_NOMBRES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+];
+
 export default function DashboardPage() {
   const { usuario } = useAuth();
   const [periodo, setPeriodo] = useState<Dashboard['periodo']>('mes');
+  const [fechaDia, setFechaDia] = useState(hoyISO());
+  const [mesSeleccionado, setMesSeleccionado] = useState(mesActualISO());
+  const [anioSeleccionado, setAnioSeleccionado] = useState(ANIO_ACTUAL);
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const cargar = useCallback(async (p: Dashboard['periodo']) => {
+  const fechaParam =
+    periodo === 'dia' ? fechaDia : periodo === 'mes' ? `${mesSeleccionado}-01` : `${anioSeleccionado}-01-01`;
+
+  const cargar = useCallback(async (p: Dashboard['periodo'], fecha: string) => {
     setError(null);
     try {
-      setData(await api.getDashboard(p));
+      setData(await api.getDashboard(p, fecha));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar el dashboard');
     }
   }, []);
 
   useEffect(() => {
-    cargar(periodo);
-  }, [periodo, cargar]);
+    cargar(periodo, fechaParam);
+  }, [periodo, fechaParam, cargar]);
 
   return (
     <div>
@@ -96,6 +130,54 @@ export default function DashboardPage() {
             </button>
           ))}
         </div>
+
+        {periodo === 'dia' && (
+          <input
+            type="date"
+            value={fechaDia}
+            onChange={(e) => setFechaDia(e.target.value)}
+            className="rounded-lg border border-border bg-panel px-3 py-1.5 text-sm"
+          />
+        )}
+        {periodo === 'mes' && (
+          <div className="flex gap-2">
+            <select
+              value={mesSeleccionado.slice(5, 7)}
+              onChange={(e) => setMesSeleccionado(`${mesSeleccionado.slice(0, 4)}-${e.target.value}`)}
+              className="rounded-lg border border-border bg-panel px-3 py-1.5 text-sm"
+            >
+              {MESES_NOMBRES.map((nombre, i) => (
+                <option key={nombre} value={pad(i + 1)}>
+                  {nombre}
+                </option>
+              ))}
+            </select>
+            <select
+              value={mesSeleccionado.slice(0, 4)}
+              onChange={(e) => setMesSeleccionado(`${e.target.value}-${mesSeleccionado.slice(5, 7)}`)}
+              className="rounded-lg border border-border bg-panel px-3 py-1.5 text-sm"
+            >
+              {ANIOS_DISPONIBLES.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {periodo === 'anio' && (
+          <select
+            value={anioSeleccionado}
+            onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
+            className="rounded-lg border border-border bg-panel px-3 py-1.5 text-sm"
+          >
+            {ANIOS_DISPONIBLES.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
@@ -144,6 +226,86 @@ export default function DashboardPage() {
               color="rose"
               href="/inventario"
             />
+          )}
+        </div>
+      )}
+
+      {data && (data.ingresosPorDia.some((d) => d.total > 0) || data.citasPorServicio.length > 0) && (
+        <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
+          {data.ingresosPorDia.some((d) => d.total > 0) && (
+            <div className="rounded-xl border border-border bg-panel p-5">
+              <h2 className="mb-1 text-sm font-semibold">Ingresos de los últimos 14 días</h2>
+              <p className="mb-3 text-xs text-muted-foreground">Citas pagadas + ventas de mostrador, por día</p>
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={data.ingresosPorDia} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gradCitas" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="var(--accent)" stopOpacity={0.05} />
+                      </linearGradient>
+                      <linearGradient id="gradVentas" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--stat-blue)" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="var(--stat-blue)" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                    <XAxis
+                      dataKey="fecha"
+                      tickFormatter={(f: string) => f.slice(5).split('-').reverse().join('/')}
+                      tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                      axisLine={{ stroke: 'var(--border)' }}
+                      tickLine={false}
+                    />
+                    <YAxis tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} width={48} />
+                    <Tooltip
+                      contentStyle={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
+                      labelFormatter={(f) => String(f).slice(5).split('-').reverse().join('/')}
+                      formatter={(value, name) => [`Bs ${formatBs(Number(value))}`, name === 'citas' ? 'Citas' : 'Ventas']}
+                    />
+                    <Area type="monotone" dataKey="citas" stackId="1" stroke="var(--accent)" fill="url(#gradCitas)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="ventas" stackId="1" stroke="var(--stat-blue)" fill="url(#gradVentas)" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full" style={{ background: 'var(--accent)' }} /> Citas
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full" style={{ background: 'var(--stat-blue)' }} /> Ventas
+                </span>
+              </div>
+            </div>
+          )}
+
+          {data.citasPorServicio.length > 0 && (
+            <div className="rounded-xl border border-border bg-panel p-5">
+              <h2 className="mb-1 text-sm font-semibold">Citas por servicio</h2>
+              <p className="mb-3 text-xs text-muted-foreground">En el {periodoLabel(periodo)} seleccionado</p>
+              <div style={{ height: Math.max(data.citasPorServicio.length * 34, 120) }} className="w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.citasPorServicio} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
+                    <YAxis
+                      type="category"
+                      dataKey="servicio"
+                      tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={120}
+                    />
+                    <Tooltip
+                      contentStyle={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
+                      formatter={(value) => [`${value} citas`, '']}
+                      labelFormatter={() => ''}
+                    />
+                    <Bar dataKey="cantidad" fill="var(--accent)" radius={[0, 4, 4, 0]} barSize={16} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           )}
         </div>
       )}

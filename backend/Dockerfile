@@ -3,5 +3,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --production
 COPY . .
+RUN chmod +x docker-entrypoint.sh
 EXPOSE 4000
-CMD ["sh", "-c", "npx sequelize-cli db:migrate && node src/server.js"]
+CMD ["./docker-entrypoint.sh"]

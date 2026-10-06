@@ -28,6 +28,7 @@ const MovimientoPuntos = require('./movimientoPuntos');
 const Proveedor = require('./proveedor');
 const Compra = require('./compra');
 const CompraItem = require('./compraItem');
+const PaqueteSesiones = require('./paqueteSesiones');
 
 Rol.hasMany(Usuario, { foreignKey: 'rol_id' });
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id' });
@@ -129,6 +130,21 @@ Producto.hasMany(CompraItem, { foreignKey: 'producto_id' });
 MovimientoCaja.belongsTo(Compra, { foreignKey: { name: 'compra_id', allowNull: true } });
 Compra.hasOne(MovimientoCaja, { foreignKey: 'compra_id' });
 
+PaqueteSesiones.belongsTo(Paciente, { foreignKey: { name: 'paciente_id', allowNull: false } });
+Paciente.hasMany(PaqueteSesiones, { foreignKey: 'paciente_id' });
+
+PaqueteSesiones.belongsTo(Servicio, { foreignKey: { name: 'servicio_id', allowNull: false } });
+Servicio.hasMany(PaqueteSesiones, { foreignKey: 'servicio_id' });
+
+PaqueteSesiones.belongsTo(Usuario, { foreignKey: { name: 'usuario_id', allowNull: false } });
+Usuario.hasMany(PaqueteSesiones, { foreignKey: 'usuario_id' });
+
+MovimientoCaja.belongsTo(PaqueteSesiones, { foreignKey: { name: 'paquete_sesiones_id', allowNull: true } });
+PaqueteSesiones.hasOne(MovimientoCaja, { foreignKey: 'paquete_sesiones_id' });
+
+Cita.belongsTo(PaqueteSesiones, { foreignKey: { name: 'paquete_sesiones_id', allowNull: true } });
+PaqueteSesiones.hasMany(Cita, { foreignKey: 'paquete_sesiones_id' });
+
 module.exports = {
   sequelize,
   Paciente,
@@ -160,4 +176,5 @@ module.exports = {
   Proveedor,
   Compra,
   CompraItem,
+  PaqueteSesiones,
 };

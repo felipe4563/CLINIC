@@ -6,6 +6,11 @@ const { requirePermiso } = require('./auth.middleware');
 const router = express.Router();
 const onlyPacientes = requirePermiso('pacientes');
 
+function hoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function normalizarHora(hora) {
   if (!hora) return null;
   return hora.length === 5 ? `${hora}:00` : hora;
@@ -55,7 +60,7 @@ router.post('/staff/pacientes/:id/tratamientos', onlyPacientes, async (req, res)
   const { titulo, notas, fecha, hora, profesionalId } = req.body;
   if (!titulo || !notas) return res.status(400).json({ error: 'titulo y notas son requeridos' });
 
-  const fechaNota = fecha || new Date().toISOString().slice(0, 10);
+  const fechaNota = fecha || hoyISO();
   const horaNota = normalizarHora(hora);
 
   if (await chocaConCita(profesionalId, fechaNota, horaNota)) {

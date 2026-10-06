@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { IconTrash, IconPhoto, IconChevronDown } from '@/components/icons';
+import { IconTrash, IconPhoto, IconChevronDown, IconShoppingCart } from '@/components/icons';
+
+function hoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -24,23 +29,31 @@ function imagenSrc(imagenUrl: string | null) {
 
 type ItemCarrito = { producto: Producto; cantidad: number };
 
+type PacienteBusqueda = { id: number; nombre_completo: string; telefono: string };
+
 type VentaHistorial = {
   id: number;
   total: string;
   metodo_pago: 'efectivo' | 'qr';
   estado: 'pendiente' | 'pagado';
   cliente_nombre: string | null;
+  Paciente: { nombre_completo: string } | null;
   Usuario: { nombre: string };
   VentaItems: { cantidad: number; precio_unitario: string; Producto: { nombre: string } }[];
 };
 
 export default function VentasPage() {
+  const [tab, setTab] = useState<'vender' | 'mis-ventas'>('vender');
   const [productos, setProductos] = useState<Producto[]>([]);
   const [q, setQ] = useState('');
   const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   const [clienteNombre, setClienteNombre] = useState('');
+  const [pacienteSeleccionado, setPacienteSeleccionado] = useState<PacienteBusqueda | null>(null);
+  const [sugerenciasPacientes, setSugerenciasPacientes] = useState<PacienteBusqueda[]>([]);
+  const [buscandoPaciente, setBuscandoPaciente] = useState(false);
   const [error, setError] = useState('');
 
+  const [fechaVentas, setFechaVentas] = useState(hoyISO());
   const [ventas, setVentas] = useState<VentaHistorial[]>([]);
   const [totalDia, setTotalDia] = useState(0);
 
@@ -68,9 +81,9 @@ export default function VentasPage() {
     }
   }, []);
 
-  const cargarVentas = useCallback(async () => {
+  const cargarVentas = useCallback(async (fecha: string) => {
     try {
-      const res = await api.getVentas();
+      const res = await api.getVentas(fecha);
       setVentas(res.ventas);
       setTotalDia(res.totalDia);
     } catch {
@@ -80,8 +93,34 @@ export default function VentasPage() {
 
   useEffect(() => {
     cargarProductos();
-    cargarVentas();
-  }, [cargarProductos, cargarVentas]);
+  }, [cargarProductos]);
+
+  useEffect(() => {
+    cargarVentas(fechaVentas);
+  }, [cargarVentas, fechaVentas]);
+
+  useEffect(() => {
+    if (pacienteSeleccionado || clienteNombre.trim().length < 2) {
+      setSugerenciasPacientes([]);
+      return;
+    }
+    let vigente = true;
+    setBuscandoPaciente(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await api.getPacientes(clienteNombre.trim());
+        if (vigente) setSugerenciasPacientes(res.pacientes.slice(0, 6));
+      } catch {
+        if (vigente) setSugerenciasPacientes([]);
+      } finally {
+        if (vigente) setBuscandoPaciente(false);
+      }
+    }, 300);
+    return () => {
+      vigente = false;
+      clearTimeout(timeout);
+    };
+  }, [clienteNombre, pacienteSeleccionado]);
 
   useEffect(() => {
     return () => {
@@ -121,6 +160,8 @@ export default function VentasPage() {
   function limpiarVenta() {
     setCarrito([]);
     setClienteNombre('');
+    setPacienteSeleccionado(null);
+    setSugerenciasPacientes([]);
     setVentaQR(null);
     setConfirmada(false);
     if (pollRef.current) clearInterval(pollRef.current);
@@ -134,13 +175,14 @@ export default function VentasPage() {
       const res = await api.crearVenta({
         items: carrito.map((i) => ({ productoId: i.producto.id, cantidad: i.cantidad })),
         metodoPago,
-        clienteNombre: clienteNombre || null,
+        clienteNombre: pacienteSeleccionado ? null : clienteNombre || null,
+        pacienteId: pacienteSeleccionado ? pacienteSeleccionado.id : null,
       });
 
       if (metodoPago === 'efectivo') {
         limpiarVenta();
         cargarProductos();
-        cargarVentas();
+        cargarVentas(fechaVentas);
       } else {
         setVentaQR({ ventaId: res.venta.id, qr: res.qrImageBase64 });
         pollRef.current = setInterval(async () => {
@@ -150,7 +192,7 @@ export default function VentasPage() {
               if (pollRef.current) clearInterval(pollRef.current);
               setConfirmada(true);
               cargarProductos();
-              cargarVentas();
+              cargarVentas(fechaVentas);
             }
           } catch {
             // reintenta solo
@@ -173,7 +215,7 @@ export default function VentasPage() {
     }
     limpiarVenta();
     cargarProductos();
-    cargarVentas();
+    cargarVentas(fechaVentas);
   }
 
   if (ventaQR) {
@@ -208,6 +250,22 @@ export default function VentasPage() {
       <h1 className="mb-4 text-lg font-semibold">Ventas (POS)</h1>
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
 
+      <div className="mb-4 flex gap-1 border-b border-border">
+        <button
+          onClick={() => setTab('vender')}
+          className={`px-3 py-2 text-sm font-medium ${tab === 'vender' ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
+        >
+          Vender
+        </button>
+        <button
+          onClick={() => setTab('mis-ventas')}
+          className={`px-3 py-2 text-sm font-medium ${tab === 'mis-ventas' ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
+        >
+          Mis ventas
+        </button>
+      </div>
+
+      {tab === 'vender' && (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_340px]">
         <div>
           <input
@@ -308,12 +366,58 @@ export default function VentasPage() {
             {carrito.length === 0 && <p className="text-xs text-muted-foreground">Toca un producto para agregarlo.</p>}
           </div>
 
-          <input
-            placeholder="Nombre del cliente (opcional)"
-            value={clienteNombre}
-            onChange={(e) => setClienteNombre(e.target.value)}
-            className="mt-3 rounded border border-border px-2.5 py-1.5 text-sm"
-          />
+          <div className="relative mt-3">
+            {pacienteSeleccionado ? (
+              <div className="flex items-center justify-between gap-2 rounded border border-accent bg-accent-soft px-2.5 py-1.5 text-sm">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{pacienteSeleccionado.nombre_completo}</p>
+                  <p className="text-xs text-muted-foreground">{pacienteSeleccionado.telefono} · suma puntos de fidelidad</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPacienteSeleccionado(null)}
+                  className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <>
+                <input
+                  placeholder="Buscar paciente o escribir nombre…"
+                  value={clienteNombre}
+                  onChange={(e) => setClienteNombre(e.target.value)}
+                  className="w-full rounded border border-border px-2.5 py-1.5 text-sm"
+                />
+                {clienteNombre.trim().length >= 2 && (sugerenciasPacientes.length > 0 || buscandoPaciente) && (
+                  <div className="absolute inset-x-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-panel shadow-lg">
+                    {buscandoPaciente && <p className="px-3 py-2 text-xs text-muted-foreground">Buscando…</p>}
+                    {!buscandoPaciente &&
+                      sugerenciasPacientes.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setPacienteSeleccionado(p);
+                            setClienteNombre('');
+                            setSugerenciasPacientes([]);
+                          }}
+                          className="block w-full px-3 py-2 text-left text-sm hover:bg-accent-soft"
+                        >
+                          <span className="font-medium">{p.nombre_completo}</span>
+                          <span className="ml-2 text-xs text-muted-foreground">{p.telefono}</span>
+                        </button>
+                      ))}
+                    {!buscandoPaciente && sugerenciasPacientes.length === 0 && (
+                      <p className="px-3 py-2 text-xs text-muted-foreground">
+                        Sin coincidencias — se registrará como &quot;{clienteNombre}&quot; sin vincular a un paciente.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
 
           <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-sm font-semibold">
             <span>Total</span>
@@ -338,8 +442,22 @@ export default function VentasPage() {
           </div>
         </div>
       </div>
+      )}
 
-      <h2 className="mb-2 mt-6 text-sm font-semibold">Ventas de hoy · Bs {totalDia.toFixed(2)}</h2>
+      {tab === 'mis-ventas' && (
+      <div>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <input
+          type="date"
+          value={fechaVentas}
+          onChange={(e) => setFechaVentas(e.target.value)}
+          className="rounded-lg border border-border bg-panel px-2.5 py-1.5 text-sm"
+        />
+        <button onClick={() => setFechaVentas(hoyISO())} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent-soft">
+          Hoy
+        </button>
+        <span className="ml-auto text-sm font-semibold">Total: Bs {totalDia.toFixed(2)}</span>
+      </div>
       <div className="flex flex-col gap-2">
         {ventas.map((v) => {
           const expandida = ventasExpandidas.has(v.id);
@@ -353,7 +471,7 @@ export default function VentasPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate">{v.VentaItems.map((it) => `${it.cantidad}× ${it.Producto.nombre}`).join(', ')}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {v.cliente_nombre || 'Cliente mostrador'} · {v.Usuario.nombre}
+                    {v.Paciente?.nombre_completo || v.cliente_nombre || 'Cliente mostrador'} · {v.Usuario.nombre}
                     {v.estado === 'pendiente' ? ' · Pendiente de pago' : ''}
                   </p>
                 </div>
@@ -381,8 +499,15 @@ export default function VentasPage() {
             </div>
           );
         })}
-        {ventas.length === 0 && <p className="text-sm text-muted-foreground">Sin ventas registradas hoy.</p>}
+        {ventas.length === 0 && (
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border py-10 text-center">
+            <IconShoppingCart className="h-6 w-6 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Sin ventas registradas este día.</p>
+          </div>
+        )}
       </div>
+      </div>
+      )}
     </div>
   );
 }

@@ -13,6 +13,11 @@ type Paciente = {
   carnet_identidad: string;
 };
 
+function iniciales(nombre: string) {
+  const partes = nombre.trim().split(/\s+/);
+  return ((partes[0]?.[0] || '') + (partes[1]?.[0] || '')).toUpperCase();
+}
+
 const VACIO = {
   nombre_completo: '',
   telefono: '',
@@ -53,8 +58,9 @@ export default function PacientesPage() {
   }, []);
 
   useEffect(() => {
-    buscar('', 1);
-  }, [buscar]);
+    const id = setTimeout(() => buscar(q, 1), 300);
+    return () => clearTimeout(id);
+  }, [q, buscar]);
 
   function abrirForm() {
     setNuevo(VACIO);
@@ -172,29 +178,34 @@ export default function PacientesPage() {
         placeholder="Buscar por nombre, teléfono, carnet o código…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && buscar(q, 1)}
         className="mb-4 w-full max-w-md rounded border border-border px-3 py-2 text-sm"
       />
 
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
       {loading && <p className="text-sm text-foreground/70">Cargando…</p>}
 
-      <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {pacientes.map((p) => (
           <Link
             key={p.id}
             href={`/pacientes/${p.id}`}
-            className="flex items-center justify-between rounded border border-border bg-panel p-3 text-sm hover:border-accent"
+            className="flex items-center gap-3 rounded-lg border border-border bg-panel p-3 text-sm transition-colors hover:border-accent hover:bg-accent-soft"
           >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
+              {iniciales(p.nombre_completo)}
+            </div>
             <div className="min-w-0">
               <p className="truncate font-medium">{p.nombre_completo}</p>
-              <p className="truncate text-foreground/70">
-                {p.telefono} · {p.carnet_identidad} · {p.codigo_paciente}
+              <p className="truncate text-xs text-foreground/70">{p.telefono}</p>
+              <p className="truncate text-xs text-foreground/50">
+                {p.carnet_identidad} · {p.codigo_paciente}
               </p>
             </div>
           </Link>
         ))}
-        {!loading && pacientes.length === 0 && <p className="text-sm text-foreground/70">Sin resultados.</p>}
+        {!loading && pacientes.length === 0 && (
+          <p className="col-span-full text-sm text-foreground/70">Sin resultados.</p>
+        )}
       </div>
 
       {!loading && total > 0 && (

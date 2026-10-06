@@ -88,17 +88,6 @@ const ESTADO_LABEL = {
   no_asistio: 'No asistió',
 };
 
-// Badges en escala de grises: se diferencian por intensidad de relleno
-// (confirmada/completada = mas oscuro = estado "cerrado") y "cancelada" usa
-// solo borde para distinguirla como estado negativo sin depender del color.
-const ESTADO_BADGE = {
-  pendiente_pago: { label: 'Pendiente de pago', bg: '#E8E8E8', fg: '#1A1A1A' },
-  confirmada: { label: 'Confirmada', bg: '#4A4A4A', fg: '#FFFFFF' },
-  cancelada: { label: 'Cancelada', bg: null, fg: '#1A1A1A', outline: true },
-  completada: { label: 'Completada', bg: '#1A1A1A', fg: '#FFFFFF' },
-  no_asistio: { label: 'No asistió', bg: '#D0D0D0', fg: '#4A4A4A' },
-};
-
 function pad(n) {
   return String(n).padStart(2, '0');
 }
@@ -141,7 +130,7 @@ router.get('/staff/agenda/pdf', requirePermiso('agenda'), async (req, res) => {
     doc.fillColor(COLOR.ink);
   }
 
-  const columnaEstado = { titulo: 'Estado', ancho: 95, badge: (estado) => ESTADO_BADGE[estado] || { label: ESTADO_LABEL[estado] || estado, bg: '#E8E8E8', fg: '#1A1A1A' } };
+  const columnaEstado = { titulo: 'Estado', ancho: 95 };
 
   const columnas = esRango
     ? [
@@ -168,21 +157,15 @@ router.get('/staff/agenda/pdf', requirePermiso('agenda'), async (req, res) => {
       c.Servicio ? c.Servicio.nombre : 'Sin servicio',
       c.Profesional ? c.Profesional.nombre : 'Sin profesional',
     ];
-    const cola = esRango ? [c.estado] : [c.Paciente ? c.Paciente.telefono : '', c.estado];
+    const estadoTexto = ESTADO_LABEL[c.estado] || c.estado;
+    const cola = esRango ? [estadoTexto] : [c.Paciente ? c.Paciente.telefono : '', estadoTexto];
     return [...base, ...comunes, ...cola];
   });
 
   dibujarTabla(doc, { columnas, filas });
 
   doc.moveDown(0.6);
-  const textoTotal = `Total de citas: ${citas.length}`;
-  doc.font('Helvetica-Bold').fontSize(10);
-  const anchoTexto = doc.widthOfString(textoTotal);
-  const xChip = doc.page.margins.left;
-  const yChip = doc.y;
-  doc.roundedRect(xChip, yChip, anchoTexto + 20, 22, 4).fill(COLOR.ink);
-  doc.fillColor(COLOR.white).text(textoTotal, xChip + 10, yChip + 6);
-  doc.fillColor(COLOR.ink);
+  doc.font('Helvetica-Bold').fontSize(10).fillColor(COLOR.ink).text(`Total de citas: ${citas.length}`);
 
   doc.end();
 });
@@ -215,6 +198,20 @@ router.patch('/staff/citas/:id/estado', requirePermiso('agenda'), async (req, re
         motivo: `Cita completada #${cita.id}`,
         citaId: cita.id,
       });
+    }
+
+    if (!cita.paquete_sesiones_id) {
+      const candidatos = await db.PaqueteSesiones.findAll({
+        where: { paciente_id: cita.paciente_id, servicio_id: cita.servicio_id, estado: 'pagado' },
+        order: [['fecha_compra', 'ASC'], ['id', 'ASC']],
+      });
+      const paquete = candidatos.find((p) => p.sesiones_usadas < p.sesiones_totales);
+      if (paquete) {
+        paquete.sesiones_usadas += 1;
+        await paquete.save();
+        cita.paquete_sesiones_id = paquete.id;
+        await cita.save();
+      }
     }
   }
 

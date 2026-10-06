@@ -15,7 +15,8 @@ function toHHMM(totalMinutes) {
 const PENDIENTE_PAGO_TTL_MS = 15 * 60 * 1000;
 
 async function getSlotsDisponibles({ profesionalId, servicioId, fecha }) {
-  const hoy = new Date().toISOString().slice(0, 10);
+  const fechaActual = new Date();
+  const hoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`;
   if (fecha < hoy) return [];
 
   const servicioProfesional = await db.ServicioProfesional.findOne({

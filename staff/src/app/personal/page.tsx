@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, FormEvent } from 'react';
 import { api } from '@/lib/api';
-import { IconUserCheck } from '@/components/icons';
+import { IconUserCheck, IconClock } from '@/components/icons';
 
 type Usuario = { id: number; nombre: string };
 
@@ -136,29 +136,58 @@ export default function PersonalPage() {
 
       {tab === 'asistencia' && (
         <div>
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-4 flex items-center gap-2">
             <input
               type="date"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              className="rounded-lg border border-border px-2.5 py-1.5 text-sm"
+              className="rounded-lg border border-border bg-panel px-2.5 py-1.5 text-sm"
             />
             <button onClick={() => setFecha(hoyISO())} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent-soft">
               Hoy
             </button>
+            {registros.length > 0 && (
+              <span className="ml-auto text-xs text-muted-foreground">
+                {registros.length} marcación{registros.length !== 1 ? 'es' : ''}
+              </span>
+            )}
           </div>
 
-          <div className="flex flex-col gap-2">
-            {registros.map((r) => (
-              <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-panel p-3 text-sm">
-                <p className="font-medium">{r.Usuario.nombre}</p>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>Entrada: {r.hora_entrada ? hora(r.hora_entrada) : '—'}</span>
-                  <span>Salida: {r.hora_salida ? hora(r.hora_salida) : '—'}</span>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {registros.map((r) => {
+              const trabajando = r.hora_entrada && !r.hora_salida;
+              return (
+                <div key={r.id} className="rounded-xl border border-border bg-panel p-4">
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <p className="truncate font-medium">{r.Usuario.nombre}</p>
+                    {trabajando && (
+                      <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-stat-green-soft px-2 py-0.5 text-[11px] font-medium text-stat-green">
+                        <span className="h-1.5 w-1.5 rounded-full bg-stat-green" />
+                        En turno
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-6 text-sm">
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">Entrada</p>
+                      <p className="font-medium">{r.hora_entrada ? hora(r.hora_entrada) : '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">Salida</p>
+                      <p className={`font-medium ${trabajando ? 'text-stat-amber' : ''}`}>
+                        {r.hora_salida ? hora(r.hora_salida) : trabajando ? 'Aún no marca' : '—'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
+              );
+            })}
+            {registros.length === 0 && (
+              <div className="col-span-full flex flex-col items-center gap-2 rounded-xl border border-dashed border-border py-10 text-center">
+                <IconClock className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Sin marcaciones este día.</p>
               </div>
-            ))}
-            {registros.length === 0 && <p className="text-sm text-muted-foreground">Sin marcaciones este día.</p>}
+            )}
           </div>
         </div>
       )}

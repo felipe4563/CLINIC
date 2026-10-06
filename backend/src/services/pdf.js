@@ -50,10 +50,25 @@ function crearReportePDF(res, config, { titulo, nombreArchivo, desde, hasta }) {
   let numeroPagina = 1;
 
   function dibujarEncabezado() {
-    const altoBanda = 92;
+    const logoPath = rutaLogoEmbebible(config.logo_url);
+    let logoAncho = 0;
+    let logoAlto = 0;
+    if (logoPath) {
+      try {
+        const img = doc.openImage(logoPath);
+        const altoObjetivo = 64;
+        logoAlto = altoObjetivo;
+        logoAncho = Math.min(240, altoObjetivo * (img.width / img.height));
+      } catch {
+        // No se pudo leer el logo: se omite el cálculo y no se dibuja placa/imagen.
+      }
+    }
+    const altoBanda = logoPath && logoAlto ? 104 : 92;
+    const anchoReservado = logoPath && logoAlto ? logoAncho + 40 : 80;
+    const anchoTexto = anchoPagina - margenIzq - margenDer - anchoReservado;
 
     doc.fillColor(COLOR.ink).font('Helvetica-Bold').fontSize(18).text(config.nombre_consultorio || 'Clínica', margenIzq, 22, {
-      width: anchoPagina - margenIzq - margenDer - 80,
+      width: anchoTexto,
     });
 
     doc.font('Helvetica').fontSize(8.5).fillColor(COLOR.muted);
@@ -61,17 +76,15 @@ function crearReportePDF(res, config, { titulo, nombreArchivo, desde, hasta }) {
       .filter(Boolean);
     let y = 46;
     lineas.forEach((linea) => {
-      doc.text(linea, margenIzq, y, { width: anchoPagina - margenIzq - margenDer - 80 });
+      doc.text(linea, margenIzq, y, { width: anchoTexto });
       y += 12;
     });
 
-    const logoPath = rutaLogoEmbebible(config.logo_url);
-    if (logoPath) {
+    if (logoPath && logoAlto) {
       try {
-        const tamano = 56;
-        const x = anchoPagina - margenDer - tamano;
-        const y2 = (altoBanda - tamano) / 2 - 8;
-        doc.image(logoPath, x, y2, { fit: [tamano, tamano] });
+        const x = anchoPagina - margenDer - logoAncho;
+        const y2 = (altoBanda - logoAlto) / 2 - 4;
+        doc.image(logoPath, x, y2, { width: logoAncho, height: logoAlto });
       } catch {
         // Archivo de logo inválido o corrupto: se omite sin interrumpir el reporte.
       }
@@ -152,22 +165,6 @@ function dibujarTabla(doc, { columnas, filas, anchoTotal }) {
   const alturaFila = 24;
   const limiteInferior = () => doc.page.height - doc.page.margins.bottom - 24;
 
-  function dibujarBadge(texto, badgeInfo, x, y, ancho2) {
-    doc.font('Helvetica-Bold').fontSize(8);
-    const anchoTexto = doc.widthOfString(badgeInfo.label);
-    const anchoPill = Math.min(ancho2 - 4, anchoTexto + 14);
-    const altoPill = 15;
-    const xPill = x;
-    const yPill = y - 1;
-    if (badgeInfo.outline) {
-      doc.roundedRect(xPill, yPill, anchoPill, altoPill, altoPill / 2).lineWidth(1).strokeColor(badgeInfo.fg).stroke();
-    } else {
-      doc.roundedRect(xPill, yPill, anchoPill, altoPill, altoPill / 2).fill(badgeInfo.bg);
-    }
-    doc.fillColor(badgeInfo.fg).text(badgeInfo.label, xPill, yPill + 3.5, { width: anchoPill, align: 'center' });
-    doc.fillColor(COLOR.ink);
-  }
-
   function fila(valores, { negrita = false, esEncabezado = false, indice = 0 } = {}) {
     if (doc.y + alturaFila > limiteInferior()) {
       doc.addPage();
@@ -182,14 +179,6 @@ function dibujarTabla(doc, { columnas, filas, anchoTotal }) {
     let x = inicioX;
     valores.forEach((valor, i) => {
       const col = columnas[i];
-      if (!esEncabezado && col.badge) {
-        const badgeInfo = col.badge(valor);
-        if (badgeInfo) {
-          dibujarBadge(String(valor ?? ''), badgeInfo, x + 4, y + 5, anchoColumna[i] - 8);
-          x += anchoColumna[i];
-          return;
-        }
-      }
       doc.fillColor(colorTexto);
       doc.text(String(valor ?? ''), x + 4, y + 7, { width: anchoColumna[i] - 8, align: col.align || 'left' });
       x += anchoColumna[i];

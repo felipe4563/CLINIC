@@ -9,6 +9,11 @@ const { requirePermiso } = require('./auth.middleware');
 const router = express.Router();
 const onlyInventario = requirePermiso('inventario');
 
+function hoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 const PRODUCTOS_DIR = path.join(__dirname, '..', '..', 'uploads', 'productos');
 fs.mkdirSync(PRODUCTOS_DIR, { recursive: true });
 
@@ -256,7 +261,7 @@ router.post('/staff/activos/:id/baja', onlyInventario, async (req, res) => {
   if (!motivo) return res.status(400).json({ error: 'motivo es requerido' });
 
   activo.estado = 'dado_de_baja';
-  activo.fecha_baja = new Date().toISOString().slice(0, 10);
+  activo.fecha_baja = hoyISO();
   activo.motivo_baja = motivo;
   await activo.save();
   res.json(activo);

@@ -33,13 +33,21 @@ function horasEntre(horaEntrada, horaSalida) {
 // --------------------------------------------------------------------
 // Financiero
 // --------------------------------------------------------------------
+function categoriaConcepto(concepto) {
+  if (/^Venta #/.test(concepto)) return 'Ventas';
+  if (/^Compra #/.test(concepto)) return 'Compras';
+  if (/^Saldo cita /.test(concepto)) return 'Saldos de citas';
+  return concepto;
+}
+
 async function datosFinanciero(desde, hasta) {
   const movimientos = await db.MovimientoCaja.findAll({
     where: { fecha: { [Op.between]: [desde, hasta] } },
-    order: [['fecha', 'ASC']],
+    order: [['fecha', 'ASC'], ['id', 'ASC']],
   });
 
   const porDiaMap = new Map();
+  const porConceptoMap = new Map();
   let totalIngresos = 0;
   let totalEgresos = 0;
   for (const m of movimientos) {
@@ -50,6 +58,13 @@ async function datosFinanciero(desde, hasta) {
     const dia = porDiaMap.get(m.fecha);
     if (m.tipo === 'ingreso') dia.ingresos += monto;
     else dia.egresos += monto;
+
+    const concepto = categoriaConcepto(m.concepto);
+    if (!porConceptoMap.has(concepto)) porConceptoMap.set(concepto, { concepto, ingresos: 0, egresos: 0, cantidad: 0 });
+    const acc = porConceptoMap.get(concepto);
+    acc.cantidad += 1;
+    if (m.tipo === 'ingreso') acc.ingresos += monto;
+    else acc.egresos += monto;
   }
 
   return {
@@ -59,6 +74,8 @@ async function datosFinanciero(desde, hasta) {
     totalEgresos,
     neto: totalIngresos - totalEgresos,
     porDia: Array.from(porDiaMap.values()).sort((a, b) => a.fecha.localeCompare(b.fecha)),
+    porConcepto: Array.from(porConceptoMap.values()).sort((a, b) => (b.ingresos + b.egresos) - (a.ingresos + a.egresos)),
+    movimientos: movimientos.map((m) => ({ fecha: m.fecha, tipo: m.tipo, concepto: m.concepto, monto: Number(m.monto) })),
   };
 }
 
@@ -79,6 +96,13 @@ router.get('/staff/reportes/financiero/pdf', onlyReportes, async (req, res) => {
     hasta,
   });
 
+  doc.font('Helvetica-Bold').fontSize(11);
+  doc.text(`Total ingresos: ${formatoMoneda(datos.totalIngresos)}`);
+  doc.text(`Total egresos: ${formatoMoneda(datos.totalEgresos)}`);
+  doc.text(`Saldo neto: ${formatoMoneda(datos.neto)}`);
+  doc.moveDown(0.8);
+
+  doc.font('Helvetica-Bold').fontSize(11).text('Resumen por día');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Fecha', ancho: 150 },
@@ -94,11 +118,38 @@ router.get('/staff/reportes/financiero/pdf', onlyReportes, async (req, res) => {
     ]),
   });
 
-  doc.moveDown(0.5);
-  doc.font('Helvetica-Bold').fontSize(11);
-  doc.text(`Total ingresos: ${formatoMoneda(datos.totalIngresos)}`);
-  doc.text(`Total egresos: ${formatoMoneda(datos.totalEgresos)}`);
-  doc.text(`Saldo neto: ${formatoMoneda(datos.neto)}`);
+  doc.font('Helvetica-Bold').fontSize(11).text('Resumen por concepto');
+  dibujarTabla(doc, {
+    columnas: [
+      { titulo: 'Concepto', ancho: 220 },
+      { titulo: 'Movs.', ancho: 80, align: 'right' },
+      { titulo: 'Ingresos', ancho: 125, align: 'right' },
+      { titulo: 'Egresos', ancho: 125, align: 'right' },
+    ],
+    filas: datos.porConcepto.map((c) => [
+      c.concepto,
+      c.cantidad,
+      formatoMoneda(c.ingresos),
+      formatoMoneda(c.egresos),
+    ]),
+  });
+
+  doc.font('Helvetica-Bold').fontSize(11).text('Detalle de movimientos');
+  dibujarTabla(doc, {
+    columnas: [
+      { titulo: 'Fecha', ancho: 100 },
+      { titulo: 'Tipo', ancho: 80 },
+      { titulo: 'Concepto', ancho: 270 },
+      { titulo: 'Monto', ancho: 100, align: 'right' },
+    ],
+    filas: datos.movimientos.map((m) => [
+      formatoFecha(m.fecha),
+      m.tipo === 'ingreso' ? 'Ingreso' : 'Egreso',
+      m.concepto,
+      formatoMoneda(m.monto),
+    ]),
+  });
+
   doc.end();
 });
 
@@ -160,10 +211,17 @@ router.get('/staff/reportes/citas/pdf', onlyReportes, async (req, res) => {
   doc.font('Helvetica').fontSize(10).text(`Tasa de inasistencia: ${datos.noShowRate.toFixed(1)}%`);
   doc.moveDown(0.8);
 
+  const ETIQUETAS_ESTADO = {
+    pendiente_pago: 'Pendiente de pago',
+    confirmada: 'Confirmada',
+    cancelada: 'Cancelada',
+    completada: 'Completada',
+    no_asistio: 'No asistió',
+  };
   doc.font('Helvetica-Bold').fontSize(11).text('Por estado');
   dibujarTabla(doc, {
     columnas: [{ titulo: 'Estado', ancho: 300 }, { titulo: 'Cantidad', ancho: 300, align: 'right' }],
-    filas: Object.entries(datos.porEstado).map(([estado, cantidad]) => [estado, cantidad]),
+    filas: Object.entries(datos.porEstado).map(([estado, cantidad]) => [ETIQUETAS_ESTADO[estado] || estado, cantidad]),
   });
 
   doc.font('Helvetica-Bold').fontSize(11).text('Por profesional');

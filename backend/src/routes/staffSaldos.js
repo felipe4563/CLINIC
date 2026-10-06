@@ -6,6 +6,11 @@ const { generarQR, consultarEstadoQR } = require('../services/bancoEconomico');
 const router = express.Router();
 const onlyPacientes = requirePermiso('pacientes');
 
+function hoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 async function buscarPagoConSaldo(id) {
   const pago = await db.Pago.findByPk(id, { include: [{ model: db.Cita, as: 'Cita', include: [db.Paciente, db.Servicio] }] });
   if (!pago) return null;
@@ -37,7 +42,7 @@ router.patch('/staff/pagos/:id/saldo', onlyPacientes, async (req, res) => {
     tipo: 'ingreso',
     concepto: `Saldo cita ${pago.cita_id} - ${pago.Cita.Paciente.nombre_completo}`,
     monto: saldo,
-    fecha: new Date().toISOString().slice(0, 10),
+    fecha: hoyISO(),
     usuario_id: req.usuarioId,
     pago_id: pago.id,
   });

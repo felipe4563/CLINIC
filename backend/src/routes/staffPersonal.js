@@ -27,6 +27,16 @@ const usuarioSinHash = { model: db.Usuario, attributes: { exclude: ['password_ha
 
 // --- Asistencia: autoservicio (cualquier staff logueado) ---
 
+function distanciaMetros(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const rad = (v) => (v * Math.PI) / 180;
+  const dLat = rad(lat2 - lat1);
+  const dLng = rad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 router.get('/staff/asistencia/hoy', anyStaff, async (req, res) => {
   const registro = await db.RegistroAsistencia.findOne({
     where: { usuario_id: req.usuarioId, fecha: fechaHoy() },
@@ -35,6 +45,30 @@ router.get('/staff/asistencia/hoy', anyStaff, async (req, res) => {
 });
 
 router.post('/staff/asistencia/marcar', anyStaff, async (req, res) => {
+  const { lat, lng, precision } = req.body || {};
+
+  const config = await db.ConfiguracionClinica.obtenerConfig();
+  let dentroRango = null;
+  if (config.asistencia_lat !== null && config.asistencia_lng !== null) {
+    if (typeof lat !== 'number' || typeof lng !== 'number') {
+      return res.status(400).json({ error: 'Se necesita tu ubicación para marcar asistencia' });
+    }
+    const distancia = distanciaMetros(lat, lng, Number(config.asistencia_lat), Number(config.asistencia_lng));
+    dentroRango = distancia <= config.asistencia_radio_metros;
+    if (!dentroRango) {
+      return res.status(403).json({
+        error: `Estás a ${Math.round(distancia)} m de la clínica, fuera del rango permitido (${config.asistencia_radio_metros} m)`,
+      });
+    }
+  }
+
+  const datosUbicacion = {
+    lat: typeof lat === 'number' ? lat : null,
+    lng: typeof lng === 'number' ? lng : null,
+    precision_metros: typeof precision === 'number' ? Math.round(precision) : null,
+    dentro_rango: dentroRango,
+  };
+
   const fecha = fechaHoy();
   let registro = await db.RegistroAsistencia.findOne({ where: { usuario_id: req.usuarioId, fecha } });
 
@@ -44,12 +78,14 @@ router.post('/staff/asistencia/marcar', anyStaff, async (req, res) => {
       fecha,
       hora_entrada: horaAhora(),
       hora_salida: null,
+      ...datosUbicacion,
     });
     return res.status(201).json(registro);
   }
 
   if (!registro.hora_salida) {
     registro.hora_salida = horaAhora();
+    Object.assign(registro, datosUbicacion);
     await registro.save();
     return res.json(registro);
   }

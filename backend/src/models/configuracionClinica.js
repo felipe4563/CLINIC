@@ -14,6 +14,9 @@ const ConfiguracionClinica = sequelize.define('ConfiguracionClinica', {
   pie_pdf: { type: DataTypes.TEXT, allowNull: true },
   cobra_adelanto_online: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
   bs_por_punto: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 10 },
+  asistencia_lat: { type: DataTypes.DECIMAL(10, 7), allowNull: true },
+  asistencia_lng: { type: DataTypes.DECIMAL(10, 7), allowNull: true },
+  asistencia_radio_metros: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 150 },
 }, { tableName: 'configuracion_clinica', underscored: true });
 
 async function obtenerConfig() {

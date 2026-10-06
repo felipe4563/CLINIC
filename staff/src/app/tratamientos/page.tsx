@@ -45,8 +45,9 @@ export default function TratamientosPage() {
   }, []);
 
   useEffect(() => {
-    buscar('');
-  }, [buscar]);
+    const id = setTimeout(() => buscar(q), 300);
+    return () => clearTimeout(id);
+  }, [q, buscar]);
 
   return (
     <div>
@@ -58,7 +59,6 @@ export default function TratamientosPage() {
         placeholder="Buscar por nombre de paciente…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && buscar(q)}
         className="mb-4 w-full max-w-md rounded border border-border px-3 py-2 text-sm"
       />
 
@@ -69,9 +69,7 @@ export default function TratamientosPage() {
         {notas.map((n) => (
           <div key={n.id} className="rounded-lg border border-border bg-panel p-3 text-sm">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <Link href={`/pacientes/${n.Paciente.id}`} className="font-medium hover:text-accent hover:underline">
-                {n.Paciente.nombre_completo}
-              </Link>
+              <span className="font-medium">{n.Paciente.nombre_completo}</span>
               <span className="text-xs text-muted-foreground">
                 {fmtFecha(n.fecha)}
                 {n.hora ? ` ${n.hora.slice(0, 5)}` : ''}
@@ -80,6 +78,12 @@ export default function TratamientosPage() {
             </div>
             <p className="mt-1.5 font-medium">{n.titulo}</p>
             <p className="mt-0.5 whitespace-pre-wrap text-foreground/80">{n.notas}</p>
+            <Link
+              href={`/pacientes/${n.Paciente.id}#historial-clinico`}
+              className="mt-2 inline-flex w-fit items-center gap-1 rounded border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent-soft hover:text-accent"
+            >
+              Ver ficha del paciente →
+            </Link>
           </div>
         ))}
         {!loading && notas.length === 0 && !error && (

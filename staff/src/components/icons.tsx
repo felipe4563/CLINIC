@@ -22,6 +22,9 @@ import {
   Wallet,
   Settings,
   ChevronDown,
+  ArrowLeft,
+  MapPin,
+  Building2,
 } from 'lucide-react';
 
 type IconProps = { className?: string };
@@ -238,6 +241,18 @@ export function IconSettings({ className = base }: IconProps) {
 
 export function IconChevronDown({ className = base }: IconProps) {
   return <ChevronDown className={className} strokeWidth={1.8} />;
+}
+
+export function IconArrowLeft({ className = base }: IconProps) {
+  return <ArrowLeft className={className} strokeWidth={1.8} />;
+}
+
+export function IconMapPin({ className = base }: IconProps) {
+  return <MapPin className={className} strokeWidth={1.8} />;
+}
+
+export function IconBuilding({ className = base }: IconProps) {
+  return <Building2 className={className} strokeWidth={1.8} />;
 }
 
 export function IconCruzMedica({ className = base }: IconProps) {

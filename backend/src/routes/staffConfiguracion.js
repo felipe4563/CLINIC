@@ -70,6 +70,22 @@ router.put('/staff/configuracion', onlyConfiguracion, async (req, res) => {
     }
     config.bs_por_punto = bsPorPunto;
   }
+  if (req.body.asistencia_lat !== undefined || req.body.asistencia_lng !== undefined) {
+    const lat = req.body.asistencia_lat === null ? null : Number(req.body.asistencia_lat);
+    const lng = req.body.asistencia_lng === null ? null : Number(req.body.asistencia_lng);
+    if ((lat !== null && (Number.isNaN(lat) || lat < -90 || lat > 90)) || (lng !== null && (Number.isNaN(lng) || lng < -180 || lng > 180))) {
+      return res.status(400).json({ error: 'Coordenadas inválidas' });
+    }
+    config.asistencia_lat = lat;
+    config.asistencia_lng = lng;
+  }
+  if (req.body.asistencia_radio_metros !== undefined) {
+    const radio = Number(req.body.asistencia_radio_metros);
+    if (!radio || radio <= 0) {
+      return res.status(400).json({ error: 'asistencia_radio_metros debe ser un numero mayor a cero' });
+    }
+    config.asistencia_radio_metros = radio;
+  }
   await config.save();
   res.json(config);
 });

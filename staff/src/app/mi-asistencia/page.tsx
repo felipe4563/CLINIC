@@ -65,11 +65,37 @@ export default function MiAsistenciaPage() {
     cargar();
   }, [cargar]);
 
+  function obtenerUbicacion(): Promise<{ lat: number; lng: number; precision: number }> {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Tu navegador no soporta geolocalización'));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) =>
+          resolve({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            precision: pos.coords.accuracy,
+          }),
+        (err) => {
+          if (err.code === err.PERMISSION_DENIED) {
+            reject(new Error('Debes permitir el acceso a tu ubicación para marcar asistencia'));
+          } else {
+            reject(new Error('No se pudo obtener tu ubicación. Intenta de nuevo'));
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000 },
+      );
+    });
+  }
+
   async function marcar() {
     setMarcando(true);
     setError(null);
     try {
-      const res = await api.marcarAsistencia();
+      const ubicacion = await obtenerUbicacion();
+      const res = await api.marcarAsistencia(ubicacion);
       setRegistro(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo marcar');
