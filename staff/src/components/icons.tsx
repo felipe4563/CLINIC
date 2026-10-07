@@ -4,7 +4,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   Users,
-  LayoutGrid,
+  Stethoscope,
   UserCog,
   ClipboardList,
   Banknote,
@@ -22,6 +22,7 @@ import {
   Wallet,
   Settings,
   ChevronDown,
+  Download,
   ArrowLeft,
   MapPin,
   Building2,
@@ -52,7 +53,7 @@ export function IconUsers({ className = base }: IconProps) {
 }
 
 export function IconCatalog({ className = base }: IconProps) {
-  return <LayoutGrid className={className} strokeWidth={1.8} />;
+  return <Stethoscope className={className} strokeWidth={1.8} />;
 }
 
 export function IconUserCog({ className = base }: IconProps) {
@@ -241,6 +242,10 @@ export function IconSettings({ className = base }: IconProps) {
 
 export function IconChevronDown({ className = base }: IconProps) {
   return <ChevronDown className={className} strokeWidth={1.8} />;
+}
+
+export function IconDownload({ className = base }: IconProps) {
+  return <Download className={className} strokeWidth={1.8} />;
 }
 
 export function IconArrowLeft({ className = base }: IconProps) {

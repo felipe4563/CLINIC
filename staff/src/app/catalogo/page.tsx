@@ -102,7 +102,10 @@ export default function CatalogoPage() {
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-lg font-semibold">Catálogo</h1>
+        <h1 className="flex items-center gap-2 text-lg font-semibold">
+          <IconCatalog className="h-5 w-5 text-muted-foreground" />
+          Servicios
+        </h1>
         <div className="flex gap-2">
           <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
             {serviciosActivos} servicio{serviciosActivos === 1 ? '' : 's'} activo{serviciosActivos === 1 ? '' : 's'}
@@ -119,7 +122,7 @@ export default function CatalogoPage() {
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
               <IconCatalog className="h-4 w-4 text-muted-foreground" />
-              Servicios
+              Servicios ofrecidos
             </h2>
             <button
               onClick={() => setFormServicioAbierto((v) => !v)}

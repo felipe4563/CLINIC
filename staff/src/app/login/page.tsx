@@ -24,7 +24,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 const DESTACADOS = [
   { icon: IconCalendar, texto: 'Agenda diaria con vista de calendario' },
   { icon: IconUsers, texto: 'Historial y datos de cada paciente' },
-  { icon: IconCatalog, texto: 'Catálogo de servicios y profesionales' },
+  { icon: IconCatalog, texto: 'Servicios y profesionales de la clínica' },
 ];
 
 function logoSrc(logoUrl: string | null | undefined) {

@@ -46,7 +46,7 @@ export const GRUPOS_NAV: { label: string; items: NavItem[] }[] = [
       { href: '/caja', label: 'Caja', icon: IconCashRegister, permiso: 'caja' },
       { href: '/inventario', label: 'Inventario', icon: IconBox, permiso: 'inventario' },
       { href: '/compras', label: 'Compras', icon: IconTruck, permiso: 'compras' },
-      { href: '/catalogo', label: 'Catálogo', icon: IconCatalog, permiso: 'catalogo' },
+      { href: '/catalogo', label: 'Servicios', icon: IconCatalog, permiso: 'catalogo' },
       { href: '/usuarios', label: 'Usuarios', icon: IconUserCog, permiso: 'usuarios' },
       { href: '/automatizacion', label: 'Automatización', icon: IconBell, permiso: 'automatizacion' },
       { href: '/personal', label: 'Control de Personal', icon: IconUserCheck, permiso: 'personal' },

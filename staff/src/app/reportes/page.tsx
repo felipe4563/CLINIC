@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { Suspense, useEffect, useRef, useState, useCallback } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { IconBarChart } from '@/components/icons';
+import { IconBarChart, IconBox, IconCalendar, IconChevronDown, IconDownload, IconTruck, IconUsers, IconWallet } from '@/components/icons';
+import ReportePersonal, { type Personal } from './ReportePersonal';
 
 type Financiero = {
   totalIngresos: number;
@@ -42,19 +44,30 @@ type Compras = {
   topProductos: { producto: string; cantidad: number; subtotal: number }[];
 };
 
-type Personal = {
-  porEmpleado: { usuario: string; diasTrabajados: number; horasTrabajadas: number; ausencias: unknown[] }[];
-};
-
 const TABS = [
-  { key: 'financiero', label: 'Financiero' },
-  { key: 'citas-pacientes', label: 'Citas y Pacientes' },
-  { key: 'ventas', label: 'Ventas e Inventario' },
-  { key: 'compras', label: 'Compras' },
-  { key: 'personal', label: 'Personal' },
+  { key: 'financiero', label: 'Financiero', icon: IconWallet },
+  { key: 'citas-pacientes', label: 'Citas y Pacientes', icon: IconCalendar },
+  { key: 'ventas', label: 'Ventas e Inventario', icon: IconBox },
+  { key: 'compras', label: 'Compras', icon: IconTruck },
+  { key: 'personal', label: 'Personal', icon: IconUsers },
 ] as const;
 
 type Tab = (typeof TABS)[number]['key'];
+
+const PDFS: Record<Tab, { tipo: string; label: string }[]> = {
+  financiero: [{ tipo: 'financiero', label: 'Reporte financiero' }],
+  'citas-pacientes': [
+    { tipo: 'citas', label: 'Reporte de citas' },
+    { tipo: 'pacientes', label: 'Reporte de pacientes' },
+  ],
+  ventas: [{ tipo: 'ventas', label: 'Reporte de ventas' }],
+  compras: [{ tipo: 'compras', label: 'Reporte de compras' }],
+  personal: [{ tipo: 'personal', label: 'Reporte de personal' }],
+};
+
+function esTab(valor: string | null): valor is Tab {
+  return TABS.some((t) => t.key === valor);
+}
 
 const ESTADO_LABEL: Record<string, string> = {
   pendiente_pago: 'Pendiente de pago',
@@ -68,20 +81,48 @@ function moneda(n: number) {
   return `Bs ${n.toFixed(2)}`;
 }
 
-function hoyISO() {
-  const d = new Date();
+function aISO(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function inicioMesISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+const PERIODOS = [
+  { key: 'hoy', label: 'Hoy' },
+  { key: '7d', label: '7 días' },
+  { key: 'mes', label: 'Este mes' },
+  { key: 'mes-anterior', label: 'Mes anterior' },
+] as const;
+
+type Periodo = (typeof PERIODOS)[number]['key'];
+
+function rangoDe(periodo: Periodo) {
+  const hoy = new Date();
+  const y = hoy.getFullYear();
+  const m = hoy.getMonth();
+  if (periodo === 'hoy') return { desde: aISO(hoy), hasta: aISO(hoy) };
+  if (periodo === '7d') return { desde: aISO(new Date(y, m, hoy.getDate() - 6)), hasta: aISO(hoy) };
+  if (periodo === 'mes') return { desde: aISO(new Date(y, m, 1)), hasta: aISO(hoy) };
+  return { desde: aISO(new Date(y, m - 1, 1)), hasta: aISO(new Date(y, m, 0)) };
 }
 
 export default function ReportesPage() {
-  const [tab, setTab] = useState<Tab>('financiero');
-  const [desde, setDesde] = useState(inicioMesISO());
-  const [hasta, setHasta] = useState(hoyISO());
+  return (
+    <Suspense>
+      <Reportes />
+    </Suspense>
+  );
+}
+
+function Reportes() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const paramTab = searchParams.get('tab');
+  const tab: Tab = esTab(paramTab) ? paramTab : 'financiero';
+
+  const [periodo, setPeriodo] = useState<Periodo | null>('mes');
+  const [desde, setDesde] = useState(() => rangoDe('mes').desde);
+  const [hasta, setHasta] = useState(() => rangoDe('mes').hasta);
+  const rangoInvalido = desde > hasta;
 
   const [financiero, setFinanciero] = useState<Financiero | null>(null);
   const [citas, setCitas] = useState<Citas | null>(null);
@@ -95,6 +136,7 @@ export default function ReportesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
+    if (rangoInvalido) return;
     setCargando(true);
     setError(null);
     try {
@@ -113,11 +155,24 @@ export default function ReportesPage() {
     } finally {
       setCargando(false);
     }
-  }, [tab, desde, hasta]);
+  }, [tab, desde, hasta, rangoInvalido]);
 
   useEffect(() => {
     cargar();
   }, [cargar]);
+
+  function cambiarTab(nuevo: Tab) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', nuevo);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
+
+  function elegirPeriodo(p: Periodo) {
+    const r = rangoDe(p);
+    setPeriodo(p);
+    setDesde(r.desde);
+    setHasta(r.hasta);
+  }
 
   async function descargarPDF(tipo: string) {
     setDescargando(true);
@@ -133,45 +188,75 @@ export default function ReportesPage() {
 
   return (
     <div>
-      <h1 className="mb-1 flex items-center gap-2 text-lg font-semibold">
-        <IconBarChart className="h-5 w-5 text-muted-foreground" />
-        Reportes
-      </h1>
-      <p className="mb-4 text-sm text-muted-foreground">Resumen operativo de la clínica, exportable en PDF.</p>
-
-      <div className="mb-4 flex flex-wrap items-end gap-2">
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-          Desde
-          <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className="rounded-lg border border-border px-2.5 py-1.5 text-sm" />
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-          Hasta
-          <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className="rounded-lg border border-border px-2.5 py-1.5 text-sm" />
-        </label>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="mb-1 flex items-center gap-2 text-lg font-semibold">
+            <IconBarChart className="h-5 w-5 text-muted-foreground" />
+            Reportes
+          </h1>
+          <p className="text-sm text-muted-foreground">Resumen operativo de la clínica, exportable en PDF.</p>
+        </div>
+        <BotonPDF opciones={PDFS[tab]} descargando={descargando} deshabilitado={rangoInvalido} onDescargar={descargarPDF} />
       </div>
 
-      <div className="mb-4 flex gap-1 border-b border-border">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-3 py-2 text-sm font-medium ${tab === t.key ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {error && <p className="mb-3 text-sm text-danger">{error}</p>}
-      {cargando && <p className="text-sm text-muted-foreground">Cargando…</p>}
-
-      {!cargando && tab === 'financiero' && financiero && (
-        <div className="flex flex-col gap-4">
-          <div className="flex justify-end">
-            <button onClick={() => descargarPDF('financiero')} disabled={descargando} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-60">
-              {descargando ? 'Generando…' : 'Descargar PDF'}
+      <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-panel p-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3 lg:mx-0 lg:px-0" role="group" aria-label="Periodo rápido">
+          {PERIODOS.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => elegirPeriodo(p.key)}
+              aria-pressed={periodo === p.key}
+              className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                periodo === p.key
+                  ? 'border-accent bg-accent text-accent-foreground'
+                  : 'border-border text-muted-foreground hover:bg-accent-soft hover:text-foreground'
+              }`}
+            >
+              {p.label}
             </button>
-          </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-2 lg:flex lg:items-center lg:gap-3">
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
+            Desde
+            <input
+              type="date"
+              value={desde}
+              max={hasta}
+              onChange={(e) => {
+                setDesde(e.target.value);
+                setPeriodo(null);
+              }}
+              aria-invalid={rangoInvalido}
+              className={`w-full min-w-0 rounded-lg border bg-background lg:w-44 px-2.5 py-1.5 text-sm text-foreground ${rangoInvalido ? 'border-danger' : 'border-border'}`}
+            />
+          </label>
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground lg:flex-row lg:items-center lg:gap-2">
+            Hasta
+            <input
+              type="date"
+              value={hasta}
+              min={desde}
+              onChange={(e) => {
+                setHasta(e.target.value);
+                setPeriodo(null);
+              }}
+              aria-invalid={rangoInvalido}
+              className={`w-full min-w-0 rounded-lg border bg-background lg:w-44 px-2.5 py-1.5 text-sm text-foreground ${rangoInvalido ? 'border-danger' : 'border-border'}`}
+            />
+          </label>
+        </div>
+      </div>
+
+      <Pestanas activa={tab} onCambiar={cambiarTab} />
+
+      {rangoInvalido && <p className="mb-3 text-sm text-danger">La fecha «Desde» no puede ser posterior a «Hasta».</p>}
+      {error && <p className="mb-3 text-sm text-danger">{error}</p>}
+      {cargando && !rangoInvalido && <p className="text-sm text-muted-foreground">Cargando…</p>}
+
+      {!cargando && !rangoInvalido && tab === 'financiero' && financiero && (
+        <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Card label="Ingresos" valor={moneda(financiero.totalIngresos)} />
             <Card label="Egresos" valor={moneda(financiero.totalEgresos)} />
@@ -185,16 +270,8 @@ export default function ReportesPage() {
         </div>
       )}
 
-      {!cargando && tab === 'citas-pacientes' && citas && pacientes && (
+      {!cargando && !rangoInvalido && tab === 'citas-pacientes' && citas && pacientes && (
         <div className="flex flex-col gap-4">
-          <div className="flex justify-end gap-2">
-            <button onClick={() => descargarPDF('citas')} disabled={descargando} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-60">
-              PDF de citas
-            </button>
-            <button onClick={() => descargarPDF('pacientes')} disabled={descargando} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-60">
-              PDF de pacientes
-            </button>
-          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
             <Card label="Total citas" valor={String(citas.total)} />
             <Card label="Tasa de inasistencia" valor={`${citas.noShowRate.toFixed(1)}%`} />
@@ -233,13 +310,8 @@ export default function ReportesPage() {
         </div>
       )}
 
-      {!cargando && tab === 'ventas' && ventas && (
+      {!cargando && !rangoInvalido && tab === 'ventas' && ventas && (
         <div className="flex flex-col gap-4">
-          <div className="flex justify-end">
-            <button onClick={() => descargarPDF('ventas')} disabled={descargando} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-60">
-              {descargando ? 'Generando…' : 'Descargar PDF'}
-            </button>
-          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Card label="Total vendido" valor={moneda(ventas.totalVentas)} />
             <Card label="Cantidad de ventas" valor={String(ventas.cantidadVentas)} />
@@ -264,13 +336,8 @@ export default function ReportesPage() {
         </div>
       )}
 
-      {!cargando && tab === 'compras' && compras && (
+      {!cargando && !rangoInvalido && tab === 'compras' && compras && (
         <div className="flex flex-col gap-4">
-          <div className="flex justify-end">
-            <button onClick={() => descargarPDF('compras')} disabled={descargando} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-60">
-              {descargando ? 'Generando…' : 'Descargar PDF'}
-            </button>
-          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Card label="Total comprado" valor={moneda(compras.totalCompras)} />
             <Card label="Cantidad de compras" valor={String(compras.cantidadCompras)} />
@@ -294,20 +361,152 @@ export default function ReportesPage() {
         </div>
       )}
 
-      {!cargando && tab === 'personal' && personal && (
+      {!cargando && !rangoInvalido && tab === 'personal' && personal && (
         <div className="flex flex-col gap-4">
-          <div className="flex justify-end">
-            <button onClick={() => descargarPDF('personal')} disabled={descargando} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-60">
-              {descargando ? 'Generando…' : 'Descargar PDF'}
-            </button>
-          </div>
-          <Tabla
-            columnas={['Empleado', 'Días trabajados', 'Horas trabajadas', 'Ausencias']}
-            filas={personal.porEmpleado.map((e) => [e.usuario, e.diasTrabajados, e.horasTrabajadas, e.ausencias.length])}
-            vacio="Sin registros en este periodo."
-          />
+          <ReportePersonal datos={personal} />
         </div>
       )}
+    </div>
+  );
+}
+
+function BotonPDF({
+  opciones,
+  descargando,
+  deshabilitado,
+  onDescargar,
+}: {
+  opciones: { tipo: string; label: string }[];
+  descargando: boolean;
+  deshabilitado: boolean;
+  onDescargar: (tipo: string) => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!abierto) return;
+    function cerrar(e: MouseEvent | KeyboardEvent) {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(e.target as Node)) setAbierto(false);
+    }
+    document.addEventListener('mousedown', cerrar);
+    document.addEventListener('keydown', cerrar);
+    return () => {
+      document.removeEventListener('mousedown', cerrar);
+      document.removeEventListener('keydown', cerrar);
+    };
+  }, [abierto]);
+
+  const varias = opciones.length > 1;
+  const clases =
+    'flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-panel px-3 py-2 text-xs font-medium hover:bg-accent-soft disabled:opacity-60';
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        disabled={descargando || deshabilitado}
+        onClick={() => (varias ? setAbierto((v) => !v) : onDescargar(opciones[0].tipo))}
+        aria-haspopup={varias ? 'menu' : undefined}
+        aria-expanded={varias ? abierto : undefined}
+        className={clases}
+      >
+        <IconDownload className="h-4 w-4" />
+        {descargando ? (
+          <span>Generando…</span>
+        ) : (
+          <span>
+            <span className="hidden sm:inline">Descargar </span>PDF
+          </span>
+        )}
+        {varias && <IconChevronDown className="h-3.5 w-3.5" />}
+      </button>
+      {varias && abierto && (
+        <div role="menu" className="absolute right-0 z-30 mt-1 w-52 overflow-hidden rounded-lg border border-border bg-panel py-1 shadow-lg">
+          {opciones.map((o) => (
+            <button
+              key={o.tipo}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setAbierto(false);
+                onDescargar(o.tipo);
+              }}
+              className="block w-full px-3 py-2 text-left text-sm hover:bg-accent-soft"
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Pestanas({ activa, onCambiar }: { activa: Tab; onCambiar: (t: Tab) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [bordes, setBordes] = useState({ izq: false, der: false });
+
+  const medir = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    setBordes({ izq: el.scrollLeft > 4, der: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new ResizeObserver(medir);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [medir]);
+
+  // La pestaña activa siempre queda visible (y centrada) en pantallas angostas.
+  // Se calcula a mano en vez de scrollIntoView para no mover el scroll vertical de la página.
+  const primeraVez = useRef(true);
+  useEffect(() => {
+    const el = ref.current;
+    const boton = el?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!el || !boton) return;
+    const rEl = el.getBoundingClientRect();
+    const rBoton = boton.getBoundingClientRect();
+    const left = el.scrollLeft + (rBoton.left - rEl.left) - (el.clientWidth - rBoton.width) / 2;
+    el.scrollTo({ left, behavior: primeraVez.current ? 'instant' : 'smooth' });
+    primeraVez.current = false;
+  }, [activa]);
+
+  const mascara = [bordes.izq ? 'transparent, black 24px' : 'black', bordes.der ? 'black calc(100% - 24px), transparent' : 'black'].join(', ');
+
+  return (
+    <div className="sticky top-16 z-10 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:-mx-8 md:px-8">
+      <div
+        ref={ref}
+        onScroll={medir}
+        role="tablist"
+        aria-label="Secciones del reporte"
+        className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ maskImage: `linear-gradient(to right, ${mascara})`, WebkitMaskImage: `linear-gradient(to right, ${mascara})` }}
+      >
+        {TABS.map((t) => {
+          const Icono = t.icon;
+          const seleccionada = activa === t.key;
+          return (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={seleccionada}
+              onClick={() => onCambiar(t.key)}
+              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+                seleccionada ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:bg-accent-soft hover:text-foreground'
+              }`}
+            >
+              <Icono className="h-4 w-4" />
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

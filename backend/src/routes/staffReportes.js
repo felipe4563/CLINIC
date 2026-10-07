@@ -490,44 +490,120 @@ router.get('/staff/reportes/compras/pdf', onlyReportes, async (req, res) => {
 // --------------------------------------------------------------------
 // Personal
 // --------------------------------------------------------------------
+const TIPO_AUSENCIA_LABEL = {
+  vacacion: 'Vacación',
+  licencia_medica: 'Licencia médica',
+  permiso: 'Permiso',
+  falta_justificada: 'Falta justificada',
+  falta_injustificada: 'Falta injustificada',
+};
+
+const ESTADO_AUSENCIA_LABEL = { pendiente: 'Pendiente', aprobado: 'Aprobado', rechazado: 'Rechazado' };
+
+function diasEntre(desde, hasta) {
+  const ms = new Date(`${hasta}T00:00:00Z`) - new Date(`${desde}T00:00:00Z`);
+  return Math.round(ms / 86400000) + 1;
+}
+
+function hhmm(hora) {
+  return hora ? hora.slice(0, 5) : null;
+}
+
+function redondear1(n) {
+  return Math.round(n * 10) / 10;
+}
+
 async function datosPersonal(desde, hasta) {
   const [registros, ausencias] = await Promise.all([
     db.RegistroAsistencia.findAll({
       where: { fecha: { [Op.between]: [desde, hasta] } },
       include: [db.Usuario],
+      order: [['fecha', 'ASC']],
     }),
     db.Ausencia.findAll({
       where: { fecha_desde: { [Op.lte]: hasta }, fecha_hasta: { [Op.gte]: desde } },
       include: [db.Usuario],
+      order: [['fecha_desde', 'ASC']],
     }),
   ]);
 
+  const hoy = toISODate(new Date());
   const porUsuario = new Map();
   function obtener(usuarioId, nombre) {
     if (!porUsuario.has(usuarioId)) {
-      porUsuario.set(usuarioId, { usuario: nombre, diasTrabajados: 0, horasTrabajadas: 0, ausencias: [] });
+      porUsuario.set(usuarioId, {
+        usuarioId,
+        usuario: nombre,
+        diasTrabajados: 0,
+        horasTrabajadas: 0,
+        diasConSalida: 0,
+        diasSinSalida: 0,
+        fueraDeRango: 0,
+        diasAusencia: 0,
+        ausenciasPorTipo: {},
+        ausenciasPendientes: 0,
+        dias: [],
+        ausencias: [],
+      });
     }
     return porUsuario.get(usuarioId);
   }
 
   for (const r of registros) {
     const acc = obtener(r.usuario_id, r.Usuario ? r.Usuario.nombre : `Usuario ${r.usuario_id}`);
+    const horas = horasEntre(r.hora_entrada, r.hora_salida);
+    // Una entrada de hoy sin salida es una jornada en curso, no una alerta.
+    const sinSalida = Boolean(r.hora_entrada && !r.hora_salida && r.fecha < hoy);
     acc.diasTrabajados += 1;
-    acc.horasTrabajadas += horasEntre(r.hora_entrada, r.hora_salida);
+    acc.horasTrabajadas += horas;
+    if (r.hora_entrada && r.hora_salida) acc.diasConSalida += 1;
+    if (sinSalida) acc.diasSinSalida += 1;
+    if (r.dentro_rango === false) acc.fueraDeRango += 1;
+    acc.dias.push({
+      fecha: r.fecha,
+      horaEntrada: hhmm(r.hora_entrada),
+      horaSalida: hhmm(r.hora_salida),
+      horas: redondear1(horas),
+      sinSalida,
+      dentroRango: r.dentro_rango,
+      observacion: r.observacion,
+    });
   }
 
   for (const a of ausencias) {
     const acc = obtener(a.usuario_id, a.Usuario ? a.Usuario.nombre : `Usuario ${a.usuario_id}`);
-    acc.ausencias.push({ tipo: a.tipo, desde: a.fecha_desde, hasta: a.fecha_hasta, estado: a.estado });
+    // Solo se cuentan los dias que caen dentro del periodo consultado.
+    const dias = diasEntre(a.fecha_desde < desde ? desde : a.fecha_desde, a.fecha_hasta > hasta ? hasta : a.fecha_hasta);
+    if (a.estado === 'aprobado') {
+      acc.diasAusencia += dias;
+      acc.ausenciasPorTipo[a.tipo] = (acc.ausenciasPorTipo[a.tipo] || 0) + dias;
+    } else if (a.estado === 'pendiente') {
+      acc.ausenciasPendientes += 1;
+    }
+    acc.ausencias.push({ tipo: a.tipo, desde: a.fecha_desde, hasta: a.fecha_hasta, estado: a.estado, motivo: a.motivo, dias });
   }
 
-  return {
-    desde,
-    hasta,
-    porEmpleado: Array.from(porUsuario.values())
-      .map((e) => ({ ...e, horasTrabajadas: Math.round(e.horasTrabajadas * 10) / 10 }))
-      .sort((a, b) => a.usuario.localeCompare(b.usuario)),
-  };
+  const porEmpleado = Array.from(porUsuario.values())
+    .map(({ diasConSalida, ...e }) => ({
+      ...e,
+      horasTrabajadas: redondear1(e.horasTrabajadas),
+      // El promedio ignora los dias sin salida marcada para no bajarlo artificialmente.
+      promedioHorasDia: diasConSalida ? redondear1(e.horasTrabajadas / diasConSalida) : 0,
+    }))
+    .sort((a, b) => a.usuario.localeCompare(b.usuario));
+
+  const resumen = porEmpleado.reduce(
+    (r, e) => ({
+      horasTotales: r.horasTotales + e.horasTrabajadas,
+      diasTrabajados: r.diasTrabajados + e.diasTrabajados,
+      diasAusencia: r.diasAusencia + e.diasAusencia,
+      alertas: r.alertas + e.diasSinSalida + e.fueraDeRango,
+    }),
+    { horasTotales: 0, diasTrabajados: 0, diasAusencia: 0, alertas: 0 }
+  );
+  resumen.horasTotales = redondear1(resumen.horasTotales);
+
+  return { desde, hasta, resumen, porEmpleado };
 }
 
 router.get('/staff/reportes/personal', onlyReportes, async (req, res) => {
@@ -547,14 +623,74 @@ router.get('/staff/reportes/personal/pdf', onlyReportes, async (req, res) => {
     hasta,
   });
 
+  doc.font('Helvetica-Bold').fontSize(11);
+  doc.text(`Horas totales: ${datos.resumen.horasTotales}`);
+  doc.text(`Días trabajados: ${datos.resumen.diasTrabajados}`);
+  doc.text(`Días de ausencia aprobados: ${datos.resumen.diasAusencia}`);
+  doc.text(`Alertas: ${datos.resumen.alertas}`);
+  doc.moveDown(0.8);
+
+  doc.font('Helvetica-Bold').fontSize(11).text('Resumen por empleado');
   dibujarTabla(doc, {
     columnas: [
-      { titulo: 'Empleado', ancho: 200 },
-      { titulo: 'Días trabajados', ancho: 130, align: 'right' },
-      { titulo: 'Horas trabajadas', ancho: 130, align: 'right' },
-      { titulo: 'Ausencias', ancho: 140, align: 'right' },
+      { titulo: 'Empleado', ancho: 170 },
+      { titulo: 'Días', ancho: 70, align: 'right' },
+      { titulo: 'Horas', ancho: 80, align: 'right' },
+      { titulo: 'Prom./día', ancho: 80, align: 'right' },
+      { titulo: 'Ausencias (días)', ancho: 110, align: 'right' },
+      { titulo: 'Alertas', ancho: 80, align: 'right' },
     ],
-    filas: datos.porEmpleado.map((e) => [e.usuario, e.diasTrabajados, e.horasTrabajadas, e.ausencias.length]),
+    filas: datos.porEmpleado.map((e) => [
+      e.usuario,
+      e.diasTrabajados,
+      e.horasTrabajadas,
+      e.promedioHorasDia,
+      e.diasAusencia,
+      e.diasSinSalida + e.fueraDeRango,
+    ]),
+  });
+
+  const alertas = datos.porEmpleado.flatMap((e) =>
+    e.dias
+      .filter((d) => d.sinSalida || d.dentroRango === false)
+      .map((d) => ({ fecha: d.fecha, usuario: e.usuario, dia: d }))
+  );
+  alertas.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  doc.font('Helvetica-Bold').fontSize(11).text('Alertas de asistencia');
+  dibujarTabla(doc, {
+    columnas: [
+      { titulo: 'Fecha', ancho: 100 },
+      { titulo: 'Empleado', ancho: 170 },
+      { titulo: 'Detalle', ancho: 320 },
+    ],
+    filas: alertas.map(({ fecha, usuario, dia }) => [
+      formatoFecha(fecha),
+      usuario,
+      [dia.sinSalida && 'Sin salida marcada', dia.dentroRango === false && 'Marcación fuera de la clínica'].filter(Boolean).join(' · '),
+    ]),
+  });
+
+  const ausencias = datos.porEmpleado.flatMap((e) =>
+    e.ausencias.map((a) => [
+      e.usuario,
+      TIPO_AUSENCIA_LABEL[a.tipo] || a.tipo,
+      `${formatoFecha(a.desde)} – ${formatoFecha(a.hasta)}`,
+      a.dias,
+      ESTADO_AUSENCIA_LABEL[a.estado] || a.estado,
+    ])
+  );
+
+  doc.font('Helvetica-Bold').fontSize(11).text('Ausencias del periodo');
+  dibujarTabla(doc, {
+    columnas: [
+      { titulo: 'Empleado', ancho: 150 },
+      { titulo: 'Tipo', ancho: 130 },
+      { titulo: 'Fechas', ancho: 150 },
+      { titulo: 'Días', ancho: 60, align: 'right' },
+      { titulo: 'Estado', ancho: 90 },
+    ],
+    filas: ausencias,
   });
 
   doc.end();
