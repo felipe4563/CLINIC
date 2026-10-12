@@ -214,6 +214,12 @@ export const api = {
     return apiFetch('/staff/configuracion/logo', { method: 'POST', body: formData });
   },
   eliminarLogoConfiguracion: () => apiFetch('/staff/configuracion/logo', { method: 'DELETE' }),
+  subirQrConfiguracion: (archivo) => {
+    const formData = new FormData();
+    formData.append('qr', archivo);
+    return apiFetch('/staff/configuracion/qr', { method: 'POST', body: formData });
+  },
+  eliminarQrConfiguracion: () => apiFetch('/staff/configuracion/qr', { method: 'DELETE' }),
 
   getFidelizacionPaciente: (id) => apiFetch(`/staff/fidelizacion/pacientes/${id}`),
   ajustarPuntos: (id, datos) =>

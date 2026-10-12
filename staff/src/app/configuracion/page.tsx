@@ -17,7 +17,11 @@ type Config = {
   sitio_web: string | null;
   logo_url: string | null;
   pie_pdf: string | null;
-  cobra_adelanto_online: boolean;
+  metodo_pago_online: 'ninguno' | 'qr_banco' | 'qr_fijo';
+  qr_fijo_url: string | null;
+  qr_fijo_datos: string | null;
+  politica_inasistencia: string | null;
+  politica_inasistencia_por_defecto?: string;
   bs_por_punto: number;
   asistencia_lat: number | null;
   asistencia_lng: number | null;
@@ -35,7 +39,10 @@ const VACIO: Config = {
   sitio_web: '',
   logo_url: '',
   pie_pdf: '',
-  cobra_adelanto_online: true,
+  metodo_pago_online: 'qr_banco',
+  qr_fijo_url: null,
+  qr_fijo_datos: '',
+  politica_inasistencia: null,
   bs_por_punto: 10,
   asistencia_lat: null,
   asistencia_lng: null,
@@ -44,7 +51,7 @@ const VACIO: Config = {
 
 type CampoTexto = Exclude<
   keyof Config,
-  'logo_url' | 'cobra_adelanto_online' | 'bs_por_punto' | 'asistencia_lat' | 'asistencia_lng' | 'asistencia_radio_metros'
+  'logo_url' | 'metodo_pago_online' | 'qr_fijo_url' | 'qr_fijo_datos' | 'politica_inasistencia' | 'politica_inasistencia_por_defecto' | 'bs_por_punto' | 'asistencia_lat' | 'asistencia_lng' | 'asistencia_radio_metros'
 >;
 
 type Campo = { key: CampoTexto; label: string; placeholder?: string; span?: string; textarea?: boolean };
@@ -62,6 +69,10 @@ const CAMPOS_CONTACTO: Campo[] = [
   { key: 'email', label: 'Correo electrónico' },
   { key: 'sitio_web', label: 'Sitio web', span: 'sm:col-span-2' },
 ];
+
+function aForm(c: Config): Config {
+  return { ...VACIO, ...c, politica_inasistencia: c.politica_inasistencia ?? c.politica_inasistencia_por_defecto ?? '' };
+}
 
 function logoSrc(logoUrl: string | null) {
   if (!logoUrl) return null;
@@ -134,11 +145,13 @@ export default function ConfiguracionPage() {
   const [guardado, setGuardado] = useState(false);
   const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
   const inputLogoRef = useRef<HTMLInputElement>(null);
+  const [subiendoQr, setSubiendoQr] = useState(false);
+  const inputQrRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api
       .getConfiguracion()
-      .then((c: Config) => setForm({ ...VACIO, ...c }))
+      .then((c: Config) => setForm(aForm(c)))
       .catch((err) => setError(err instanceof Error ? err.message : 'Error al cargar'))
       .finally(() => setCargando(false));
   }, []);
@@ -153,8 +166,11 @@ export default function ConfiguracionPage() {
     setError(null);
     setGuardado(false);
     try {
-      const actualizado = await api.actualizarConfiguracion(form);
-      setForm({ ...VACIO, ...actualizado });
+      const datos: Partial<Config> = { ...form };
+      delete datos.qr_fijo_url;
+      delete datos.politica_inasistencia_por_defecto;
+      const actualizado = await api.actualizarConfiguracion(datos);
+      setForm(aForm(actualizado));
       setGuardado(true);
       setTimeout(() => setGuardado(false), 2500);
     } catch (err) {
@@ -171,7 +187,7 @@ export default function ConfiguracionPage() {
     setError(null);
     try {
       const actualizado = await api.subirLogoConfiguracion(archivo);
-      setForm({ ...VACIO, ...actualizado });
+      setForm(aForm(actualizado));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo subir el logo');
     } finally {
@@ -186,11 +202,38 @@ export default function ConfiguracionPage() {
     setError(null);
     try {
       const actualizado = await api.eliminarLogoConfiguracion();
-      setForm({ ...VACIO, ...actualizado });
+      setForm(aForm(actualizado));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo quitar el logo');
     } finally {
       setSubiendoLogo(false);
+    }
+  }
+
+  async function subirQr(e: ChangeEvent<HTMLInputElement>) {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+    setSubiendoQr(true);
+    setError(null);
+    try {
+      setForm(aForm(await api.subirQrConfiguracion(archivo)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo subir el QR');
+    } finally {
+      setSubiendoQr(false);
+      if (inputQrRef.current) inputQrRef.current.value = '';
+    }
+  }
+
+  async function quitarQr() {
+    setSubiendoQr(true);
+    setError(null);
+    try {
+      setForm(aForm(await api.eliminarQrConfiguracion()));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo quitar el QR');
+    } finally {
+      setSubiendoQr(false);
     }
   }
 
@@ -312,20 +355,86 @@ export default function ConfiguracionPage() {
 
         <Seccion id="facturacion" icono={<IconWallet className="h-4 w-4 text-muted-foreground" />} titulo="Facturación y fidelidad">
           <div className="flex flex-col gap-4">
-            <label className="flex items-start gap-3 text-sm">
-              <input
-                type="checkbox"
-                checked={form.cobra_adelanto_online}
-                onChange={(e) => setForm({ ...form, cobra_adelanto_online: e.target.checked })}
-                className="mt-0.5 h-4 w-4 shrink-0"
-              />
-              <span>
-                <span className="block font-medium">Cobrar adelanto en reservas online</span>
-                <span className="block text-xs text-muted-foreground">
-                  Si lo desactivas, las reservas del sitio público se confirman directo, sin pedir pago por QR — el
-                  paciente paga el total en la clínica.
-                </span>
+            <fieldset className="flex flex-col gap-2 text-sm">
+              <legend className="mb-1 font-medium">Pago al reservar desde la web</legend>
+              {(
+                [
+                  ['ninguno', 'Sin pago online', 'La cita se confirma sin pagar; el paciente paga en la clínica.'],
+                  ['qr_banco', 'QR del banco automático', 'Se genera un QR por el monto exacto y el banco confirma el pago solo.'],
+                  ['qr_fijo', 'QR fijo + comprobante', 'El paciente paga con el QR de la clínica y sube su comprobante; la cita se confirma al instante y el personal lo revisa.'],
+                ] as const
+              ).map(([valor, titulo, ayuda]) => (
+                <label key={valor} className="flex items-start gap-3 rounded-lg border border-border p-3 has-[:checked]:border-accent">
+                  <input
+                    type="radio"
+                    name="metodo_pago_online"
+                    value={valor}
+                    checked={form.metodo_pago_online === valor}
+                    onChange={() => setForm({ ...form, metodo_pago_online: valor })}
+                    disabled={valor === 'qr_fijo' && !form.qr_fijo_url}
+                    className="mt-0.5 h-4 w-4 shrink-0"
+                  />
+                  <span>
+                    <span className="block font-medium">{titulo}</span>
+                    <span className="block text-xs text-muted-foreground">{ayuda}</span>
+                    {valor === 'qr_fijo' && !form.qr_fijo_url && (
+                      <span className="mt-1 block text-xs text-stat-amber">Sube primero la imagen del QR.</span>
+                    )}
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+
+            <div className="flex flex-col gap-2 text-sm">
+              <span className="font-medium">QR de la clínica</span>
+              <div className="flex items-center gap-3">
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
+                  {form.qr_fijo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logoSrc(form.qr_fijo_url)!} alt="QR de la clínica" className="h-full w-full object-contain" />
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground">Sin QR</span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <input ref={inputQrRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={subirQr} className="hidden" />
+                  <button type="button" onClick={() => inputQrRef.current?.click()} disabled={subiendoQr} className="rounded border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">
+                    {subiendoQr ? 'Subiendo…' : form.qr_fijo_url ? 'Cambiar QR' : 'Subir QR'}
+                  </button>
+                  {form.qr_fijo_url && (
+                    <button type="button" onClick={quitarQr} disabled={subiendoQr || form.metodo_pago_online === 'qr_fijo'} className="rounded border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50" title={form.metodo_pago_online === 'qr_fijo' ? 'Cambia primero el modo de pago' : undefined}>
+                      Quitar QR
+                    </button>
+                  )}
+                </div>
+              </div>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground">Datos para el paciente (opcional)</span>
+                <input
+                  value={form.qr_fijo_datos ?? ''}
+                  onChange={(e) => setForm({ ...form, qr_fijo_datos: e.target.value })}
+                  placeholder="Titular: … — Banco …"
+                  className="rounded-lg border border-border bg-background px-3 py-2"
+                />
+              </label>
+            </div>
+
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium">Política de inasistencia</span>
+              <span className="text-xs text-muted-foreground">
+                Se muestra al reservar con pago online y el paciente debe aceptarla. Los plazos (48 h para justificar, 30 días para reprogramar) son fijos en el sistema.
               </span>
+              <textarea
+                rows={8}
+                value={form.politica_inasistencia ?? ''}
+                onChange={(e) => setForm({ ...form, politica_inasistencia: e.target.value })}
+                className="rounded-lg border border-border bg-background px-3 py-2"
+              />
+              {form.politica_inasistencia_por_defecto && form.politica_inasistencia !== form.politica_inasistencia_por_defecto && (
+                <button type="button" onClick={() => setForm({ ...form, politica_inasistencia: form.politica_inasistencia_por_defecto ?? '' })} className="self-start text-xs text-accent hover:underline">
+                  Restaurar el texto por defecto
+                </button>
+              )}
             </label>
 
             <label className="flex flex-col gap-1 text-sm sm:max-w-xs">
