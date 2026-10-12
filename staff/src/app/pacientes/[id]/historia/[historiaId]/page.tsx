@@ -112,8 +112,13 @@ export default function EditorHistoria() {
 
   async function quitarFirmado() {
     if (!historia || !window.confirm('¿Quitar el documento firmado de esta evaluación?')) return;
-    const h = await api.quitarDocumentoFirmado(historia.id);
-    setHistoria((actual) => (actual ? { ...actual, documento_firmado: h.documento_firmado } : actual));
+    setError(null);
+    try {
+      const h = await api.quitarDocumentoFirmado(historia.id);
+      setHistoria((actual) => (actual ? { ...actual, documento_firmado: h.documento_firmado } : actual));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo quitar el documento');
+    }
   }
 
   function cambiarProtocolo(i: number, campo: keyof FilaProtocolo, valor: string) {
