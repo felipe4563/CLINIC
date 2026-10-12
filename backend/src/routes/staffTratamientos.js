@@ -57,8 +57,30 @@ router.post('/staff/pacientes/:id/tratamientos', onlyPacientes, async (req, res)
   const paciente = await db.Paciente.findByPk(req.params.id);
   if (!paciente) return res.status(404).json({ error: 'Paciente no encontrado' });
 
-  const { titulo, notas, fecha, hora, profesionalId } = req.body;
+  const { titulo, notas, fecha, hora, profesionalId, citaId } = req.body;
   if (!titulo || !notas) return res.status(400).json({ error: 'titulo y notas son requeridos' });
+
+  // Nota de sesión de una cita atendida: toma fecha, hora y profesional de la
+  // cita. No se revisa choque de horario: la única "cita" a esa hora es ella.
+  if (citaId) {
+    const cita = await db.Cita.findOne({ where: { id: citaId, paciente_id: paciente.id } });
+    if (!cita || cita.estado !== 'completada') {
+      return res.status(400).json({ error: 'La cita no es de esta paciente o no está completada' });
+    }
+    if (await db.NotaClinica.findOne({ where: { cita_id: cita.id } })) {
+      return res.status(409).json({ error: 'Esa sesión ya tiene una observación' });
+    }
+    const nota = await db.NotaClinica.create({
+      paciente_id: paciente.id,
+      cita_id: cita.id,
+      profesional_id: cita.profesional_id,
+      fecha: cita.fecha,
+      hora: cita.hora_inicio,
+      titulo,
+      notas,
+    });
+    return res.status(201).json(await db.NotaClinica.findByPk(nota.id, { include: [db.Profesional] }));
+  }
 
   const fechaNota = fecha || hoyISO();
   const horaNota = normalizarHora(hora);

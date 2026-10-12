@@ -1,3 +1,5 @@
+const { Op } = require('sequelize');
+const db = require('../models');
 const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
 
 const MAX_TEXTO = 500;
@@ -84,4 +86,53 @@ function alertaAlergias(historia) {
   return { alergias: Boolean(datos.alergias), detalle: datos.alergias ? datos.especificar || null : null };
 }
 
-module.exports = { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias, MAX_TEXTO, MAX_PARRAFO };
+// "Tratamiento estético realizado" de una evaluación: desde su fecha hasta la
+// fecha de la evaluación siguiente (excluida). No se guarda: se arma con las
+// citas completadas (con su nota de sesión, si la tiene) y las notas manuales.
+async function calcularTratamientos(historia) {
+  const siguiente = await db.HistoriaClinica.findOne({
+    where: {
+      paciente_id: historia.paciente_id,
+      [Op.or]: [{ fecha: { [Op.gt]: historia.fecha } }, { fecha: historia.fecha, id: { [Op.gt]: historia.id } }],
+    },
+    order: [['fecha', 'ASC'], ['id', 'ASC']],
+  });
+  const desde = historia.fecha;
+  const hasta = siguiente ? siguiente.fecha : null;
+  const rango = hasta ? { [Op.gte]: desde, [Op.lt]: hasta } : { [Op.gte]: desde };
+
+  const [citas, manuales] = await Promise.all([
+    db.Cita.findAll({
+      where: { paciente_id: historia.paciente_id, estado: 'completada', fecha: rango },
+      include: [{ model: db.Servicio, attributes: ['nombre'] }, { model: db.NotaClinica }],
+    }),
+    db.NotaClinica.findAll({ where: { paciente_id: historia.paciente_id, cita_id: null, fecha: rango } }),
+  ]);
+
+  const filas = [
+    ...citas.map((c) => ({
+      tipo: 'cita',
+      fecha: c.fecha,
+      hora: c.hora_inicio,
+      procedimiento: c.Servicio ? c.Servicio.nombre : 'Cita',
+      observacion: c.NotaClinica ? c.NotaClinica.notas : null,
+      citaId: c.id,
+      notaId: c.NotaClinica ? c.NotaClinica.id : null,
+      faltaObservacion: !c.NotaClinica,
+    })),
+    ...manuales.map((n) => ({
+      tipo: 'manual',
+      fecha: n.fecha,
+      hora: n.hora,
+      procedimiento: n.titulo,
+      observacion: n.notas,
+      citaId: null,
+      notaId: n.id,
+      faltaObservacion: false,
+    })),
+  ].sort((a, b) => (a.fecha + (a.hora || '')).localeCompare(b.fecha + (b.hora || '')));
+
+  return { desde, hasta, filas: filas.map(({ hora, ...resto }) => resto) };
+}
+
+module.exports = { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos, MAX_TEXTO, MAX_PARRAFO };

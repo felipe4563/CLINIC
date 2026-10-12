@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
-const { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias } = require('../services/historiaClinica');
+const { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos } = require('../services/historiaClinica');
 
 const router = express.Router();
 const onlyHistoria = requirePermiso('historia_clinica');
@@ -101,7 +101,7 @@ router.post('/staff/pacientes/:id/historias', onlyHistoria, async (req, res) => 
 router.get('/staff/historias/:id', onlyHistoria, async (req, res) => {
   const historia = await cargarCompleta(req.params.id);
   if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
-  res.json(historia);
+  res.json({ ...historia.toJSON(), tratamientos: await calcularTratamientos(historia) });
 });
 
 router.put('/staff/historias/:id', onlyHistoria, async (req, res) => {

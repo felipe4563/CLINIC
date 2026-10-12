@@ -192,4 +192,50 @@ describe('Historia clínica: API', () => {
     expect(res.body).toEqual(expect.arrayContaining([{ id: profesional.id, nombre: 'Dra. Noemí' }]));
     expect((await request(app).get('/staff/historia-clinica/profesionales').set(auth(tokenRecepcion))).status).toBe(403);
   });
+
+  test('tratamiento realizado: citas completadas del rango, notas manuales y "falta observación"', async () => {
+    const p = await db.Paciente.create({ nombre_completo: 'Caro', telefono: '59170000003', codigo_paciente: 'P-0003', carnet_identidad: '111', carnet_expedido: 'CB' });
+    const base = { datos_clinicos: {}, datos_esteticos: {}, analisis_estetico: {}, protocolo: [] };
+    const h1 = await db.HistoriaClinica.create({ ...base, paciente_id: p.id, fecha: '2026-08-01' });
+    const h2 = await db.HistoriaClinica.create({ ...base, paciente_id: p.id, fecha: '2026-09-01' });
+    const cita = (fecha, estado = 'completada', hora = '10:00:00') => db.Cita.create({
+      paciente_id: p.id, profesional_id: profesional.id, servicio_id: servicio.id, fecha, hora_inicio: hora, hora_fin: '10:30:00', estado,
+    });
+    const c1 = await cita('2026-08-05');
+    await db.NotaClinica.create({ paciente_id: p.id, cita_id: c1.id, fecha: '2026-08-05', titulo: 'Limpieza', notas: 'Buena respuesta' });
+    await cita('2026-08-20');
+    await cita('2026-08-21', 'cancelada');
+    await cita('2026-09-01');
+    await db.NotaClinica.create({ paciente_id: p.id, fecha: '2026-08-10', titulo: 'Peeling (antes del sistema)', notas: 'Sin complicaciones' });
+
+    let res = await request(app).get(`/staff/historias/${h1.id}`).set(auth());
+    expect(res.body.tratamientos.desde).toBe('2026-08-01');
+    expect(res.body.tratamientos.hasta).toBe('2026-09-01');
+    expect(res.body.tratamientos.filas.map((f) => [f.fecha, f.tipo, f.procedimiento, f.observacion, f.faltaObservacion])).toEqual([
+      ['2026-08-05', 'cita', 'Limpieza facial', 'Buena respuesta', false],
+      ['2026-08-10', 'manual', 'Peeling (antes del sistema)', 'Sin complicaciones', false],
+      ['2026-08-20', 'cita', 'Limpieza facial', null, true],
+    ]);
+
+    res = await request(app).get(`/staff/historias/${h2.id}`).set(auth());
+    expect(res.body.tratamientos.hasta).toBeNull();
+    expect(res.body.tratamientos.filas.map((f) => f.fecha)).toEqual(['2026-09-01']);
+  });
+
+  test('crear la nota de sesión de una cita completada: sin chocar con la cita y sin duplicar', async () => {
+    const c = await db.Cita.create({
+      paciente_id: paciente.id, profesional_id: profesional.id, servicio_id: servicio.id, fecha: '2026-09-15', hora_inicio: '11:00:00', hora_fin: '11:30:00', estado: 'completada',
+    });
+    let res = await request(app).post(`/staff/pacientes/${paciente.id}/tratamientos`).set(auth()).send({ citaId: c.id, titulo: 'Limpieza facial', notas: 'Piel hidratada' });
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({ cita_id: c.id, fecha: '2026-09-15', profesional_id: profesional.id });
+    res = await request(app).post(`/staff/pacientes/${paciente.id}/tratamientos`).set(auth()).send({ citaId: c.id, titulo: 'x', notas: 'y' });
+    expect(res.status).toBe(409);
+
+    const pendiente = await db.Cita.create({
+      paciente_id: paciente.id, profesional_id: profesional.id, servicio_id: servicio.id, fecha: '2026-09-16', hora_inicio: '11:00:00', hora_fin: '11:30:00', estado: 'confirmada',
+    });
+    expect((await request(app).post(`/staff/pacientes/${paciente.id}/tratamientos`).set(auth()).send({ citaId: pendiente.id, titulo: 'x', notas: 'y' })).status).toBe(400);
+    expect((await request(app).post(`/staff/pacientes/${otraPaciente.id}/tratamientos`).set(auth()).send({ citaId: c.id, titulo: 'x', notas: 'y' })).status).toBe(400);
+  });
 });
