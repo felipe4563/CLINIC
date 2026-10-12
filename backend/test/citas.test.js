@@ -45,7 +45,7 @@ describe('citas routes', () => {
     const res = await request(app)
       .post('/citas')
       .set('Authorization', `Bearer ${token}`)
-      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00' });
+      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00', aceptaPolitica: true });
 
     expect(res.status).toBe(201);
     expect(res.body.cita.estado).toBe('pendiente_pago');
@@ -57,7 +57,7 @@ describe('citas routes', () => {
     const res = await request(app)
       .post('/citas')
       .set('Authorization', `Bearer ${token}`)
-      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00' });
+      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00', aceptaPolitica: true });
     expect(res.status).toBe(409);
   });
 
@@ -77,6 +77,7 @@ describe('citas routes', () => {
         fecha: lunes,
         horaInicio: '09:30',
         porcentajePago: 50,
+        aceptaPolitica: true,
       });
 
     expect(res.status).toBe(201);
@@ -95,6 +96,7 @@ describe('citas routes', () => {
         fecha: martes,
         horaInicio: '09:00',
         porcentajePago: 75,
+        aceptaPolitica: true,
       });
     expect(res.status).toBe(400);
   });

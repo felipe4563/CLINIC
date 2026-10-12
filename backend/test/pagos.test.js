@@ -38,7 +38,7 @@ describe('pagos routes', () => {
     const bookRes = await request(app)
       .post('/citas')
       .set('Authorization', `Bearer ${token}`)
-      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00' });
+      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:00', aceptaPolitica: true });
     cita = bookRes.body.cita;
   });
 
@@ -123,7 +123,7 @@ describe('pagos routes', () => {
       const bookRes = await request(app)
         .post('/citas')
         .set('Authorization', `Bearer ${token}`)
-        .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunesSiguiente, horaInicio: '09:00' });
+        .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunesSiguiente, horaInicio: '09:00', aceptaPolitica: true });
       cita2 = bookRes.body.cita;
 
       await db.Pago.update({ referencia_qr_banco: 'QR-456' }, { where: { cita_id: cita2.id } });
@@ -134,7 +134,7 @@ describe('pagos routes', () => {
       const otraCita = await request(app)
         .post('/citas')
         .set('Authorization', `Bearer ${token}`)
-        .send({ profesionalId: cita2.profesional_id, servicioId: cita2.servicio_id, fecha: lunesSiguiente, horaInicio: '09:30' });
+        .send({ profesionalId: cita2.profesional_id, servicioId: cita2.servicio_id, fecha: lunesSiguiente, horaInicio: '09:30', aceptaPolitica: true });
 
       const res = await request(app)
         .get(`/pagos/${otraCita.body.cita.id}/estado`)
