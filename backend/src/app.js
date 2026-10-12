@@ -32,7 +32,7 @@ const staffTarjetasRoutes = require('./routes/staffTarjetas');
 const staffHistoriaClinicaRoutes = require('./routes/staffHistoriaClinica');
 
 const app = express();
-app.use(cors());
+app.use(cors({ exposedHeaders: ['Content-Disposition'] }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 

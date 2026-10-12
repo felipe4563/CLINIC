@@ -158,8 +158,8 @@ Paciente.hasMany(CartillaSellos, { foreignKey: 'paciente_id' });
 CartillaSellos.belongsTo(Servicio, { foreignKey: { name: 'servicio_id', allowNull: false } });
 Servicio.hasMany(CartillaSellos, { foreignKey: 'servicio_id' });
 
-HistoriaClinica.belongsTo(Paciente, { foreignKey: { name: 'paciente_id', allowNull: false } });
-Paciente.hasMany(HistoriaClinica, { foreignKey: 'paciente_id' });
+HistoriaClinica.belongsTo(Paciente, { foreignKey: { name: 'paciente_id', allowNull: false }, onDelete: 'CASCADE' });
+Paciente.hasMany(HistoriaClinica, { foreignKey: 'paciente_id', onDelete: 'CASCADE' });
 
 HistoriaClinica.belongsTo(Profesional, { foreignKey: { name: 'profesional_id', allowNull: true } });
 HistoriaClinica.belongsTo(Usuario, { foreignKey: { name: 'creado_por_id', allowNull: true }, as: 'CreadoPor' });

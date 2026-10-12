@@ -279,6 +279,65 @@ describe('Historia clínica: API', () => {
     expect(fs.readdirSync(path.join(process.env.PRIVADO_DIR, 'historias'))).toHaveLength(0);
   });
 
+  test('borrar paciente: 409 si tiene notas o puntos (el archivo firmado sigue), 204 y archivo borrado si no', async () => {
+    const dirHistorias = path.join(process.env.PRIVADO_DIR, 'historias');
+    const subir = async (historiaId) => (await request(app).post(`/staff/historias/${historiaId}/documento-firmado`).set(auth())
+      .attach('archivo', pngFalso(), { filename: 'f.png', contentType: 'image/png' })).body.documento_firmado;
+
+    const conNota = await db.Paciente.create({ nombre_completo: 'Con Nota', telefono: '59170000091', codigo_paciente: 'P-0091', carnet_identidad: '91', carnet_expedido: 'CB' });
+    const h1 = await db.HistoriaClinica.create({ paciente_id: conNota.id, fecha: '2026-10-01', datos_clinicos: {}, datos_esteticos: {}, analisis_estetico: {}, protocolo: [] });
+    const archivo1 = await subir(h1.id);
+    await db.NotaClinica.create({ paciente_id: conNota.id, fecha: '2026-10-01', titulo: 'Nota', notas: 'x' });
+    let res = await request(app).delete(`/staff/pacientes/${conNota.id}`).set(auth());
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/notas clínicas/);
+    expect(fs.existsSync(path.join(dirHistorias, archivo1))).toBe(true);
+    expect(await db.HistoriaClinica.findByPk(h1.id)).not.toBeNull();
+
+    const conPuntos = await db.Paciente.create({ nombre_completo: 'Con Puntos', telefono: '59170000092', codigo_paciente: 'P-0092', carnet_identidad: '92', carnet_expedido: 'CB' });
+    await db.MovimientoPuntos.create({ paciente_id: conPuntos.id, tipo: 'ajuste', puntos: 5, motivo: 'x' });
+    res = await request(app).delete(`/staff/pacientes/${conPuntos.id}`).set(auth());
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/puntos/);
+
+    const limpia = await db.Paciente.create({ nombre_completo: 'Limpia', telefono: '59170000093', codigo_paciente: 'P-0093', carnet_identidad: '93', carnet_expedido: 'CB' });
+    const h2 = await db.HistoriaClinica.create({ paciente_id: limpia.id, fecha: '2026-10-01', datos_clinicos: {}, datos_esteticos: {}, analisis_estetico: {}, protocolo: [] });
+    const archivo2 = await subir(h2.id);
+    expect(fs.existsSync(path.join(dirHistorias, archivo2))).toBe(true);
+    res = await request(app).delete(`/staff/pacientes/${limpia.id}`).set(auth());
+    expect(res.status).toBe(204);
+    expect(await db.HistoriaClinica.findByPk(h2.id)).toBeNull();
+    expect(fs.existsSync(path.join(dirHistorias, archivo2))).toBe(false);
+
+    // Admin borra una evaluación: el archivo firmado también desaparece.
+    const h3 = await db.HistoriaClinica.create({ paciente_id: conNota.id, fecha: '2026-10-02', datos_clinicos: {}, datos_esteticos: {}, analisis_estetico: {}, protocolo: [] });
+    const archivo3 = await subir(h3.id);
+    expect((await request(app).delete(`/staff/historias/${h3.id}`).set(auth())).status).toBe(204);
+    expect(fs.existsSync(path.join(dirHistorias, archivo3))).toBe(false);
+
+    await db.HistoriaClinica.destroy({ where: { paciente_id: conNota.id } });
+    fs.rmSync(path.join(dirHistorias, archivo1), { force: true });
+    await db.NotaClinica.destroy({ where: { paciente_id: conNota.id } });
+    await db.MovimientoPuntos.destroy({ where: { paciente_id: conPuntos.id } });
+  });
+
+  test('PATCH de paciente rechaza textos personales demasiado largos; PUT de historia rechaza fechas imposibles', async () => {
+    const largos = { direccion: 256, ocupacion: 121, email: 161, contacto_emergencia: 161, parentesco_emergencia: 61 };
+    for (const [campo, n] of Object.entries(largos)) {
+      const res = await request(app).patch(`/staff/pacientes/${paciente.id}`).set(auth()).send({ [campo]: 'a'.repeat(n) });
+      expect(res.status).toBe(400);
+      expect(res.body.campo).toBe(campo);
+    }
+    expect((await request(app).patch(`/staff/pacientes/${paciente.id}`).set(auth()).send({ direccion: 'a'.repeat(255) })).status).toBe(200);
+
+    const h = await db.HistoriaClinica.create({ paciente_id: paciente.id, fecha: '2026-10-01', datos_clinicos: {}, datos_esteticos: {}, analisis_estetico: {}, protocolo: [] });
+    for (const fecha of ['2026-13-45', '2026-02-30', '2026-00-10']) {
+      expect((await request(app).put(`/staff/historias/${h.id}`).set(auth()).send({ fecha })).status).toBe(400);
+    }
+    expect((await request(app).put(`/staff/historias/${h.id}`).set(auth()).send({ fecha: '2028-02-29' })).status).toBe(200);
+    await h.destroy();
+  });
+
   test('armarDocumento: datos personales, casillas con detalles, opciones y compromiso legal', () => {
     const doc = armarDocumento({
       config: { nombre_consultorio: 'Clinic NovagED' },
@@ -300,6 +359,9 @@ describe('Historia clínica: API', () => {
     expect(tabaco).toEqual({ etiqueta: 'Tabaco', marcado: true, detalles: [{ etiqueta: 'Frecuencia', valor: 'diario' }] });
     const fototipo = doc.bloques.flatMap((b) => (b.tipo === 'casillas' ? b.items : [])).filter((i) => ['I', 'II', 'III'].includes(i.etiqueta)).slice(0, 3); // las 3 primeras son del fototipo (flacidez y acné también tienen grados)
     expect(fototipo.map((i) => i.marcado)).toEqual([false, false, true]);
+    // Las opciones llevan solo la etiqueta (sin línea para llenar) encima de sus casillas.
+    expect(doc.bloques.filter((b) => b.tipo === 'campo' && ['Sexo', 'Estado civil'].includes(b.etiqueta))).toEqual([]);
+    expect(doc.bloques).toEqual(expect.arrayContaining([{ tipo: 'etiqueta', texto: 'Sexo' }, { tipo: 'etiqueta', texto: 'Fototipo' }]));
     const compromiso = doc.bloques.find((b) => b.tipo === 'compromiso').texto;
     expect(compromiso).toContain('Ana Pérez');
     expect(compromiso).toContain('Dra. Noemí');
@@ -310,6 +372,7 @@ describe('Historia clínica: API', () => {
   test('armarDocumento en blanco: sin valores y con filas vacías para llenar a mano', () => {
     const doc = armarDocumento({ config: {}, enBlanco: true });
     expect(doc.bloques.filter((b) => b.tipo === 'campo').every((b) => b.valor === '')).toBe(true);
+    expect(doc.bloques.filter((b) => b.tipo === 'etiqueta').map((b) => b.texto)).toEqual(expect.arrayContaining(['Sexo', 'Estado civil']));
     expect(doc.bloques.flatMap((b) => (b.tipo === 'casillas' ? b.items : [])).some((i) => i.marcado)).toBe(false);
     expect(doc.bloques.filter((b) => b.tipo === 'tabla').every((t) => t.filas.length === 3)).toBe(true);
   });

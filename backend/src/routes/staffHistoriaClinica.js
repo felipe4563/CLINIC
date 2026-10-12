@@ -19,6 +19,13 @@ function hoyISO() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+function fechaValida(texto) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false;
+  const [a, m, d] = texto.split('-').map(Number);
+  const f = new Date(Date.UTC(a, m - 1, d));
+  return f.getUTCFullYear() === a && f.getUTCMonth() === m - 1 && f.getUTCDate() === d;
+}
+
 function textoOpcional(valor, max) {
   if (valor === null || valor === undefined) return null;
   if (typeof valor !== 'string') throw new ErrorValidacion('texto', 'Valor de texto inválido');
@@ -130,7 +137,7 @@ router.put('/staff/historias/:id', onlyHistoria, async (req, res) => {
   }
 
   if (req.body.fecha !== undefined) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(req.body.fecha))) return res.status(400).json({ error: 'fecha inválida' });
+    if (!fechaValida(String(req.body.fecha))) return res.status(400).json({ error: 'fecha inválida' });
     historia.fecha = req.body.fecha;
   }
   if (req.body.profesional_id !== undefined) {
@@ -156,8 +163,9 @@ router.delete('/staff/historias/:id', onlyHistoria, async (req, res) => {
   if (req.rolNombre !== 'Admin') return res.status(403).json({ error: 'Solo un administrador puede borrar una evaluación' });
   const historia = await db.HistoriaClinica.findByPk(req.params.id);
   if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
-  await borrarArchivoPrivado('historias', historia.documento_firmado);
+  const firmado = historia.documento_firmado;
   await historia.destroy();
+  await borrarArchivoPrivado('historias', firmado);
   res.status(204).end();
 });
 

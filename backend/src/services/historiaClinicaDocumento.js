@@ -45,7 +45,7 @@ function bloquesDeGrupo(grupo, datos) {
     }
     casillas = null;
     if (campo.tipo === 'opcion') {
-      bloques.push({ tipo: 'campo', etiqueta: campo.etiqueta, valor: '' });
+      bloques.push({ tipo: 'etiqueta', texto: campo.etiqueta });
       bloques.push(casillasDeOpciones(campo.opciones.map((op) => [op.clave, op.etiqueta]), datos[campo.clave]));
     } else {
       bloques.push({ tipo: campo.tipo === 'parrafo' ? 'parrafo' : 'campo', etiqueta: campo.etiqueta, valor: datos[campo.clave] || '' });
@@ -65,10 +65,10 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
     { tipo: 'campo', etiqueta: 'Nombres y apellidos', valor: p.nombre_completo || '' },
     { tipo: 'campo', etiqueta: 'Fecha de nacimiento', valor: p.fecha_nacimiento ? formatoFecha(p.fecha_nacimiento) : '' },
     { tipo: 'campo', etiqueta: 'Edad', valor: edadA(p.fecha_nacimiento, h.fecha) },
-    { tipo: 'campo', etiqueta: 'Sexo', valor: '' },
+    { tipo: 'etiqueta', texto: 'Sexo' },
     casillasDeOpciones(SEXO, p.sexo),
     { tipo: 'campo', etiqueta: 'C.I.', valor: carnet(p) },
-    { tipo: 'campo', etiqueta: 'Estado civil', valor: '' },
+    { tipo: 'etiqueta', texto: 'Estado civil' },
     casillasDeOpciones(ESTADO_CIVIL, p.estado_civil),
     { tipo: 'campo', etiqueta: 'Grupo sanguíneo', valor: p.grupo_sanguineo || '' },
     { tipo: 'campo', etiqueta: 'Dirección', valor: p.direccion || '' },

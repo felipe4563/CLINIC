@@ -7,6 +7,7 @@ const { borrarArchivoPrivado } = require('../services/archivosPrivados');
 
 const router = express.Router();
 
+const LARGO_PERSONAL = { direccion: 255, ocupacion: 120, email: 160, contacto_emergencia: 160, parentesco_emergencia: 60 };
 const CAMPOS_PERSONALES = [
   'sexo', 'estado_civil', 'grupo_sanguineo', 'direccion', 'ocupacion', 'email', 'contacto_emergencia', 'parentesco_emergencia',
 ];
@@ -86,6 +87,11 @@ router.patch('/staff/pacientes/:id', requirePermiso('pacientes'), async (req, re
   if (req.body.estado_civil !== undefined && !['', null, 'S', 'C', 'D', 'V'].includes(req.body.estado_civil)) {
     return res.status(400).json({ error: 'estado_civil debe ser S, C, D o V' });
   }
+  for (const [campo, max] of Object.entries(LARGO_PERSONAL)) {
+    if (typeof req.body[campo] === 'string' && req.body[campo].trim().length > max) {
+      return res.status(400).json({ error: `${campo} admite hasta ${max} caracteres`, campo });
+    }
+  }
   for (const campo of CAMPOS_PERSONALES) {
     if (req.body[campo] === undefined) continue;
     const valor = typeof req.body[campo] === 'string' ? req.body[campo].trim() : req.body[campo];
@@ -105,11 +111,19 @@ router.delete('/staff/pacientes/:id', requirePermiso('pacientes'), async (req, r
     return res.status(409).json({ error: 'No se puede eliminar: el paciente tiene citas registradas' });
   }
 
-  // La FK borra las evaluaciones en cascada; los archivos firmados se borran a mano.
-  const historias = await db.HistoriaClinica.findAll({ where: { paciente_id: paciente.id }, attributes: ['documento_firmado'] });
-  for (const h of historias) await borrarArchivoPrivado('historias', h.documento_firmado);
+  // Estas FK son RESTRICT: se avisa antes de tocar nada.
+  if (await db.NotaClinica.count({ where: { paciente_id: paciente.id } }) > 0) {
+    return res.status(409).json({ error: 'No se puede eliminar: el paciente tiene notas clínicas registradas' });
+  }
+  if (await db.MovimientoPuntos.count({ where: { paciente_id: paciente.id } }) > 0) {
+    return res.status(409).json({ error: 'No se puede eliminar: el paciente tiene movimientos de puntos registrados' });
+  }
 
+  // La FK borra las evaluaciones en cascada; los archivos firmados se borran a mano,
+  // pero solo después de que el borrado de la paciente haya tenido éxito.
+  const historias = await db.HistoriaClinica.findAll({ where: { paciente_id: paciente.id }, attributes: ['documento_firmado'] });
   await paciente.destroy();
+  for (const h of historias) await borrarArchivoPrivado('historias', h.documento_firmado);
   res.status(204).end();
 });
 

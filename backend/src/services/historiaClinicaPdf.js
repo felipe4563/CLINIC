@@ -95,6 +95,9 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
       if (b.subtitulo) doc.font('Helvetica-Oblique').fontSize(8.5).fillColor(COLOR.muted).text(b.subtitulo, izq, doc.y);
     } else if (b.tipo === 'casillas') {
       casillas(b.items);
+    } else if (b.tipo === 'etiqueta') {
+      asegurar(TAM + 6);
+      doc.font('Helvetica-Bold').fontSize(TAM).fillColor(COLOR.ink).text(`${b.texto}:`, izq, doc.y);
     } else if (b.tipo === 'campo') {
       asegurar(TAM + 6);
       doc.font('Helvetica-Bold').fontSize(TAM).fillColor(COLOR.ink).text(`${b.etiqueta}: `, izq, doc.y, { continued: true });

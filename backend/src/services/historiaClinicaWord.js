@@ -78,6 +78,8 @@ async function generarHistoriaWord(documento, config) {
         runs.push(new TextRun({ text: `${item.etiqueta}${detalles}     `, size: TAM }));
       }
       cuerpo.push(new Paragraph({ children: runs }));
+    } else if (b.tipo === 'etiqueta') {
+      cuerpo.push(new Paragraph({ children: [new TextRun({ text: `${b.texto}:`, bold: true, size: TAM })] }));
     } else if (b.tipo === 'campo') {
       cuerpo.push(new Paragraph({
         children: [new TextRun({ text: `${b.etiqueta}: `, bold: true, size: TAM }), new TextRun({ text: b.valor || '______________________________', size: TAM })],
