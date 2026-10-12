@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/authContext';
 import { IconArrowLeft } from '@/components/icons';
 import TratamientoItem, { type NotaClinica } from './TratamientoItem';
 import SeccionTarjeta from './SeccionTarjeta';
+import SeccionHistoria, { type AlertaAlergias } from './SeccionHistoria';
 
 type Cita = {
   id: number;
@@ -27,6 +28,14 @@ type Paciente = {
   carnet_complemento: string | null;
   carnet_expedido: string;
   fecha_nacimiento: string | null;
+  sexo: 'F' | 'M' | null;
+  estado_civil: 'S' | 'C' | 'D' | 'V' | null;
+  grupo_sanguineo: string | null;
+  direccion: string | null;
+  ocupacion: string | null;
+  email: string | null;
+  contacto_emergencia: string | null;
+  parentesco_emergencia: string | null;
   Cita: Cita[];
 };
 
@@ -57,6 +66,9 @@ export default function FichaPacientePage() {
   const [guardando, setGuardando] = useState(false);
   const [ok, setOk] = useState(false);
   const [eliminando, setEliminando] = useState(false);
+  const [alerta, setAlerta] = useState<AlertaAlergias | null>(null);
+  const verHistoria = Boolean(usuario?.permisos?.includes('historia_clinica'));
+  const alAlerta = useCallback((a: AlertaAlergias) => setAlerta(a), []);
 
   const [verTodasCitas, setVerTodasCitas] = useState(false);
   const CITAS_VISIBLES = 8;
@@ -211,6 +223,14 @@ export default function FichaPacientePage() {
         carnet_complemento: paciente.carnet_complemento,
         carnet_expedido: paciente.carnet_expedido,
         fecha_nacimiento: paciente.fecha_nacimiento,
+        sexo: paciente.sexo ?? '',
+        estado_civil: paciente.estado_civil ?? '',
+        grupo_sanguineo: paciente.grupo_sanguineo ?? '',
+        direccion: paciente.direccion ?? '',
+        ocupacion: paciente.ocupacion ?? '',
+        email: paciente.email ?? '',
+        contacto_emergencia: paciente.contacto_emergencia ?? '',
+        parentesco_emergencia: paciente.parentesco_emergencia ?? '',
       });
       setOk(true);
     } catch (err) {
@@ -264,6 +284,12 @@ export default function FichaPacientePage() {
           </button>
         )}
       </div>
+
+      {verHistoria && alerta?.alergias && (
+        <p role="alert" className="mb-4 rounded-lg border border-danger bg-danger/10 px-3 py-2 text-sm font-medium text-danger">
+          ⚠ Alergias{alerta.detalle ? `: ${alerta.detalle}` : ' (ver historia clínica)'}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
         <form onSubmit={guardar} className="grid gap-3 rounded border border-border bg-panel p-4 text-sm lg:sticky lg:top-4">
@@ -319,6 +345,62 @@ export default function FichaPacientePage() {
               className="mt-1 w-full rounded border border-border px-3 py-1.5"
             />
           </label>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <label>
+              Sexo
+              <select
+                value={paciente.sexo ?? ''}
+                onChange={(e) => setPaciente({ ...paciente, sexo: (e.target.value || null) as Paciente['sexo'] })}
+                className="mt-1 w-full rounded border border-border px-3 py-1.5"
+              >
+                <option value="">—</option>
+                <option value="F">F</option>
+                <option value="M">M</option>
+              </select>
+            </label>
+            <label>
+              Estado civil
+              <select
+                value={paciente.estado_civil ?? ''}
+                onChange={(e) => setPaciente({ ...paciente, estado_civil: (e.target.value || null) as Paciente['estado_civil'] })}
+                className="mt-1 w-full rounded border border-border px-3 py-1.5"
+              >
+                <option value="">—</option>
+                <option value="S">Soltera/o</option>
+                <option value="C">Casada/o</option>
+                <option value="D">Divorciada/o</option>
+                <option value="V">Viuda/o</option>
+              </select>
+            </label>
+            <label>
+              Grupo sanguíneo
+              <input
+                value={paciente.grupo_sanguineo ?? ''}
+                onChange={(e) => setPaciente({ ...paciente, grupo_sanguineo: e.target.value })}
+                maxLength={5}
+                className="mt-1 w-full rounded border border-border px-3 py-1.5"
+              />
+            </label>
+          </div>
+          {(
+            [
+              ['direccion', 'Dirección'],
+              ['ocupacion', 'Ocupación'],
+              ['email', 'E-mail'],
+              ['contacto_emergencia', 'Contacto de emergencia'],
+              ['parentesco_emergencia', 'Parentesco'],
+            ] as const
+          ).map(([campo, etiqueta]) => (
+            <label key={campo}>
+              {etiqueta}
+              <input
+                type={campo === 'email' ? 'email' : 'text'}
+                value={paciente[campo] ?? ''}
+                onChange={(e) => setPaciente({ ...paciente, [campo]: e.target.value })}
+                className="mt-1 w-full rounded border border-border px-3 py-1.5"
+              />
+            </label>
+          ))}
 
           {error && <p className="text-danger">{error}</p>}
           {ok && <p className="text-green-700">Guardado.</p>}
@@ -352,6 +434,8 @@ export default function FichaPacientePage() {
               </button>
             )}
           </div>
+
+          {verHistoria && <SeccionHistoria pacienteId={params.id} onAlerta={alAlerta} />}
 
           <SeccionTarjeta pacienteId={params.id} />
 

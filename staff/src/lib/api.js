@@ -151,6 +151,23 @@ export const api = {
   estadoPaqueteQR: (id) => apiFetch(`/staff/paquetes/${id}/estado`),
   crearTratamiento: (pacienteId, datos) =>
     apiFetch(`/staff/pacientes/${pacienteId}/tratamientos`, { method: 'POST', body: JSON.stringify(datos) }),
+  getDefinicionHistoria: () => apiFetch('/staff/historia-clinica/definicion'),
+  getProfesionalesHistoria: () => apiFetch('/staff/historia-clinica/profesionales'),
+  getHistoriasPaciente: (pacienteId) => apiFetch(`/staff/pacientes/${pacienteId}/historias`),
+  crearHistoria: (pacienteId, copiarDe) =>
+    apiFetch(`/staff/pacientes/${pacienteId}/historias`, { method: 'POST', body: JSON.stringify(copiarDe ? { copiarDe } : {}) }),
+  getHistoria: (id) => apiFetch(`/staff/historias/${id}`),
+  guardarHistoria: (id, datos) => apiFetch(`/staff/historias/${id}`, { method: 'PUT', body: JSON.stringify(datos) }),
+  borrarHistoria: (id) => apiFetch(`/staff/historias/${id}`, { method: 'DELETE' }),
+  subirDocumentoFirmado: (id, archivo) => {
+    const datos = new FormData();
+    datos.append('archivo', archivo);
+    return apiFetch(`/staff/historias/${id}/documento-firmado`, { method: 'POST', body: datos });
+  },
+  quitarDocumentoFirmado: (id) => apiFetch(`/staff/historias/${id}/documento-firmado`, { method: 'DELETE' }),
+  descargarHistoriaPdf: (id) => descargarPDF(`/staff/historias/${id}/pdf`),
+  descargarHistoriaWord: (id) => descargarPDF(`/staff/historias/${id}/word`),
+  descargarHistoriaEnBlanco: (formato) => descargarPDF(`/staff/historia-clinica/en-blanco.${formato}`),
   actualizarTratamiento: (id, datos) =>
     apiFetch(`/staff/tratamientos/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
   eliminarTratamiento: (id) => apiFetch(`/staff/tratamientos/${id}`, { method: 'DELETE' }),
