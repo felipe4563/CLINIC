@@ -2,6 +2,7 @@ const express = require('express');
 const { Op } = require('sequelize');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
+const { plazos } = require('../services/politicaInasistencia');
 const { crearReportePDF, dibujarTabla, formatoMoneda, formatoFecha } = require('../services/pdf');
 
 const router = express.Router();
@@ -159,12 +160,14 @@ router.get('/staff/reportes/financiero/pdf', onlyReportes, async (req, res) => {
 async function datosCitas(desde, hasta) {
   const citas = await db.Cita.findAll({
     where: { fecha: { [Op.between]: [desde, hasta] } },
-    include: [db.Profesional, db.Servicio],
+    include: [db.Profesional, db.Servicio, db.Pago],
   });
 
   const porEstado = { pendiente_pago: 0, confirmada: 0, cancelada: 0, completada: 0, no_asistio: 0 };
   const porProfesionalMap = new Map();
   const porServicioMap = new Map();
+  let montoRetenido = 0;
+  let citasConMontoRetenido = 0;
 
   for (const c of citas) {
     porEstado[c.estado] = (porEstado[c.estado] || 0) + 1;
@@ -174,6 +177,11 @@ async function datosCitas(desde, hasta) {
 
     const nombreServicio = c.Servicio ? c.Servicio.nombre : 'Sin servicio';
     porServicioMap.set(nombreServicio, (porServicioMap.get(nombreServicio) || 0) + 1);
+
+    if (plazos(c.toJSON()).montoRetenido) {
+      montoRetenido += Number(c.Pago.monto);
+      citasConMontoRetenido += 1;
+    }
   }
 
   const total = citas.length;
@@ -185,6 +193,8 @@ async function datosCitas(desde, hasta) {
     total,
     porEstado,
     noShowRate,
+    montoRetenido: Math.round(montoRetenido * 100) / 100,
+    citasConMontoRetenido,
     porProfesional: Array.from(porProfesionalMap.entries()).map(([profesional, cantidad]) => ({ profesional, cantidad })).sort((a, b) => b.cantidad - a.cantidad),
     porServicio: Array.from(porServicioMap.entries()).map(([servicio, cantidad]) => ({ servicio, cantidad })).sort((a, b) => b.cantidad - a.cantidad),
   };
@@ -209,6 +219,7 @@ router.get('/staff/reportes/citas/pdf', onlyReportes, async (req, res) => {
 
   doc.font('Helvetica-Bold').fontSize(11).text(`Total de citas: ${datos.total}`);
   doc.font('Helvetica').fontSize(10).text(`Tasa de inasistencia: ${datos.noShowRate.toFixed(1)}%`);
+  doc.font('Helvetica').fontSize(10).text(`Montos retenidos por inasistencia: Bs ${datos.montoRetenido.toFixed(2)} (${datos.citasConMontoRetenido} citas)`);
   doc.moveDown(0.8);
 
   const ETIQUETAS_ESTADO = {
