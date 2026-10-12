@@ -27,6 +27,7 @@ const staffReportesRoutes = require('./routes/staffReportes');
 const staffFidelizacionRoutes = require('./routes/staffFidelizacion');
 const staffPaquetesRoutes = require('./routes/staffPaquetes');
 const staffComprobantesRoutes = require('./routes/staffComprobantes');
+const staffInasistenciasRoutes = require('./routes/staffInasistencias');
 
 const app = express();
 app.use(cors());
@@ -58,6 +59,7 @@ app.use('/', staffReportesRoutes);
 app.use('/', staffFidelizacionRoutes);
 app.use('/', staffPaquetesRoutes);
 app.use('/', staffComprobantesRoutes);
+app.use('/', staffInasistenciasRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
