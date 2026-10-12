@@ -205,4 +205,4 @@ function dibujarTabla(doc, { columnas, filas, anchoTotal }) {
   doc.x = inicioX;
 }
 
-module.exports = { crearReportePDF, dibujarTabla, formatoMoneda, formatoFecha, COLOR };
+module.exports = { crearReportePDF, dibujarTabla, formatoMoneda, formatoFecha, rutaLogoEmbebible, COLOR };

@@ -339,6 +339,17 @@ describe('Historia clínica: API', () => {
     expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
     expect((await request(app).get(`/staff/historias/${h.id}/pdf`).set(auth(tokenRecepcion))).status).toBe(403);
   }, 30000);
+  test('descarga el Word de una evaluación y el formulario en blanco', async () => {
+    const h = await db.HistoriaClinica.create({ paciente_id: paciente.id, fecha: '2026-10-03', datos_clinicos: { tabaco: true }, datos_esteticos: {}, analisis_estetico: {}, protocolo: [] });
+    let res = await request(app).get(`/staff/historias/${h.id}/word`).set(auth()).buffer(true).parse(binario);
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    expect(res.headers['content-disposition']).toContain('historia-clinica-P-0001-2026-10-03.docx');
+    expect(res.body.subarray(0, 2).toString()).toBe('PK');
+    res = await request(app).get('/staff/historia-clinica/en-blanco.docx').set(auth()).buffer(true).parse(binario);
+    expect(res.status).toBe(200);
+    expect(res.body.subarray(0, 2).toString()).toBe('PK');
+  }, 30000);
   test('PDF: ninguna casilla ni detalle largo se recorta (se parte en líneas)', () => {
     const PDFDocument = require('pdfkit');
     const { enviarHistoriaPdf } = require('../src/services/historiaClinicaPdf');

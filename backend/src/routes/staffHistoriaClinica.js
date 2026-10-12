@@ -5,6 +5,7 @@ const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
 const { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos } = require('../services/historiaClinica');
 const { armarDocumento } = require('../services/historiaClinicaDocumento');
 const { enviarHistoriaPdf } = require('../services/historiaClinicaPdf');
+const { generarHistoriaWord } = require('../services/historiaClinicaWord');
 const { recibirArchivo, guardarArchivoPrivado, borrarArchivoPrivado, enviarArchivoPrivado } = require('../services/archivosPrivados');
 
 const router = express.Router();
@@ -206,6 +207,26 @@ router.get('/staff/historias/:id/pdf', onlyHistoria, async (req, res) => {
   if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
   const { config, documento, base } = await documentoDe(historia);
   enviarHistoriaPdf(res, documento, config, `${base}.pdf`);
+});
+
+const MIME_DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+function enviarWord(res, buffer, nombreArchivo) {
+  res.setHeader('Content-Type', MIME_DOCX);
+  res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
+  res.send(buffer);
+}
+
+router.get('/staff/historia-clinica/en-blanco.docx', onlyHistoria, async (req, res) => {
+  const config = await db.ConfiguracionClinica.obtenerConfig();
+  enviarWord(res, await generarHistoriaWord(armarDocumento({ config, enBlanco: true }), config), 'historia-clinica-en-blanco.docx');
+});
+
+router.get('/staff/historias/:id/word', onlyHistoria, async (req, res) => {
+  const historia = await cargarCompleta(req.params.id);
+  if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
+  const { config, documento, base } = await documentoDe(historia);
+  enviarWord(res, await generarHistoriaWord(documento, config), `${base}.docx`);
 });
 
 module.exports = router;
