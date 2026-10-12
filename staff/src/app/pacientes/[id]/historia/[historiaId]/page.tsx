@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -26,9 +26,36 @@ type Historia = {
   updated_at?: string;
   updatedAt?: string;
   ActualizadoPor?: { nombre: string } | null;
-  Paciente: { nombre_completo: string; codigo_paciente: string; carnet_identidad: string; carnet_expedido: string; fecha_nacimiento: string | null; telefono: string };
+  Paciente: {
+    nombre_completo: string; codigo_paciente: string; carnet_identidad: string; carnet_expedido: string; fecha_nacimiento: string | null; telefono: string;
+    sexo: 'F' | 'M' | null; estado_civil: 'S' | 'C' | 'D' | 'V' | null; grupo_sanguineo: string | null; direccion: string | null;
+    ocupacion: string | null; email: string | null; contacto_emergencia: string | null; parentesco_emergencia: string | null;
+  };
   tratamientos: { desde: string; hasta: string | null; filas: FilaTratamiento[] };
 };
+
+const ESTADOS_CIVILES = { S: 'Soltera/o', C: 'Casada/o', D: 'Divorciada/o', V: 'Viuda/o' } as const;
+
+function fmtFecha(fecha: string) {
+  const [a, m, d] = fecha.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+function fmtFechaHora(iso: string) {
+  const f = new Date(iso);
+  if (Number.isNaN(f.getTime())) return '';
+  const dos = (n: number) => String(n).padStart(2, '0');
+  return `${dos(f.getDate())}/${dos(f.getMonth() + 1)}/${f.getFullYear()} ${dos(f.getHours())}:${dos(f.getMinutes())}`;
+}
+
+// Edad cumplida a la fecha de la evaluación.
+function edadA(nacimiento: string | null, referencia: string) {
+  if (!nacimiento) return null;
+  const [an, mn, dn] = nacimiento.split('-').map(Number);
+  const [ar, mr, dr] = referencia.split('-').map(Number);
+  const edad = ar - an - (mr < mn || (mr === mn && dr < dn) ? 1 : 0);
+  return edad >= 0 ? edad : null;
+}
 
 const CAMPOS_GUARDABLES = ['fecha', 'motivo_consulta', 'datos_clinicos', 'datos_esteticos', 'analisis_estetico', 'diagnostico', 'protocolo', 'procedimiento_autorizado', 'profesional_id'] as const;
 
@@ -66,6 +93,20 @@ export default function EditorHistoria() {
     window.addEventListener('beforeunload', avisar);
     return () => window.removeEventListener('beforeunload', avisar);
   }, [sucio]);
+
+  function salirSiConfirma(e: MouseEvent<HTMLAnchorElement>) {
+    if (sucio && !window.confirm('Tienes cambios sin guardar. ¿Salir sin guardar?')) e.preventDefault();
+  }
+
+  async function descargar(formato: 'pdf' | 'word') {
+    if (!historia) return;
+    setError(null);
+    try {
+      await (formato === 'pdf' ? api.descargarHistoriaPdf(historia.id) : api.descargarHistoriaWord(historia.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo descargar el documento');
+    }
+  }
 
   function cambiar<K extends keyof Historia>(campo: K, valor: Historia[K]) {
     setHistoria((h) => (h ? { ...h, [campo]: valor } : h));
@@ -133,7 +174,7 @@ export default function EditorHistoria() {
 
   return (
     <div className="pb-10">
-      <Link href={`/pacientes/${params.id}`} className="mb-3 inline-flex items-center gap-1.5 text-sm text-foreground/70 hover:text-foreground">
+      <Link href={`/pacientes/${params.id}`} onClick={salirSiConfirma} className="mb-3 inline-flex items-center gap-1.5 text-sm text-foreground/70 hover:text-foreground">
         <IconArrowLeft className="h-4 w-4" />
         Volver a la ficha
       </Link>
@@ -143,14 +184,16 @@ export default function EditorHistoria() {
           <p className="truncate text-sm font-semibold">Historia clínica · {p.nombre_completo}</p>
           <p className="text-xs text-muted-foreground">
             N° {p.codigo_paciente}
-            {historia.ActualizadoPor ? ` · Última edición: ${historia.ActualizadoPor.nombre}` : ''}
+            {historia.ActualizadoPor || historia.updated_at || historia.updatedAt
+              ? ` · Última edición: ${[historia.ActualizadoPor?.nombre, fmtFechaHora(historia.updated_at || historia.updatedAt || '')].filter(Boolean).join(' · ')}`
+              : ''}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           {sucio && <span className="text-xs text-stat-amber">Tienes cambios sin guardar</span>}
           {aviso && !sucio && <span className="text-xs text-stat-green">{aviso}</span>}
-          <button onClick={() => api.descargarHistoriaPdf(historia.id)} disabled={sucio} title={sucio ? 'Guarda primero' : undefined} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">PDF</button>
-          <button onClick={() => api.descargarHistoriaWord(historia.id)} disabled={sucio} title={sucio ? 'Guarda primero' : undefined} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">Word</button>
+          <button onClick={() => descargar('pdf')} disabled={sucio} title={sucio ? 'Guarda primero' : undefined} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">PDF</button>
+          <button onClick={() => descargar('word')} disabled={sucio} title={sucio ? 'Guarda primero' : undefined} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">Word</button>
           <button onClick={guardar} disabled={guardando || !sucio} className="rounded-lg bg-accent px-4 py-1.5 text-sm font-medium text-accent-foreground disabled:opacity-60">
             {guardando ? 'Guardando…' : 'Guardar'}
           </button>
@@ -165,9 +208,17 @@ export default function EditorHistoria() {
             <p><span className="text-muted-foreground">Nombre:</span> {p.nombre_completo}</p>
             <p><span className="text-muted-foreground">C.I.:</span> {p.carnet_identidad} {p.carnet_expedido}</p>
             <p><span className="text-muted-foreground">Teléfono:</span> {p.telefono}</p>
-            <p><span className="text-muted-foreground">Nacimiento:</span> {p.fecha_nacimiento ?? '—'}</p>
+            <p><span className="text-muted-foreground">Nacimiento:</span> {p.fecha_nacimiento ? fmtFecha(p.fecha_nacimiento) : '—'}</p>
+            <p><span className="text-muted-foreground">Edad:</span> {edadA(p.fecha_nacimiento, historia.fecha) ?? '—'}</p>
+            <p><span className="text-muted-foreground">Sexo:</span> {p.sexo ?? '—'}</p>
+            <p><span className="text-muted-foreground">Estado civil:</span> {p.estado_civil ? ESTADOS_CIVILES[p.estado_civil] : '—'}</p>
+            <p><span className="text-muted-foreground">Grupo sanguíneo:</span> {p.grupo_sanguineo ?? '—'}</p>
+            <p><span className="text-muted-foreground">Dirección:</span> {p.direccion ?? '—'}</p>
+            <p><span className="text-muted-foreground">Ocupación:</span> {p.ocupacion ?? '—'}</p>
+            <p><span className="text-muted-foreground">E-mail:</span> {p.email ?? '—'}</p>
+            <p><span className="text-muted-foreground">Contacto de emergencia:</span> {p.contacto_emergencia ?? '—'}{p.parentesco_emergencia ? ` (${p.parentesco_emergencia})` : ''}</p>
           </div>
-          <Link href={`/pacientes/${params.id}`} className="mt-2 inline-block text-xs text-accent hover:underline">Editar datos personales en la ficha</Link>
+          <Link href={`/pacientes/${params.id}`} onClick={salirSiConfirma} className="mt-2 inline-block text-xs text-accent hover:underline">Editar datos personales en la ficha</Link>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
             <label className="text-xs text-muted-foreground">
               Fecha de la evaluación

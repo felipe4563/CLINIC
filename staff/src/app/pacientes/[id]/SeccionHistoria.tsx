@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 
 export type AlertaAlergias = { alergias: boolean; detalle: string | null };
-type Evaluacion = { id: number; fecha: string; autor: string | null; firmado: boolean };
+type Evaluacion = { id: number; fecha: string; autor: string | null; actualizada: string | null; firmado: boolean };
 
 function fmtFecha(fecha: string) {
   const [a, m, d] = fecha.split('-');
@@ -85,7 +85,7 @@ export default function SeccionHistoria({ pacienteId, onAlerta }: { pacienteId: 
             <div>
               <p className="font-medium">Evaluación del {fmtFecha(h.fecha)}</p>
               <p className="text-xs text-muted-foreground">
-                {h.autor ? `Última edición: ${h.autor}` : ''}
+                {h.autor || h.actualizada ? `Última edición: ${[h.autor, h.actualizada ? fmtFecha(h.actualizada.slice(0, 10)) : null].filter(Boolean).join(' · ')}` : ''}
                 {h.firmado ? ' · ✓ Firmada' : ' · Sin documento firmado'}
               </p>
             </div>

@@ -20,7 +20,7 @@ function fmtFecha(fecha: string) {
 
 // "Tratamiento estético realizado": sesiones atendidas (con su observación) y
 // filas manuales. Escribir una observación o agregar una fila guarda de inmediato.
-export default function TablaTratamientos({ pacienteId, filas, desde, onCambio }: { pacienteId: string; filas: FilaTratamiento[]; desde: string; onCambio: () => void }) {
+export default function TablaTratamientos({ pacienteId, filas, desde, onCambio }: { pacienteId: string; filas: FilaTratamiento[]; desde: string; onCambio: () => void | Promise<void> }) {
   const [observando, setObservando] = useState<number | null>(null);
   const [texto, setTexto] = useState('');
   const [manual, setManual] = useState<{ fecha: string; procedimiento: string; observacion: string } | null>(null);
@@ -34,7 +34,7 @@ export default function TablaTratamientos({ pacienteId, filas, desde, onCambio }
       await api.crearTratamiento(pacienteId, { citaId: fila.citaId, titulo: fila.procedimiento, notas: texto.trim() });
       setObservando(null);
       setTexto('');
-      onCambio();
+      await onCambio();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar la observación');
     }
@@ -47,7 +47,7 @@ export default function TablaTratamientos({ pacienteId, filas, desde, onCambio }
     try {
       await api.crearTratamiento(pacienteId, { fecha: manual.fecha, titulo: manual.procedimiento.trim(), notas: manual.observacion.trim() });
       setManual(null);
-      onCambio();
+      await onCambio();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo agregar la fila');
     }

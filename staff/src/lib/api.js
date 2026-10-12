@@ -51,7 +51,7 @@ async function descargarPDF(path) {
   const blob = await res.blob();
   const disposition = res.headers.get('Content-Disposition') || '';
   const match = disposition.match(/filename="([^"]+)"/);
-  const nombreArchivo = match ? match[1] : 'reporte.pdf';
+  const nombreArchivo = match ? match[1] : (blob.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ? 'documento.docx' : 'reporte.pdf');
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

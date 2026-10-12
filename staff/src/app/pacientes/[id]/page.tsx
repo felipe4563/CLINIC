@@ -384,17 +384,18 @@ export default function FichaPacientePage() {
           </div>
           {(
             [
-              ['direccion', 'Dirección'],
-              ['ocupacion', 'Ocupación'],
-              ['email', 'E-mail'],
-              ['contacto_emergencia', 'Contacto de emergencia'],
-              ['parentesco_emergencia', 'Parentesco'],
+              ['direccion', 'Dirección', 255],
+              ['ocupacion', 'Ocupación', 120],
+              ['email', 'E-mail', 160],
+              ['contacto_emergencia', 'Contacto de emergencia', 160],
+              ['parentesco_emergencia', 'Parentesco', 60],
             ] as const
-          ).map(([campo, etiqueta]) => (
+          ).map(([campo, etiqueta, max]) => (
             <label key={campo}>
               {etiqueta}
               <input
                 type={campo === 'email' ? 'email' : 'text'}
+                maxLength={max}
                 value={paciente[campo] ?? ''}
                 onChange={(e) => setPaciente({ ...paciente, [campo]: e.target.value })}
                 className="mt-1 w-full rounded border border-border px-3 py-1.5"
