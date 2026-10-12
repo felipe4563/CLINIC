@@ -3,6 +3,8 @@ const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
 const { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos } = require('../services/historiaClinica');
+const { armarDocumento } = require('../services/historiaClinicaDocumento');
+const { enviarHistoriaPdf } = require('../services/historiaClinicaPdf');
 const { recibirArchivo, guardarArchivoPrivado, borrarArchivoPrivado, enviarArchivoPrivado } = require('../services/archivosPrivados');
 
 const router = express.Router();
@@ -186,6 +188,24 @@ router.delete('/staff/historias/:id/documento-firmado', onlyHistoria, async (req
   await historia.save();
   await borrarArchivoPrivado('historias', anterior);
   res.json(await cargarCompleta(historia.id));
+});
+
+async function documentoDe(historia) {
+  const [config, tratamientos] = await Promise.all([db.ConfiguracionClinica.obtenerConfig(), calcularTratamientos(historia)]);
+  const documento = armarDocumento({ config, paciente: historia.Paciente, historia, tratamientos });
+  return { config, documento, base: `historia-clinica-${historia.Paciente.codigo_paciente}-${historia.fecha}` };
+}
+
+router.get('/staff/historia-clinica/en-blanco.pdf', onlyHistoria, async (req, res) => {
+  const config = await db.ConfiguracionClinica.obtenerConfig();
+  enviarHistoriaPdf(res, armarDocumento({ config, enBlanco: true }), config, 'historia-clinica-en-blanco.pdf');
+});
+
+router.get('/staff/historias/:id/pdf', onlyHistoria, async (req, res) => {
+  const historia = await cargarCompleta(req.params.id);
+  if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
+  const { config, documento, base } = await documentoDe(historia);
+  enviarHistoriaPdf(res, documento, config, `${base}.pdf`);
 });
 
 module.exports = router;

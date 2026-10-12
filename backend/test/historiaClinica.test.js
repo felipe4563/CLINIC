@@ -12,6 +12,13 @@ const db = require('../src/models');
 const app = require('../src/app');
 const { PERMISOS_POR_DEFECTO } = require('../src/config/permisos');
 const { pngFalso, exeFalso } = require('./helpers/archivos');
+const { armarDocumento } = require('../src/services/historiaClinicaDocumento');
+
+function binario(res, cb) {
+  const partes = [];
+  res.on('data', (c) => partes.push(c));
+  res.on('end', () => cb(null, Buffer.concat(partes)));
+}
 
 describe('Historia clínica: definición y validación', () => {
   test('la definición tiene las tres secciones y claves únicas por sección (incluidos los detalles)', () => {
@@ -271,4 +278,65 @@ describe('Historia clínica: API', () => {
     expect(res.body.documento_firmado).toBeNull();
     expect(fs.readdirSync(path.join(process.env.PRIVADO_DIR, 'historias'))).toHaveLength(0);
   });
+
+  test('armarDocumento: datos personales, casillas con detalles, opciones y compromiso legal', () => {
+    const doc = armarDocumento({
+      config: { nombre_consultorio: 'Clinic NovagED' },
+      paciente: { nombre_completo: 'Ana Pérez', codigo_paciente: 'P-0001', carnet_identidad: '1234567', carnet_complemento: null, carnet_expedido: 'CB', fecha_nacimiento: '1990-05-10', sexo: 'F', telefono: '591' },
+      historia: {
+        fecha: '2026-10-01', motivo_consulta: 'Manchas', datos_clinicos: { tabaco: true, tabaco_frecuencia: 'diario' }, datos_esteticos: {},
+        analisis_estetico: { fototipo: 'III' }, diagnostico: 'Melasma', protocolo: [{ procedimiento: 'Peeling', sesiones: '4', comentario: '' }],
+        procedimiento_autorizado: 'Peeling', Profesional: { nombre: 'Dra. Noemí' },
+      },
+      tratamientos: { filas: [{ fecha: '2026-10-05', procedimiento: 'Peeling', observacion: 'Bien' }] },
+    });
+    expect(doc.numero).toBe('P-0001');
+    const campos = doc.bloques.filter((b) => b.tipo === 'campo');
+    expect(campos).toEqual(expect.arrayContaining([
+      { tipo: 'campo', etiqueta: 'Edad', valor: '36' },
+      { tipo: 'campo', etiqueta: 'C.I.', valor: '1234567 CB' },
+    ]));
+    const tabaco = doc.bloques.flatMap((b) => (b.tipo === 'casillas' ? b.items : [])).find((i) => i.etiqueta === 'Tabaco');
+    expect(tabaco).toEqual({ etiqueta: 'Tabaco', marcado: true, detalles: [{ etiqueta: 'Frecuencia', valor: 'diario' }] });
+    const fototipo = doc.bloques.flatMap((b) => (b.tipo === 'casillas' ? b.items : [])).filter((i) => ['I', 'II', 'III'].includes(i.etiqueta)).slice(0, 3); // las 3 primeras son del fototipo (flacidez y acné también tienen grados)
+    expect(fototipo.map((i) => i.marcado)).toEqual([false, false, true]);
+    const compromiso = doc.bloques.find((b) => b.tipo === 'compromiso').texto;
+    expect(compromiso).toContain('Ana Pérez');
+    expect(compromiso).toContain('Dra. Noemí');
+    expect(compromiso).toContain('Clinic NovagED');
+    expect(doc.bloques.filter((b) => b.tipo === 'tabla').map((t) => t.filas)).toEqual([[['Peeling', '4', '']], [['05/10/2026', 'Peeling', 'Bien']]]);
+  });
+
+  test('armarDocumento en blanco: sin valores y con filas vacías para llenar a mano', () => {
+    const doc = armarDocumento({ config: {}, enBlanco: true });
+    expect(doc.bloques.filter((b) => b.tipo === 'campo').every((b) => b.valor === '')).toBe(true);
+    expect(doc.bloques.flatMap((b) => (b.tipo === 'casillas' ? b.items : [])).some((i) => i.marcado)).toBe(false);
+    expect(doc.bloques.filter((b) => b.tipo === 'tabla').every((t) => t.filas.length === 3)).toBe(true);
+  });
+
+  test('descarga el PDF de una evaluación llena al máximo y el formulario en blanco', async () => {
+    const llenas = {};
+    for (const s of SECCIONES) {
+      llenas[s.clave] = {};
+      for (const g of s.grupos) for (const c of g.campos) {
+        if (c.tipo === 'check') llenas[s.clave][c.clave] = true;
+        if (c.tipo === 'opcion') llenas[s.clave][c.clave] = c.opciones[0].clave;
+        if (c.tipo === 'texto') llenas[s.clave][c.clave] = 'x'.repeat(500);
+        if (c.tipo === 'parrafo') llenas[s.clave][c.clave] = 'palabra '.repeat(500).trim();
+        for (const d of c.detalles || []) llenas[s.clave][`${c.clave}_${d.clave}`] = 'y'.repeat(100);
+      }
+    }
+    const h = await db.HistoriaClinica.create({ paciente_id: paciente.id, fecha: '2026-10-02', ...llenas, protocolo: [{ procedimiento: 'P', sesiones: '1', comentario: 'c'.repeat(500) }], diagnostico: 'd '.repeat(2000) });
+
+    let res = await request(app).get(`/staff/historias/${h.id}/pdf`).set(auth()).buffer(true).parse(binario);
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toBe('application/pdf');
+    expect(res.headers['content-disposition']).toContain('historia-clinica-P-0001-2026-10-02.pdf');
+    expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
+
+    res = await request(app).get('/staff/historia-clinica/en-blanco.pdf').set(auth()).buffer(true).parse(binario);
+    expect(res.status).toBe(200);
+    expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
+    expect((await request(app).get(`/staff/historias/${h.id}/pdf`).set(auth(tokenRecepcion))).status).toBe(403);
+  }, 30000);
 });
