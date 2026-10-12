@@ -13,7 +13,12 @@ services:
     # red (por ejemplo "api"). Para depurar desde el VPS usa:
     #   docker compose exec mysql mysql -u novaged -p novaged
 
+  # Las imágenes las construye GitHub Actions (.github/workflows/imagenes.yml)
+  # y deploy.sh exporta TAG con el SHA del commit actual. Sin TAG se usa
+  # "latest". "build:" queda para construir a mano si hiciera falta:
+  #   docker compose build api
   api:
+    image: ghcr.io/felipe4563/clinic-api:${TAG:-latest}
     build: ./backend
     restart: unless-stopped
     env_file: ./backend/.env
@@ -28,6 +33,7 @@ services:
       - "127.0.0.1:4010:4000"
 
   public-site:
+    image: ghcr.io/felipe4563/clinic-public-site:${TAG:-latest}
     build: ./public-site
     restart: unless-stopped
     depends_on:
@@ -36,6 +42,7 @@ services:
       - "127.0.0.1:3101:3000"
 
   staff:
+    image: ghcr.io/felipe4563/clinic-staff:${TAG:-latest}
     build: ./staff
     restart: unless-stopped
     depends_on:
