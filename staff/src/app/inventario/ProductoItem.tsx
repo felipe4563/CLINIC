@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { validarImagen } from '@/lib/validarImagen';
-import type { Etiqueta } from './EtiquetaManager';
+import type { Etiqueta } from './PanelEtiquetas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -20,6 +20,7 @@ export type Producto = {
   proximo_vencimiento: string | null;
   imagen_url: string | null;
   activo: boolean;
+  Servicios?: { id: number; nombre: string }[];
 };
 
 function imagenSrc(imagenUrl: string | null) {

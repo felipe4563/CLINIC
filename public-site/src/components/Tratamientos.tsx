@@ -31,7 +31,7 @@ const categorias: Categoria[] = [
           'Tratamientos orientados a mejorar la calidad, hidratación, luminosidad y regeneración de la piel mediante medicina estética avanzada.',
         columnas: [
           { titulo: 'Áreas de enfoque', items: ['Calidad de piel', 'Hidratación profunda', 'Despigmentación', 'Regeneración celular'] },
-          { titulo: 'Tratamientos', items: ['Microneedling', 'PRP facial', 'PDRN / PN', 'Exosomas', 'Peelings médicos', 'Ácido hialurónico', 'Coctel de vitaminas', 'DMAE + silicio orgánico', 'Cóctel de aminoácidos'] },
+          { titulo: 'Tratamientos', items: ['Microneedling', 'PRP facial', 'PDRN / PN', 'Exosomas', 'Peelings médicos', 'Ácido hialurónico', 'Cóctel de vitaminas', 'DMAE + silicio orgánico', 'Cóctel de aminoácidos'] },
         ],
       },
       {

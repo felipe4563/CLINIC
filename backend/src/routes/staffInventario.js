@@ -122,7 +122,12 @@ router.get('/staff/productos', onlyInventario, async (req, res) => {
   const [productos, vencimientos] = await Promise.all([
     db.Producto.findAll({
       where,
-      include: [db.Marca, db.CategoriaProducto],
+      include: [
+        db.Marca,
+        db.CategoriaProducto,
+        // Servicios que usan el producto como insumo (para filtrar por servicio en el panel).
+        { model: db.Servicio, attributes: ['id', 'nombre'], through: { attributes: [] } },
+      ],
       order: [['nombre', 'ASC']],
     }),
     proximosVencimientosPorProducto(),
