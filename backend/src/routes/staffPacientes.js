@@ -6,6 +6,10 @@ const { generarCodigoCliente } = require('../services/codigoCliente');
 
 const router = express.Router();
 
+const CAMPOS_PERSONALES = [
+  'sexo', 'estado_civil', 'grupo_sanguineo', 'direccion', 'ocupacion', 'email', 'contacto_emergencia', 'parentesco_emergencia',
+];
+
 router.get('/staff/pacientes', requirePermiso('pacientes'), async (req, res) => {
   const { q } = req.query;
   const where = q
@@ -73,6 +77,19 @@ router.patch('/staff/pacientes/:id', requirePermiso('pacientes'), async (req, re
   if (carnet_complemento !== undefined) paciente.carnet_complemento = carnet_complemento;
   if (carnet_expedido !== undefined) paciente.carnet_expedido = carnet_expedido;
   if (fecha_nacimiento !== undefined) paciente.fecha_nacimiento = fecha_nacimiento;
+
+  // Datos personales de la historia clínica: '' borra el valor.
+  if (req.body.sexo !== undefined && !['', null, 'F', 'M'].includes(req.body.sexo)) {
+    return res.status(400).json({ error: 'sexo debe ser F o M' });
+  }
+  if (req.body.estado_civil !== undefined && !['', null, 'S', 'C', 'D', 'V'].includes(req.body.estado_civil)) {
+    return res.status(400).json({ error: 'estado_civil debe ser S, C, D o V' });
+  }
+  for (const campo of CAMPOS_PERSONALES) {
+    if (req.body[campo] === undefined) continue;
+    const valor = typeof req.body[campo] === 'string' ? req.body[campo].trim() : req.body[campo];
+    paciente[campo] = valor === '' ? null : valor;
+  }
 
   await paciente.save();
   res.json(paciente);

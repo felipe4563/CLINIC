@@ -10,6 +10,14 @@ const Paciente = sequelize.define('Paciente', {
   carnet_expedido: { type: DataTypes.STRING, allowNull: false },
   fecha_nacimiento: { type: DataTypes.DATEONLY, allowNull: true },
   puntos_actuales: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+  sexo: { type: DataTypes.ENUM('F', 'M'), allowNull: true },
+  estado_civil: { type: DataTypes.ENUM('S', 'C', 'D', 'V'), allowNull: true },
+  grupo_sanguineo: { type: DataTypes.STRING(5), allowNull: true },
+  direccion: { type: DataTypes.STRING(255), allowNull: true },
+  ocupacion: { type: DataTypes.STRING(120), allowNull: true },
+  email: { type: DataTypes.STRING(160), allowNull: true },
+  contacto_emergencia: { type: DataTypes.STRING(160), allowNull: true },
+  parentesco_emergencia: { type: DataTypes.STRING(60), allowNull: true },
 }, { tableName: 'pacientes', underscored: true });
 
 module.exports = Paciente;

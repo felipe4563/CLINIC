@@ -33,14 +33,19 @@ const MODULOS = [
     etiqueta: 'Fidelización',
     descripcion: 'Ver y ajustar puntos de pacientes, y gestionar el catálogo de recompensas',
   },
+  {
+    clave: 'historia_clinica',
+    etiqueta: 'Historia clínica',
+    descripcion: 'Ver, llenar y descargar la historia clínica de los pacientes',
+  },
 ];
 
 const CLAVES_VALIDAS = MODULOS.map((m) => m.clave);
 
 const PERMISOS_POR_DEFECTO = {
-  Admin: ['dashboard', 'agenda', 'pacientes', 'catalogo', 'usuarios', 'caja', 'inventario', 'ventas', 'compras', 'automatizacion', 'personal', 'configuracion', 'reportes', 'fidelizacion'],
+  Admin: ['dashboard', 'agenda', 'pacientes', 'catalogo', 'usuarios', 'caja', 'inventario', 'ventas', 'compras', 'automatizacion', 'personal', 'configuracion', 'reportes', 'fidelizacion', 'historia_clinica'],
   Recepcion: ['dashboard', 'agenda', 'pacientes', 'caja', 'inventario', 'ventas', 'compras', 'fidelizacion'],
-  Profesional: ['dashboard', 'agenda', 'pacientes'],
+  Profesional: ['dashboard', 'agenda', 'pacientes', 'historia_clinica'],
 };
 
 module.exports = { MODULOS, CLAVES_VALIDAS, PERMISOS_POR_DEFECTO };

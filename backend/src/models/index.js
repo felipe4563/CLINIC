@@ -31,6 +31,7 @@ const CompraItem = require('./compraItem');
 const PaqueteSesiones = require('./paqueteSesiones');
 const TarjetaFidelizacion = require('./tarjetaFidelizacion');
 const CartillaSellos = require('./cartillaSellos');
+const HistoriaClinica = require('./historiaClinica');
 
 Rol.hasMany(Usuario, { foreignKey: 'rol_id' });
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id' });
@@ -157,6 +158,13 @@ Paciente.hasMany(CartillaSellos, { foreignKey: 'paciente_id' });
 CartillaSellos.belongsTo(Servicio, { foreignKey: { name: 'servicio_id', allowNull: false } });
 Servicio.hasMany(CartillaSellos, { foreignKey: 'servicio_id' });
 
+HistoriaClinica.belongsTo(Paciente, { foreignKey: { name: 'paciente_id', allowNull: false } });
+Paciente.hasMany(HistoriaClinica, { foreignKey: 'paciente_id' });
+
+HistoriaClinica.belongsTo(Profesional, { foreignKey: { name: 'profesional_id', allowNull: true } });
+HistoriaClinica.belongsTo(Usuario, { foreignKey: { name: 'creado_por_id', allowNull: true }, as: 'CreadoPor' });
+HistoriaClinica.belongsTo(Usuario, { foreignKey: { name: 'actualizado_por_id', allowNull: true }, as: 'ActualizadoPor' });
+
 module.exports = {
   sequelize,
   Paciente,
@@ -191,4 +199,5 @@ module.exports = {
   PaqueteSesiones,
   TarjetaFidelizacion,
   CartillaSellos,
+  HistoriaClinica,
 };
