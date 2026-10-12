@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../models');
+const { TEXTO_POR_DEFECTO } = require('../services/politicaInasistencia');
 
 const router = express.Router();
 
@@ -21,8 +22,12 @@ router.get('/profesionales', async (req, res) => {
 
 router.get('/configuracion-publica', async (req, res) => {
   const config = await db.ConfiguracionClinica.obtenerConfig();
-  const { nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url, cobra_adelanto_online } = config;
-  res.json({ nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url, cobra_adelanto_online });
+  const { nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url, metodo_pago_online, qr_fijo_url, qr_fijo_datos } = config;
+  const politica = (config.politica_inasistencia || '').trim() || TEXTO_POR_DEFECTO;
+  res.json({
+    nombre_consultorio, direccion, ciudad, pais, telefono, email, sitio_web, logo_url,
+    metodo_pago_online, qr_fijo_url, qr_fijo_datos, politica_inasistencia: politica,
+  });
 });
 
 module.exports = router;

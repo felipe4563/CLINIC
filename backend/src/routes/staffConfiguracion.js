@@ -4,6 +4,7 @@ const express = require('express');
 const multer = require('multer');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
+const { TEXTO_POR_DEFECTO } = require('../services/politicaInasistencia');
 
 const router = express.Router();
 const onlyConfiguracion = requirePermiso('configuracion');
@@ -18,6 +19,8 @@ const CAMPOS_CONFIG = [
   'email',
   'sitio_web',
   'pie_pdf',
+  'qr_fijo_datos',
+  'politica_inasistencia',
 ];
 
 const LOGO_DIR = path.join(__dirname, '..', '..', 'uploads', 'logo');
@@ -48,9 +51,37 @@ function borrarArchivoLogo(logoUrl) {
   fs.unlink(archivo, () => {});
 }
 
+const METODOS_PAGO = ['ninguno', 'qr_banco', 'qr_fijo'];
+
+// El QR fijo sí es público: el paciente tiene que verlo para pagar.
+const QR_DIR = path.join(__dirname, '..', '..', 'uploads', 'qr');
+fs.mkdirSync(QR_DIR, { recursive: true });
+const EXT_QR = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp' };
+
+const uploadQr = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, QR_DIR),
+    filename: (req, file, cb) => cb(null, `qr-${Date.now()}${EXT_QR[file.mimetype]}`),
+  }),
+  limits: { fileSize: 3 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!EXT_QR[file.mimetype]) return cb(new Error('Formato no soportado. Usa PNG, JPG o WEBP.'));
+    cb(null, true);
+  },
+});
+
+function borrarArchivoQr(qrUrl) {
+  if (!qrUrl || !qrUrl.startsWith('/uploads/qr/')) return;
+  fs.unlink(path.join(QR_DIR, path.basename(qrUrl)), () => {});
+}
+
+function respuestaConfig(config) {
+  return { ...config.toJSON(), politica_inasistencia_por_defecto: TEXTO_POR_DEFECTO };
+}
+
 router.get('/staff/configuracion', onlyConfiguracion, async (req, res) => {
   const config = await db.ConfiguracionClinica.obtenerConfig();
-  res.json(config);
+  res.json(respuestaConfig(config));
 });
 
 router.put('/staff/configuracion', onlyConfiguracion, async (req, res) => {
@@ -60,8 +91,14 @@ router.put('/staff/configuracion', onlyConfiguracion, async (req, res) => {
       config[campo] = req.body[campo];
     }
   }
-  if (typeof req.body.cobra_adelanto_online === 'boolean') {
-    config.cobra_adelanto_online = req.body.cobra_adelanto_online;
+  if (req.body.metodo_pago_online !== undefined) {
+    if (!METODOS_PAGO.includes(req.body.metodo_pago_online)) {
+      return res.status(400).json({ error: 'metodo_pago_online debe ser ninguno, qr_banco o qr_fijo' });
+    }
+    if (req.body.metodo_pago_online === 'qr_fijo' && !config.qr_fijo_url) {
+      return res.status(400).json({ error: 'Sube primero la imagen del QR' });
+    }
+    config.metodo_pago_online = req.body.metodo_pago_online;
   }
   if (req.body.bs_por_punto !== undefined) {
     const bsPorPunto = Number(req.body.bs_por_punto);
@@ -87,7 +124,7 @@ router.put('/staff/configuracion', onlyConfiguracion, async (req, res) => {
     config.asistencia_radio_metros = radio;
   }
   await config.save();
-  res.json(config);
+  res.json(respuestaConfig(config));
 });
 
 router.post('/staff/configuracion/logo', onlyConfiguracion, (req, res) => {
@@ -99,7 +136,7 @@ router.post('/staff/configuracion/logo', onlyConfiguracion, (req, res) => {
     borrarArchivoLogo(config.logo_url);
     config.logo_url = `/uploads/logo/${req.file.filename}`;
     await config.save();
-    res.json(config);
+    res.json(respuestaConfig(config));
   });
 });
 
@@ -108,7 +145,31 @@ router.delete('/staff/configuracion/logo', onlyConfiguracion, async (req, res) =
   borrarArchivoLogo(config.logo_url);
   config.logo_url = null;
   await config.save();
-  res.json(config);
+  res.json(respuestaConfig(config));
+});
+
+router.post('/staff/configuracion/qr', onlyConfiguracion, (req, res) => {
+  uploadQr.single('qr')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (!req.file) return res.status(400).json({ error: 'No se recibió ningún archivo' });
+
+    const config = await db.ConfiguracionClinica.obtenerConfig();
+    borrarArchivoQr(config.qr_fijo_url);
+    config.qr_fijo_url = `/uploads/qr/${req.file.filename}`;
+    await config.save();
+    res.json(respuestaConfig(config));
+  });
+});
+
+router.delete('/staff/configuracion/qr', onlyConfiguracion, async (req, res) => {
+  const config = await db.ConfiguracionClinica.obtenerConfig();
+  if (config.metodo_pago_online === 'qr_fijo') {
+    return res.status(400).json({ error: 'Cambia primero el modo de pago: el modo "QR fijo + comprobante" necesita la imagen del QR' });
+  }
+  borrarArchivoQr(config.qr_fijo_url);
+  config.qr_fijo_url = null;
+  await config.save();
+  res.json(respuestaConfig(config));
 });
 
 module.exports = router;
