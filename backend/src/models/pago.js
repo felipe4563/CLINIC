@@ -13,6 +13,10 @@ const Pago = sequelize.define('Pago', {
   saldo_cobrado: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   metodo_pago_saldo: { type: DataTypes.ENUM('efectivo', 'qr'), allowNull: true },
   referencia_qr_saldo: { type: DataTypes.STRING, allowNull: true },
+  metodo_adelanto: { type: DataTypes.ENUM('qr_banco', 'qr_fijo'), allowNull: true },
+  comprobante_archivo: { type: DataTypes.STRING, allowNull: true },
+  comprobante_revision: { type: DataTypes.ENUM('sin_revisar', 'valido', 'invalido'), allowNull: true },
+  comprobante_revisado_en: { type: DataTypes.DATE, allowNull: true },
 }, { tableName: 'pagos', underscored: true });
 
 module.exports = Pago;

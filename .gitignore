@@ -19,3 +19,6 @@ uploads/
 /mobile-*.png
 /wide-*.png
 /real-*.png
+
+# Comprobantes y justificaciones privados
+**/privado/

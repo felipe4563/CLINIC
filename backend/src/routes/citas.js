@@ -30,7 +30,7 @@ router.post('/citas', crearCitaLimiter, requirePaciente, async (req, res) => {
 
   const servicio = await db.Servicio.findByPk(servicioId);
   const config = await db.ConfiguracionClinica.obtenerConfig();
-  const requierePago = config.cobra_adelanto_online;
+  const requierePago = config.metodo_pago_online !== 'ninguno';
 
   const cita = await db.Cita.create({
     paciente_id: req.pacienteId,

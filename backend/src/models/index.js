@@ -53,6 +53,7 @@ Cita.belongsTo(Servicio, { foreignKey: 'servicio_id' });
 
 Cita.hasOne(Pago, { foreignKey: 'cita_id' });
 Pago.belongsTo(Cita, { foreignKey: 'cita_id', as: 'Cita' });
+Pago.belongsTo(Usuario, { foreignKey: { name: 'comprobante_revisado_por_id', allowNull: true }, as: 'RevisadoPor' });
 
 NotaClinica.belongsTo(Paciente, { foreignKey: { name: 'paciente_id', allowNull: false } });
 Paciente.hasMany(NotaClinica, { foreignKey: 'paciente_id' });

@@ -7,5 +7,6 @@ npm-debug.log
 # Archivos de pacientes y datos del cliente: nunca dentro de la imagen
 # (las imágenes en ghcr.io son públicas).
 uploads
+privado
 *.sql
 sql

@@ -26,6 +26,8 @@ services:
       - mysql
     volumes:
       - uploads_data:/app/uploads
+      # Comprobantes y justificaciones: privados, nunca bajo /uploads.
+      - privado_data:/app/privado
     ports:
       # El nginx del sistema (fuera de Docker) reenvia aqui. Atado a
       # 127.0.0.1: nadie desde internet puede llegar directo a este puerto,
@@ -53,3 +55,4 @@ services:
 volumes:
   mysql_data:
   uploads_data:
+  privado_data:
