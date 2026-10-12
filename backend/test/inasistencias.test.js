@@ -32,7 +32,7 @@ describe('Inasistencia: justificación y reprogramación', () => {
   async function citaConAdelanto(hora, { estado = 'no_asistio', metodo = 'qr_fijo', fecha = lunes } = {}) {
     const cita = await db.Cita.create({
       paciente_id: paciente.id, profesional_id: profesional.id, servicio_id: servicio.id,
-      fecha, hora_inicio: `${hora}:00`, hora_fin: sumar30(hora), estado,
+      fecha, hora_inicio: `${hora}:00`, hora_fin: sumar30(hora), estado, politica_aceptada_en: new Date(),
     });
     await db.Pago.create({
       cita_id: cita.id, monto: 50, monto_total: 100, porcentaje: 50, estado: 'pagado',
@@ -125,6 +125,18 @@ describe('Inasistencia: justificación y reprogramación', () => {
     expect(res.body.cita.Pago.estado).toBe('pagado');
     expect(res.body.avisoWhatsApp).toBe('enviado');
     expect(enviarPlantillaWhatsApp).toHaveBeenCalledWith('59170000050', 'cita_confirmada', [lunesSiguiente, '10:30']);
+  });
+
+  test('reprogramar borra los avisos automáticos de la fecha anterior', async () => {
+    const cita = await citaConAdelanto('11:00', { fecha: lunes });
+    await justificar(cita.id, { decision: 'aceptada', nota: 'Certificado' });
+    for (const tipo of ['recordatorio_24h', 'recordatorio_2h', 'no_show', 'post_consulta']) {
+      await db.NotificacionAutomatica.create({ tipo, cita_id: cita.id });
+    }
+    const res = await request(app).patch(`/staff/citas/${cita.id}/reprogramar`).set(auth()).send({ fecha: lunesSiguiente, horaInicio: '11:30' });
+    expect(res.status).toBe(200);
+    const quedan = await db.NotificacionAutomatica.findAll({ where: { cita_id: cita.id } });
+    expect(quedan.map((n) => n.tipo)).toEqual(['post_consulta']);
   });
 
   test('una segunda reprogramación responde 400 "Ya se reprogramó una vez"', async () => {

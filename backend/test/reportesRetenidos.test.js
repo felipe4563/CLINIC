@@ -22,7 +22,7 @@ describe('Reporte de citas: montos retenidos por inasistencia', () => {
     const paciente = await db.Paciente.create({ nombre_completo: 'Ana', telefono: '59170000060', codigo_paciente: 'P-0060', carnet_identidad: '1234567', carnet_expedido: 'CB' });
 
     async function cita(hora, extraCita, extraPago) {
-      const c = await db.Cita.create({ paciente_id: paciente.id, profesional_id: profesional.id, servicio_id: servicio.id, fecha: '2026-10-05', hora_inicio: `${hora}:00`, hora_fin: `${hora}:30`, estado: 'no_asistio', ...extraCita });
+      const c = await db.Cita.create({ paciente_id: paciente.id, profesional_id: profesional.id, servicio_id: servicio.id, fecha: '2026-10-05', hora_inicio: `${hora}:00`, hora_fin: `${hora}:30`, estado: 'no_asistio', politica_aceptada_en: new Date(), ...extraCita });
       await db.Pago.create({ cita_id: c.id, monto: 50, monto_total: 100, porcentaje: 50, estado: 'pagado', metodo_adelanto: 'qr_fijo', ...extraPago });
     }
     await cita('09', {}, {});
@@ -30,16 +30,18 @@ describe('Reporte de citas: montos retenidos por inasistencia', () => {
     await cita('11', { justificacion_estado: 'aceptada', justificacion_registrada_en: new Date() }, {});
     await cita('12', {}, { metodo_adelanto: null });
     await cita('13', { estado: 'completada' }, {});
+    await cita('14', { justificacion_estado: 'aceptada', justificacion_registrada_en: new Date(), reprogramacion_usada: true }, { monto: 25 });
+    await cita('15', { politica_aceptada_en: null }, {});
   });
 
   afterAll(async () => {
     await db.sequelize.close();
   });
 
-  test('suma solo las inasistencias con adelanto y sin justificación aceptada', async () => {
+  test('suma solo las inasistencias con adelanto y sin justificación aceptada (salvo reprogramadas), con política aceptada', async () => {
     const res = await request(app).get('/staff/reportes/citas?desde=2026-10-01&hasta=2026-10-31').set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
-    expect(res.body.montoRetenido).toBe(150);
-    expect(res.body.citasConMontoRetenido).toBe(2);
+    expect(res.body.montoRetenido).toBe(175);
+    expect(res.body.citasConMontoRetenido).toBe(3);
   });
 });

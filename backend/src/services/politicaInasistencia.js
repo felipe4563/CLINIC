@@ -20,7 +20,8 @@ function inicioCita(cita) {
 
 function plazos(cita, ahora = new Date()) {
   const pago = cita.Pago || null;
-  const conAdelanto = Boolean(pago && pago.metodo_adelanto && pago.estado === 'pagado');
+  // La política solo aplica a citas cuyo paciente la aceptó al reservar.
+  const conAdelanto = Boolean(pago && pago.metodo_adelanto && pago.estado === 'pagado' && cita.politica_aceptada_en);
   const noAsistio = cita.estado === 'no_asistio';
   const aceptada = cita.justificacion_estado === 'aceptada';
 
@@ -31,7 +32,8 @@ function plazos(cita, ahora = new Date()) {
 
   return {
     conAdelanto,
-    montoRetenido: conAdelanto && noAsistio && !aceptada,
+    // Tras la reprogramación gratuita, una nueva inasistencia retiene el monto.
+    montoRetenido: conAdelanto && noAsistio && (!aceptada || Boolean(cita.reprogramacion_usada)),
     puedeJustificar: conAdelanto && noAsistio && !cita.justificacion_estado,
     puedeReprogramar: conAdelanto && noAsistio && aceptada && !cita.reprogramacion_usada,
     limiteJustificar: limiteJustificar.toISOString(),

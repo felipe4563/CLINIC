@@ -80,7 +80,14 @@ router.patch('/staff/citas/:id/reprogramar', onlyAgenda, async (req, res) => {
   cita.hora_fin = `${slot.hora_fin}:00`;
   cita.estado = 'confirmada';
   cita.reprogramacion_usada = true;
-  await cita.save();
+  // Los avisos de la fecha anterior no deben bloquear los de la nueva fecha.
+  await db.sequelize.transaction(async (transaction) => {
+    await cita.save({ transaction });
+    await db.NotificacionAutomatica.destroy({
+      where: { cita_id: cita.id, tipo: ['recordatorio_24h', 'recordatorio_2h', 'no_show'] },
+      transaction,
+    });
+  });
 
   const avisoWhatsApp = await enviarConfirmacionCita(cita.Paciente.telefono, fecha, slot.hora_inicio);
   res.json({ cita: conPolitica(await citaCompleta(cita.id)), avisoWhatsApp });

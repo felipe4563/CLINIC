@@ -14,6 +14,7 @@ function cita(extra = {}) {
     justificacion_estado: null,
     justificacion_registrada_en: null,
     reprogramacion_usada: false,
+    politica_aceptada_en: '2026-10-12T10:00:00.000Z',
     Pago: { metodo_adelanto: 'qr_fijo', estado: 'pagado' },
     ...extra,
   };
@@ -49,6 +50,13 @@ describe('politicaInasistencia', () => {
     expect(p.puedeJustificar).toBe(false);
   });
 
+  test('un adelanto pagado sin politica_aceptada_en no cuenta como adelanto', () => {
+    const p = plazos(cita({ politica_aceptada_en: null }));
+    expect(p.conAdelanto).toBe(false);
+    expect(p.montoRetenido).toBe(false);
+    expect(p.puedeJustificar).toBe(false);
+  });
+
   test('un pago fallido no cuenta como adelanto', () => {
     expect(plazos(cita({ Pago: { metodo_adelanto: 'qr_fijo', estado: 'fallido' } })).conAdelanto).toBe(false);
   });
@@ -73,6 +81,13 @@ describe('politicaInasistencia', () => {
 
   test('ya reprogramada una vez: no puede volver a reprogramar', () => {
     const p = plazos(cita({ justificacion_estado: 'aceptada', justificacion_registrada_en: new Date().toISOString(), reprogramacion_usada: true }));
+    expect(p.puedeReprogramar).toBe(false);
+  });
+
+  test('no asistió a la cita reprogramada: monto retenido, sin justificar ni reprogramar', () => {
+    const p = plazos(cita({ justificacion_estado: 'aceptada', justificacion_registrada_en: new Date().toISOString(), reprogramacion_usada: true }));
+    expect(p.montoRetenido).toBe(true);
+    expect(p.puedeJustificar).toBe(false);
     expect(p.puedeReprogramar).toBe(false);
   });
 

@@ -133,7 +133,28 @@ export default function DayAgendaCards({
                   {ESTADO_LABEL[cita.estado]}
                 </span>
                 {cita.Pago?.comprobante_revision && cita.estado !== 'cancelada' && (
-                  <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: `${REVISION_COLOR[cita.Pago.comprobante_revision]}22`, color: REVISION_COLOR[cita.Pago.comprobante_revision] }}>
+                  <span
+                    {...(cita.Pago.tieneComprobante
+                      ? {
+                          role: 'button',
+                          tabIndex: 0,
+                          title: 'Ver comprobante',
+                          onClick: (e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            onAccion(cita, 'comprobante');
+                          },
+                          onKeyDown: (e: React.KeyboardEvent) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              onAccion(cita, 'comprobante');
+                            }
+                          },
+                        }
+                      : {})}
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${cita.Pago.tieneComprobante ? 'cursor-pointer hover:opacity-80' : ''}`}
+                    style={{ background: `${REVISION_COLOR[cita.Pago.comprobante_revision]}22`, color: REVISION_COLOR[cita.Pago.comprobante_revision] }}
+                  >
                     {REVISION_LABEL[cita.Pago.comprobante_revision]}
                   </span>
                 )}
@@ -177,6 +198,9 @@ export default function DayAgendaCards({
 
                   {cita.estado === 'no_asistio' && cita.politica.conAdelanto && (
                     <div className="rounded-lg border border-border bg-background p-2 text-xs">
+                      {cita.politica.montoRetenido && cita.reprogramacion_usada && (
+                        <p className="text-danger">No asistió a la cita reprogramada · monto retenido (Bs {cita.Pago?.monto})</p>
+                      )}
                       {cita.politica.montoRetenido && !cita.justificacion_estado && (
                         <p className={cita.politica.justificacionFueraDePlazo ? 'text-stat-amber' : 'text-muted-foreground'}>
                           Monto retenido (Bs {cita.Pago?.monto}) ·{' '}
