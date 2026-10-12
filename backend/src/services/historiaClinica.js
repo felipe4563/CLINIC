@@ -78,4 +78,10 @@ function validarProtocolo(filas) {
   return limpias;
 }
 
-module.exports = { ErrorValidacion, validarSeccion, validarProtocolo, MAX_TEXTO, MAX_PARRAFO };
+// Alerta para la ficha: si la evaluación más reciente marca Alergias.
+function alertaAlergias(historia) {
+  const datos = historia ? historia.datos_clinicos || {} : {};
+  return { alergias: Boolean(datos.alergias), detalle: datos.alergias ? datos.especificar || null : null };
+}
+
+module.exports = { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias, MAX_TEXTO, MAX_PARRAFO };

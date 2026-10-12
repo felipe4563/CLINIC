@@ -124,4 +124,72 @@ describe('Historia clínica: API', () => {
     expect(res.body.ocupacion).toBeNull();
     expect((await request(app).patch(`/staff/pacientes/${paciente.id}`).set(auth()).send({ sexo: 'X' })).status).toBe(400);
   });
+
+  test('Recepción no puede ver la historia clínica', async () => {
+    expect((await request(app).get(`/staff/pacientes/${paciente.id}/historias`).set(auth(tokenRecepcion))).status).toBe(403);
+    expect((await request(app).get('/staff/historia-clinica/definicion').set(auth(tokenRecepcion))).status).toBe(403);
+  });
+
+  test('entrega la definición del formulario', async () => {
+    const res = await request(app).get('/staff/historia-clinica/definicion').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.secciones.map((s) => s.clave)).toEqual(['datos_clinicos', 'datos_esteticos', 'analisis_estetico']);
+  });
+
+  test('crear, guardar, listar con alerta de alergias y copiar una evaluación', async () => {
+    let res = await request(app).post(`/staff/pacientes/${paciente.id}/historias`).set(auth()).send({});
+    expect(res.status).toBe(201);
+    const primera = res.body;
+    expect(primera.datos_clinicos).toEqual({});
+
+    res = await request(app).put(`/staff/historias/${primera.id}`).set(auth()).send({
+      fecha: '2026-09-01',
+      motivo_consulta: 'Manchas en mejillas',
+      datos_clinicos: { alergias: true, especificar: 'Penicilina', desconocido: 1 },
+      analisis_estetico: { fototipo: 'III' },
+      diagnostico: 'Melasma',
+      protocolo: [{ procedimiento: 'Peeling', sesiones: '4', comentario: '' }],
+      profesional_id: profesional.id,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.datos_clinicos).toEqual({ alergias: true, especificar: 'Penicilina' });
+    expect(res.body.procedimiento_autorizado).toBe('Peeling');
+
+    res = await request(app).get(`/staff/pacientes/${paciente.id}/historias`).set(auth());
+    expect(res.body.historias).toHaveLength(1);
+    expect(res.body.alerta).toEqual({ alergias: true, detalle: 'Penicilina' });
+
+    res = await request(app).post(`/staff/pacientes/${paciente.id}/historias`).set(auth()).send({ copiarDe: primera.id });
+    expect(res.status).toBe(201);
+    expect(res.body.analisis_estetico).toEqual({ fototipo: 'III' });
+    expect(res.body.diagnostico).toBe('Melasma');
+    expect(res.body.motivo_consulta).toBeNull();
+    expect(res.body.documento_firmado).toBeNull();
+    expect(res.body.id).not.toBe(primera.id);
+  });
+
+  test('no se copia una evaluación de otra paciente, y un dato inválido responde 400', async () => {
+    const ajena = await db.HistoriaClinica.create({ paciente_id: otraPaciente.id, fecha: '2026-09-01', datos_clinicos: {}, datos_esteticos: {}, analisis_estetico: {}, protocolo: [] });
+    expect((await request(app).post(`/staff/pacientes/${paciente.id}/historias`).set(auth()).send({ copiarDe: ajena.id })).status).toBe(400);
+    const res = await request(app).put(`/staff/historias/${ajena.id}`).set(auth()).send({ analisis_estetico: { fototipo: 'VII' } });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/fototipo/);
+  });
+
+  test('solo un Admin borra una evaluación', async () => {
+    const h = await db.HistoriaClinica.create({ paciente_id: otraPaciente.id, fecha: '2026-09-02', datos_clinicos: {}, datos_esteticos: {}, analisis_estetico: {}, protocolo: [] });
+    await crearUsuario({ email: 'prof@test.com', rolNombre: 'Profesional' });
+    const tokenProf = await login('prof@test.com');
+    expect((await request(app).delete(`/staff/historias/${h.id}`).set(auth(tokenProf))).status).toBe(403);
+    expect((await request(app).delete(`/staff/historias/${h.id}`).set(auth())).status).toBe(204);
+    expect(await db.HistoriaClinica.findByPk(h.id)).toBeNull();
+  });
+
+  test('lista los especialistas para quien tiene historia_clinica (aunque no tenga catálogo)', async () => {
+    await crearUsuario({ email: 'prof-lista@test.com', rolNombre: 'Profesional' });
+    const res = await request(app).get('/staff/historia-clinica/profesionales').set(auth(await login('prof-lista@test.com')));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(expect.arrayContaining([{ id: profesional.id, nombre: 'Dra. Noemí' }]));
+    expect((await request(app).get('/staff/historia-clinica/profesionales').set(auth(tokenRecepcion))).status).toBe(403);
+  });
 });

@@ -29,6 +29,7 @@ const staffPaquetesRoutes = require('./routes/staffPaquetes');
 const staffComprobantesRoutes = require('./routes/staffComprobantes');
 const staffInasistenciasRoutes = require('./routes/staffInasistencias');
 const staffTarjetasRoutes = require('./routes/staffTarjetas');
+const staffHistoriaClinicaRoutes = require('./routes/staffHistoriaClinica');
 
 const app = express();
 app.use(cors());
@@ -60,6 +61,7 @@ app.use('/', staffReportesRoutes);
 app.use('/', staffFidelizacionRoutes);
 app.use('/', staffPaquetesRoutes);
 app.use('/', staffTarjetasRoutes);
+app.use('/', staffHistoriaClinicaRoutes);
 app.use('/', staffComprobantesRoutes);
 app.use('/', staffInasistenciasRoutes);
 
