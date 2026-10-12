@@ -339,4 +339,38 @@ describe('Historia clínica: API', () => {
     expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
     expect((await request(app).get(`/staff/historias/${h.id}/pdf`).set(auth(tokenRecepcion))).status).toBe(403);
   }, 30000);
+  test('PDF: ninguna casilla ni detalle largo se recorta (se parte en líneas)', () => {
+    const PDFDocument = require('pdfkit');
+    const { enviarHistoriaPdf } = require('../src/services/historiaClinicaPdf');
+    const { PassThrough } = require('stream');
+    const largo = `frecuencia-${'z'.repeat(150)}-FIN`;
+    const llamadas = [];
+    const original = PDFDocument.prototype.text;
+    const espia = jest.spyOn(PDFDocument.prototype, 'text').mockImplementation(function (texto, ...resto) {
+      llamadas.push({ texto: String(texto), opciones: resto.find((r) => r && typeof r === 'object') || {} });
+      return original.call(this, texto, ...resto);
+    });
+    try {
+      const res = new PassThrough();
+      res.setHeader = () => {};
+      res.resume();
+      enviarHistoriaPdf(res, {
+        fecha: '', numero: '',
+        bloques: [{ tipo: 'casillas', items: [{ etiqueta: 'Corta', marcado: false, detalles: [] }, { etiqueta: 'Tabaco', marcado: true, detalles: [{ etiqueta: 'Frecuencia', valor: largo }] }, { etiqueta: 'Otra', marcado: false, detalles: [] }] }],
+      }, {}, 'x.pdf');
+    } finally {
+      espia.mockRestore();
+    }
+    const dibujada = llamadas.filter((l) => l.texto.includes('Tabaco'));
+    expect(dibujada).toHaveLength(1);
+    expect(dibujada[0].texto).toContain(largo);
+    expect(dibujada[0].texto).not.toContain('…');
+    expect(dibujada[0].opciones.ellipsis).toBeFalsy();
+    expect(dibujada[0].opciones.height).toBeUndefined();
+    expect(dibujada[0].opciones.lineBreak).not.toBe(false);
+    // y la altura necesaria con ese ancho es de varias líneas (la fila crece)
+    const medidor = new PDFDocument({ size: 'A4', margin: 48 });
+    medidor.font('Helvetica').fontSize(9);
+    expect(medidor.heightOfString(dibujada[0].texto, { width: dibujada[0].opciones.width })).toBeGreaterThan(20);
+  });
 });

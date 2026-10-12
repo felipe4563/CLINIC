@@ -21,32 +21,44 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
 
   function casillas(items) {
     doc.font('Helvetica').fontSize(TAM);
+    const altoMin = TAM + 6;
+    const anchoMaxTexto = ancho - CAJA - 4;
     let x = izq;
+    asegurar(altoMin);
     let y = doc.y;
-    const altoLinea = TAM + 6;
-    asegurar(altoLinea);
-    y = doc.y;
+    let altoFila = altoMin;
+    const nuevaLinea = () => {
+      y += altoFila;
+      altoFila = altoMin;
+      x = izq;
+    };
     for (const item of items) {
       const detalles = item.detalles.map((d) => ` ${d.etiqueta}: ${d.valor || '__________'}`).join('');
       const texto = `${item.etiqueta}${detalles}`;
-      const anchoTexto = Math.min(doc.widthOfString(texto), ancho - CAJA - 4);
+      // Nunca se recorta: si no entra en lo que queda de la línea pasa a la
+      // siguiente, y si es más ancho que la hoja se parte en varias líneas.
+      const natural = doc.widthOfString(texto);
+      const anchoTexto = Math.min(natural, anchoMaxTexto);
+      const alto = natural > anchoMaxTexto
+        ? Math.max(altoMin, doc.heightOfString(texto, { width: anchoMaxTexto }) + 4)
+        : altoMin;
       const anchoItem = CAJA + 4 + anchoTexto + 14;
-      if (x + anchoItem > der && x > izq) {
+      if (x + anchoItem > der && x > izq) nuevaLinea();
+      if (y + alto > limite()) {
+        doc.addPage();
+        y = doc.y;
         x = izq;
-        y += altoLinea;
-        if (y + altoLinea > limite()) {
-          doc.addPage();
-          y = doc.y;
-        }
+        altoFila = altoMin;
       }
       doc.lineWidth(0.7).strokeColor(COLOR.ink).rect(x, y + 1, CAJA, CAJA).stroke();
       if (item.marcado) {
         doc.moveTo(x + 1.5, y + 2.5).lineTo(x + CAJA - 1.5, y + CAJA - 0.5).moveTo(x + CAJA - 1.5, y + 2.5).lineTo(x + 1.5, y + CAJA - 0.5).stroke();
       }
-      doc.fillColor(COLOR.ink).text(texto, x + CAJA + 4, y, { width: anchoTexto + 2, height: TAM + 2, lineBreak: false, ellipsis: true });
+      doc.fillColor(COLOR.ink).text(texto, x + CAJA + 4, y, { width: natural > anchoMaxTexto ? anchoMaxTexto : anchoTexto + 2 });
       x += anchoItem;
+      altoFila = Math.max(altoFila, alto);
     }
-    doc.y = y + altoLinea;
+    doc.y = y + altoFila;
     doc.x = izq;
   }
 
