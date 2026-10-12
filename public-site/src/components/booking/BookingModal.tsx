@@ -7,10 +7,11 @@ import StepHorario from './StepHorario';
 import StepLogin from './StepLogin';
 import StepConfirmar from './StepConfirmar';
 import StepPago from './StepPago';
+import StepPagoComprobante from './StepPagoComprobante';
 import StepConfirmada from './StepConfirmada';
 
 export default function BookingModal() {
-  const { isOpen, close, step } = useBooking();
+  const { isOpen, close, step, config } = useBooking();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -57,7 +58,7 @@ export default function BookingModal() {
         {step === 'horario' && <StepHorario />}
         {step === 'login' && <StepLogin />}
         {step === 'confirmar' && <StepConfirmar />}
-        {step === 'pago' && <StepPago />}
+        {step === 'pago' && (config?.metodo_pago_online === 'qr_fijo' ? <StepPagoComprobante /> : <StepPago />)}
         {step === 'confirmada' && <StepConfirmada />}
       </div>
     </div>

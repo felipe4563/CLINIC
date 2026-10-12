@@ -3,29 +3,35 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
 import { mensajeError } from '@/lib/types';
+import PoliticaInasistencia from './PoliticaInasistencia';
 
 export default function StepConfirmar() {
-  const { profesionalId, servicioId, servicio, profesional, fecha, horaInicio, setCitaId, setPago, setStep } = useBooking();
-  const [porcentaje, setPorcentaje] = useState<50 | 100>(100);
+  const { profesionalId, servicioId, servicio, profesional, fecha, horaInicio, setCitaId, setPago, setStep, config, setConfig, porcentaje, setPorcentaje, aceptaPolitica, setAceptaPolitica } = useBooking();
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
-  const [cobraAdelanto, setCobraAdelanto] = useState(true);
 
   useEffect(() => {
     api
       .getConfiguracionPublica()
-      .then((c) => setCobraAdelanto(c.cobra_adelanto_online ?? true))
-      .catch(() => setCobraAdelanto(true));
-  }, []);
+      .then(setConfig)
+      .catch(() => setConfig({ metodo_pago_online: 'qr_banco' }));
+  }, [setConfig]);
+
+  const metodo = config?.metodo_pago_online ?? 'qr_banco';
+  const cobraAdelanto = metodo !== 'ninguno';
 
   const precio = servicio?.precio ? Number(servicio.precio) : null;
   const montoAPagar = precio !== null ? Math.round(precio * (porcentaje / 100) * 100) / 100 : null;
 
   async function confirmar() {
     setError('');
+    if (metodo === 'qr_fijo') {
+      setStep('pago');
+      return;
+    }
     setCargando(true);
     try {
-      const { cita, pago, requierePago } = await api.crearCita(profesionalId, servicioId, fecha, horaInicio, porcentaje);
+      const { cita, pago, requierePago } = await api.crearCita(profesionalId, servicioId, fecha, horaInicio, porcentaje, aceptaPolitica);
       setCitaId(cita.id);
       setPago(pago);
       setStep(requierePago ? 'pago' : 'confirmada');
@@ -76,6 +82,13 @@ export default function StepConfirmar() {
           )}
         </div>
       )}
+      {cobraAdelanto && (
+        <PoliticaInasistencia
+          texto={config?.politica_inasistencia ?? ''}
+          aceptada={aceptaPolitica}
+          onChange={setAceptaPolitica}
+        />
+      )}
       {!cobraAdelanto && precio !== null && (
         <p className="mt-6 text-sm text-muted">Pagas el total (Bs. {precio}) en la clínica el día de tu cita.</p>
       )}
@@ -83,15 +96,20 @@ export default function StepConfirmar() {
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       <button
         onClick={confirmar}
-        disabled={cargando}
+        disabled={cargando || !config || (cobraAdelanto && !aceptaPolitica)}
         className="mt-8 w-full rounded-full bg-espresso text-cream text-xs tracking-widest uppercase px-6 py-3 disabled:opacity-50"
       >
         {cargando
           ? 'Confirmando…'
-          : cobraAdelanto && montoAPagar !== null
-            ? `Confirmar y pagar Bs. ${montoAPagar}`
-            : 'Confirmar reserva'}
+          : metodo === 'qr_fijo' && montoAPagar !== null
+            ? `Continuar al pago de Bs. ${montoAPagar}`
+            : cobraAdelanto && montoAPagar !== null
+              ? `Confirmar y pagar Bs. ${montoAPagar}`
+              : 'Confirmar reserva'}
       </button>
+      {cobraAdelanto && !aceptaPolitica && (
+        <p className="mt-2 text-center text-xs text-muted">Marca la casilla de la política para continuar.</p>
+      )}
     </div>
   );
 }

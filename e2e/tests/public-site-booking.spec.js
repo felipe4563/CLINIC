@@ -45,6 +45,9 @@ test('un paciente nuevo reserva una cita de principio a fin', async ({ page }) =
   await dialog.getByRole('button', { name: 'Continuar a la reserva' }).click();
 
   await expect(dialog.getByText('Confirmar reserva')).toBeVisible();
+  // Con pago online (modo por defecto) hay que aceptar la política.
+  const politica = dialog.getByLabel('Acepto la política de inasistencia');
+  if (await politica.isVisible()) await politica.check();
   await dialog.getByRole('button', { name: /Confirmar/ }).click();
 
   // La pantalla siguiente es la de pago con QR (o error de QR si el banco

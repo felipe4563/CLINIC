@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState, ReactNode } from 'react';
-import type { Servicio, Profesional, Pago } from './types';
+import type { Servicio, Profesional, Pago, ConfiguracionPublica } from './types';
 
 type Step = 'servicio' | 'profesional' | 'horario' | 'login' | 'confirmar' | 'pago' | 'confirmada';
 
@@ -26,6 +26,12 @@ interface BookingState {
   setCitaId: (id: number | null) => void;
   pago: Pago | null;
   setPago: (p: Pago | null) => void;
+  config: ConfiguracionPublica | null;
+  setConfig: (c: ConfiguracionPublica | null) => void;
+  porcentaje: 50 | 100;
+  setPorcentaje: (p: 50 | 100) => void;
+  aceptaPolitica: boolean;
+  setAceptaPolitica: (v: boolean) => void;
 }
 
 const BookingContext = createContext<BookingState | null>(null);
@@ -41,6 +47,9 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const [horaInicio, setHoraInicio] = useState<string | null>(null);
   const [citaId, setCitaId] = useState<number | null>(null);
   const [pago, setPago] = useState<Pago | null>(null);
+  const [config, setConfig] = useState<ConfiguracionPublica | null>(null);
+  const [porcentaje, setPorcentaje] = useState<50 | 100>(100);
+  const [aceptaPolitica, setAceptaPolitica] = useState(false);
 
   function open() {
     setStep('servicio');
@@ -52,6 +61,8 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setHoraInicio(null);
     setCitaId(null);
     setPago(null);
+    setPorcentaje(100);
+    setAceptaPolitica(false);
     setIsOpen(true);
   }
   function close() {
@@ -60,7 +71,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
   return (
     <BookingContext.Provider
-      value={{ isOpen, open, close, step, setStep, servicioId, setServicioId, servicio, setServicio, profesionalId, setProfesionalId, profesional, setProfesional, fecha, setFecha, horaInicio, setHoraInicio, citaId, setCitaId, pago, setPago }}
+      value={{ isOpen, open, close, step, setStep, servicioId, setServicioId, servicio, setServicio, profesionalId, setProfesionalId, profesional, setProfesional, fecha, setFecha, horaInicio, setHoraInicio, citaId, setCitaId, pago, setPago, config, setConfig, porcentaje, setPorcentaje, aceptaPolitica, setAceptaPolitica }}
     >
       {children}
     </BookingContext.Provider>
