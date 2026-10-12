@@ -1,3 +1,9 @@
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+process.env.PRIVADO_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'privado-hc-'));
+
 const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../src/config/historiaClinica');
 const { validarSeccion, validarProtocolo, ErrorValidacion } = require('../src/services/historiaClinica');
 const bcrypt = require('bcryptjs');
@@ -5,6 +11,7 @@ const request = require('supertest');
 const db = require('../src/models');
 const app = require('../src/app');
 const { PERMISOS_POR_DEFECTO } = require('../src/config/permisos');
+const { pngFalso, exeFalso } = require('./helpers/archivos');
 
 describe('Historia clínica: definición y validación', () => {
   test('la definición tiene las tres secciones y claves únicas por sección (incluidos los detalles)', () => {
@@ -94,6 +101,7 @@ describe('Historia clínica: API', () => {
   });
 
   afterAll(async () => {
+    fs.rmSync(process.env.PRIVADO_DIR, { recursive: true, force: true });
     await db.sequelize.close();
   });
 
@@ -237,5 +245,30 @@ describe('Historia clínica: API', () => {
     });
     expect((await request(app).post(`/staff/pacientes/${paciente.id}/tratamientos`).set(auth()).send({ citaId: pendiente.id, titulo: 'x', notas: 'y' })).status).toBe(400);
     expect((await request(app).post(`/staff/pacientes/${otraPaciente.id}/tratamientos`).set(auth()).send({ citaId: c.id, titulo: 'x', notas: 'y' })).status).toBe(400);
+  });
+
+  test('subir, ver, reemplazar y quitar el documento firmado', async () => {
+    const h = await db.HistoriaClinica.create({ paciente_id: paciente.id, fecha: '2026-10-01', datos_clinicos: {}, datos_esteticos: {}, analisis_estetico: {}, protocolo: [] });
+    const ruta = `/staff/historias/${h.id}/documento-firmado`;
+
+    expect((await request(app).post(ruta).set(auth()).attach('archivo', exeFalso(), { filename: 'x.png', contentType: 'image/png' })).status).toBe(400);
+    expect((await request(app).post(ruta).set(auth())).status).toBe(400);
+
+    let res = await request(app).post(ruta).set(auth()).attach('archivo', pngFalso(), { filename: 'firmado.png', contentType: 'image/png' });
+    expect(res.status).toBe(200);
+    const primero = res.body.documento_firmado;
+    expect(fs.existsSync(path.join(process.env.PRIVADO_DIR, 'historias', primero))).toBe(true);
+
+    res = await request(app).get(ruta).set(auth());
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/image\/png/);
+    expect((await request(app).get(ruta).set(auth(tokenRecepcion))).status).toBe(403);
+
+    res = await request(app).post(ruta).set(auth()).attach('archivo', pngFalso(), { filename: 'otra.png', contentType: 'image/png' });
+    expect(fs.existsSync(path.join(process.env.PRIVADO_DIR, 'historias', primero))).toBe(false);
+
+    res = await request(app).delete(ruta).set(auth());
+    expect(res.body.documento_firmado).toBeNull();
+    expect(fs.readdirSync(path.join(process.env.PRIVADO_DIR, 'historias'))).toHaveLength(0);
   });
 });

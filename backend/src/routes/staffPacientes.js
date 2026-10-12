@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { generarCodigoCliente } = require('../services/codigoCliente');
+const { borrarArchivoPrivado } = require('../services/archivosPrivados');
 
 const router = express.Router();
 
@@ -103,6 +104,10 @@ router.delete('/staff/pacientes/:id', requirePermiso('pacientes'), async (req, r
   if (citasCount > 0) {
     return res.status(409).json({ error: 'No se puede eliminar: el paciente tiene citas registradas' });
   }
+
+  // La FK borra las evaluaciones en cascada; los archivos firmados se borran a mano.
+  const historias = await db.HistoriaClinica.findAll({ where: { paciente_id: paciente.id }, attributes: ['documento_firmado'] });
+  for (const h of historias) await borrarArchivoPrivado('historias', h.documento_firmado);
 
   await paciente.destroy();
   res.status(204).end();

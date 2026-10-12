@@ -1,6 +1,6 @@
-// Comprobantes de pago y justificaciones: tienen datos bancarios y
-// personales, así que viven FUERA de /uploads (que es público) y solo se
-// leen por rutas del personal con sesión.
+// Comprobantes de pago, justificaciones e historias clínicas firmadas: tienen
+// datos bancarios, personales o clínicos, así que viven FUERA de /uploads (que
+// es público) y solo se leen por rutas del personal con sesión.
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -8,7 +8,7 @@ const multer = require('multer');
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const MENSAJE_FORMATO = 'Sube una imagen (JPG, PNG o WebP) o un PDF de hasta 5 MB';
-const CARPETAS = ['comprobantes', 'justificaciones'];
+const CARPETAS = ['comprobantes', 'justificaciones', 'historias'];
 const MIME_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 const MIME_POR_EXT = { '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf' };
 const FIRMA_PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);

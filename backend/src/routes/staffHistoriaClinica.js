@@ -3,6 +3,7 @@ const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
 const { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos } = require('../services/historiaClinica');
+const { recibirArchivo, guardarArchivoPrivado, borrarArchivoPrivado, enviarArchivoPrivado } = require('../services/archivosPrivados');
 
 const router = express.Router();
 const onlyHistoria = requirePermiso('historia_clinica');
@@ -152,8 +153,39 @@ router.delete('/staff/historias/:id', onlyHistoria, async (req, res) => {
   if (req.rolNombre !== 'Admin') return res.status(403).json({ error: 'Solo un administrador puede borrar una evaluación' });
   const historia = await db.HistoriaClinica.findByPk(req.params.id);
   if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
+  await borrarArchivoPrivado('historias', historia.documento_firmado);
   await historia.destroy();
   res.status(204).end();
+});
+
+// Escaneo o foto del papel firmado (compromiso legal). Vive fuera de /uploads.
+router.post('/staff/historias/:id/documento-firmado', onlyHistoria, recibirArchivo('archivo'), async (req, res) => {
+  const historia = await db.HistoriaClinica.findByPk(req.params.id);
+  if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
+  if (!req.file) return res.status(400).json({ error: 'Adjunta el documento firmado (imagen o PDF)' });
+  const anterior = historia.documento_firmado;
+  historia.documento_firmado = await guardarArchivoPrivado('historias', req.file.buffer);
+  historia.actualizado_por_id = req.usuarioId;
+  await historia.save();
+  await borrarArchivoPrivado('historias', anterior);
+  res.json(await cargarCompleta(historia.id));
+});
+
+router.get('/staff/historias/:id/documento-firmado', onlyHistoria, async (req, res) => {
+  const historia = await db.HistoriaClinica.findByPk(req.params.id);
+  if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
+  return enviarArchivoPrivado(res, 'historias', historia.documento_firmado);
+});
+
+router.delete('/staff/historias/:id/documento-firmado', onlyHistoria, async (req, res) => {
+  const historia = await db.HistoriaClinica.findByPk(req.params.id);
+  if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
+  const anterior = historia.documento_firmado;
+  historia.documento_firmado = null;
+  historia.actualizado_por_id = req.usuarioId;
+  await historia.save();
+  await borrarArchivoPrivado('historias', anterior);
+  res.json(await cargarCompleta(historia.id));
 });
 
 module.exports = router;
