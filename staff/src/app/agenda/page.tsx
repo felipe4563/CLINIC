@@ -41,6 +41,8 @@ export default function AgendaPage() {
   const [descargando, setDescargando] = useState(false);
   const [porRevisar, setPorRevisar] = useState<Cita[]>([]);
   const [verPorRevisar, setVerPorRevisar] = useState(false);
+  // Si ya no quedan comprobantes, se vuelve solo a la agenda del día.
+  const viendoPorRevisar = verPorRevisar && porRevisar.length > 0;
   const [modal, setModal] = useState<{ cita: Cita; accion: AccionCita } | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
@@ -174,7 +176,7 @@ export default function AgendaPage() {
       {porRevisar.length > 0 && (
         <button type="button" onClick={() => setVerPorRevisar((v) => !v)} className="mb-4 flex w-full items-center justify-between rounded-xl border border-stat-amber bg-stat-amber-soft px-4 py-3 text-left text-sm text-stat-amber">
           <span className="font-medium">{porRevisar.length} {porRevisar.length === 1 ? 'comprobante por revisar' : 'comprobantes por revisar'}</span>
-          <span className="text-xs">{verPorRevisar ? 'Volver a la agenda del día' : 'Ver todos'}</span>
+          <span className="text-xs">{viendoPorRevisar ? 'Volver a la agenda del día' : 'Ver todos'}</span>
         </button>
       )}
       {aviso && <p className="mb-4 rounded-lg border border-stat-amber px-3 py-2 text-sm text-stat-amber">{aviso}</p>}
@@ -188,11 +190,11 @@ export default function AgendaPage() {
             <p className="mb-3 text-sm text-muted-foreground">Cargando…</p>
           ) : (
             <DayAgendaCards
-              citas={verPorRevisar ? porRevisar : citas}
+              citas={viendoPorRevisar ? porRevisar : citas}
               mostrarProfesional={!profesionalId}
               onEstadoChange={cambiarEstado}
               onAccion={(cita, accion) => setModal({ cita, accion })}
-              mostrarFecha={verPorRevisar}
+              mostrarFecha={viendoPorRevisar}
             />
           )}
         </div>
