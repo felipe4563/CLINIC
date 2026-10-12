@@ -6,6 +6,7 @@ const { getSlotsDisponibles } = require('../services/disponibilidad');
 const { enviarSiCorresponde } = require('../services/notificacionesAutomaticas');
 const { crearReportePDF, dibujarTabla, formatoFecha, COLOR } = require('../services/pdf');
 const { otorgarPuntosPorGasto } = require('../services/fidelizacion');
+const { conPolitica } = require('../services/politicaInasistencia');
 
 const router = express.Router();
 
@@ -63,9 +64,16 @@ router.post('/staff/citas', requirePermiso('agenda'), async (req, res) => {
 });
 
 router.get('/staff/citas', requirePermiso('agenda'), async (req, res) => {
-  const { fecha, desde, hasta, profesionalId } = req.query;
+  const { fecha, desde, hasta, profesionalId, revision } = req.query;
   const where = {};
-  if (fecha) {
+  const includePago = { model: db.Pago };
+
+  if (revision === 'sin_revisar') {
+    // Bandeja de "comprobantes por revisar": de cualquier fecha.
+    where.estado = { [Op.ne]: 'cancelada' };
+    includePago.where = { comprobante_revision: 'sin_revisar' };
+    includePago.required = true;
+  } else if (fecha) {
     where.fecha = fecha;
   } else if (desde && hasta) {
     where.fecha = { [Op.between]: [desde, hasta] };
@@ -74,10 +82,10 @@ router.get('/staff/citas', requirePermiso('agenda'), async (req, res) => {
 
   const citas = await db.Cita.findAll({
     where,
-    include: [db.Paciente, db.Profesional, db.Servicio],
+    include: [db.Paciente, db.Profesional, db.Servicio, includePago],
     order: [['fecha', 'ASC'], ['hora_inicio', 'ASC']],
   });
-  res.json(citas);
+  res.json(citas.map(conPolitica));
 });
 
 const ESTADO_LABEL = {

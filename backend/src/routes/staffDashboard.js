@@ -35,6 +35,7 @@ router.get('/staff/dashboard', requirePermiso('dashboard'), async (req, res) => 
   const puedeVerInventario = permisos.includes('inventario');
   const puedeVerVentas = permisos.includes('ventas');
   const puedeVerPacientes = permisos.includes('pacientes');
+  const puedeVerAgenda = permisos.includes('agenda');
 
   const periodo = ['dia', 'mes', 'anio'].includes(req.query.periodo) ? req.query.periodo : 'mes';
   const hoy = new Date();
@@ -164,8 +165,16 @@ router.get('/staff/dashboard', requirePermiso('dashboard'), async (req, res) => 
 
   const citasPorServicio = citasPorServicioRows.map((r) => ({ servicio: r.servicio, cantidad: Number(r.cantidad) }));
 
+  const comprobantesPorRevisar = puedeVerAgenda
+    ? await db.Pago.count({
+        where: { comprobante_revision: 'sin_revisar' },
+        include: [{ model: db.Cita, as: 'Cita', where: { estado: { [Op.ne]: 'cancelada' } }, attributes: [] }],
+      })
+    : null;
+
   res.json({
     periodo,
+    comprobantesPorRevisar,
     citasHoy,
     citasPeriodo,
     pacientesNuevos,
