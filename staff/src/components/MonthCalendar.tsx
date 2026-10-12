@@ -136,7 +136,7 @@ export default function MonthCalendar({
             <button
               key={celda.fecha}
               onClick={() => onSelectDay(celda.fecha)}
-              className={`flex h-16 flex-col items-center justify-start gap-1 rounded-lg border p-1.5 text-xs transition-colors ${
+              className={`flex h-11 sm:h-16 flex-col items-center justify-start gap-1 rounded-lg border p-1.5 text-xs transition-colors ${
                 esSeleccionado
                   ? 'border-accent bg-accent-soft'
                   : citasDelDia.length > 0

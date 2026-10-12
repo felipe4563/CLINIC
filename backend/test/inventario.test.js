@@ -47,4 +47,32 @@ describe('Inventario: listado de productos', () => {
     const protector = res.body.find((p) => p.nombre === 'Protector solar');
     expect(protector.Servicios).toEqual([]);
   });
+
+  describe.each([
+    ['marcas', '/staff/marcas', () => db.Marca],
+    ['categorías', '/staff/categorias-producto', () => db.CategoriaProducto],
+  ])('renombrar %s', (_, ruta, modelo) => {
+    const auth = () => ({ Authorization: `Bearer ${token}` });
+
+    test('cambia el nombre (sin espacios sobrantes)', async () => {
+      const item = await modelo().create({ nombre: 'Nombre viejo' });
+      const res = await request(app).patch(`${ruta}/${item.id}`).set(auth()).send({ nombre: '  Nombre nuevo  ' });
+      expect(res.status).toBe(200);
+      expect(res.body.nombre).toBe('Nombre nuevo');
+      expect((await modelo().findByPk(item.id)).nombre).toBe('Nombre nuevo');
+    });
+
+    test('rechaza un nombre vacío, uno repetido y un id inexistente', async () => {
+      const a = await modelo().create({ nombre: 'Uno' });
+      await modelo().create({ nombre: 'Dos' });
+      expect((await request(app).patch(`${ruta}/${a.id}`).set(auth()).send({ nombre: '   ' })).status).toBe(400);
+      expect((await request(app).patch(`${ruta}/${a.id}`).set(auth()).send({ nombre: 'Dos' })).status).toBe(409);
+      expect((await request(app).patch(`${ruta}/999999`).set(auth()).send({ nombre: 'Tres' })).status).toBe(404);
+    });
+
+    test('dejar el mismo nombre no cuenta como repetido', async () => {
+      const item = await modelo().create({ nombre: 'Igual' });
+      expect((await request(app).patch(`${ruta}/${item.id}`).set(auth()).send({ nombre: 'Igual' })).status).toBe(200);
+    });
+  });
 });

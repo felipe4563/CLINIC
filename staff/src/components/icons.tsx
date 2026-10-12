@@ -26,6 +26,7 @@ import {
   ArrowLeft,
   MapPin,
   Building2,
+  Pencil,
 } from 'lucide-react';
 
 type IconProps = { className?: string };
@@ -217,6 +218,10 @@ export function IconPhoto({ className = base }: IconProps) {
 
 export function IconTruck({ className = base }: IconProps) {
   return <Truck className={className} strokeWidth={1.8} />;
+}
+
+export function IconPencil({ className = base }: IconProps) {
+  return <Pencil className={className} strokeWidth={1.8} />;
 }
 
 export function IconTrash({ className = base }: IconProps) {

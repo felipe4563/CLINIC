@@ -167,10 +167,13 @@ export const api = {
 
   getMarcas: () => apiFetch('/staff/marcas'),
   crearMarca: (nombre) => apiFetch('/staff/marcas', { method: 'POST', body: JSON.stringify({ nombre }) }),
+  actualizarMarca: (id, nombre) => apiFetch(`/staff/marcas/${id}`, { method: 'PATCH', body: JSON.stringify({ nombre }) }),
   eliminarMarca: (id) => apiFetch(`/staff/marcas/${id}`, { method: 'DELETE' }),
 
   getCategoriasProducto: () => apiFetch('/staff/categorias-producto'),
   crearCategoriaProducto: (nombre) => apiFetch('/staff/categorias-producto', { method: 'POST', body: JSON.stringify({ nombre }) }),
+  actualizarCategoriaProducto: (id, nombre) =>
+    apiFetch(`/staff/categorias-producto/${id}`, { method: 'PATCH', body: JSON.stringify({ nombre }) }),
   eliminarCategoriaProducto: (id) => apiFetch(`/staff/categorias-producto/${id}`, { method: 'DELETE' }),
 
   vincularProducto: (servicioId, productoId) =>

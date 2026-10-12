@@ -54,6 +54,21 @@ const borrarImagenProducto = crearBorradorImagen(PRODUCTOS_DIR, 'productos');
 const uploadImagenActivo = crearUploaderImagen(ACTIVOS_DIR, 'activo');
 const borrarImagenActivo = crearBorradorImagen(ACTIVOS_DIR, 'activos');
 
+// Renombra una marca o categoría; el nombre sigue siendo único.
+function renombrar(modelo, { noEncontrada, repetida }) {
+  return async (req, res) => {
+    const nombre = typeof req.body.nombre === 'string' ? req.body.nombre.trim() : '';
+    if (!nombre) return res.status(400).json({ error: 'nombre es requerido' });
+    const item = await modelo.findByPk(req.params.id);
+    if (!item) return res.status(404).json({ error: noEncontrada });
+    const existente = await modelo.findOne({ where: { nombre, id: { [Op.ne]: item.id } } });
+    if (existente) return res.status(409).json({ error: repetida });
+    item.nombre = nombre;
+    await item.save();
+    res.json(item);
+  };
+}
+
 // --- Marcas ---
 
 router.get('/staff/marcas', onlyInventario, async (req, res) => {
@@ -69,6 +84,12 @@ router.post('/staff/marcas', onlyInventario, async (req, res) => {
   const marca = await db.Marca.create({ nombre: nombre.trim() });
   res.status(201).json(marca);
 });
+
+router.patch(
+  '/staff/marcas/:id',
+  onlyInventario,
+  renombrar(db.Marca, { noEncontrada: 'Marca no encontrada', repetida: 'Ya existe una marca con ese nombre' })
+);
 
 router.delete('/staff/marcas/:id', onlyInventario, async (req, res) => {
   const marca = await db.Marca.findByPk(req.params.id);
@@ -94,6 +115,12 @@ router.post('/staff/categorias-producto', onlyInventario, async (req, res) => {
   const categoria = await db.CategoriaProducto.create({ nombre: nombre.trim() });
   res.status(201).json(categoria);
 });
+
+router.patch(
+  '/staff/categorias-producto/:id',
+  onlyInventario,
+  renombrar(db.CategoriaProducto, { noEncontrada: 'Categoría no encontrada', repetida: 'Ya existe una categoría con ese nombre' })
+);
 
 router.delete('/staff/categorias-producto/:id', onlyInventario, async (req, res) => {
   const categoria = await db.CategoriaProducto.findByPk(req.params.id);
@@ -212,7 +239,7 @@ router.delete('/staff/productos/:id/imagen', onlyInventario, async (req, res) =>
   res.json(producto);
 });
 
-// --- Activos de la clinica ---
+// --- Activos de la clinica (en la interfaz: "Equipamiento") ---
 
 router.get('/staff/activos', onlyInventario, async (req, res) => {
   const { q } = req.query;
@@ -240,9 +267,9 @@ router.post('/staff/activos', onlyInventario, async (req, res) => {
 
 router.patch('/staff/activos/:id', onlyInventario, async (req, res) => {
   const activo = await db.ActivoClinica.findByPk(req.params.id);
-  if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
+  if (!activo) return res.status(404).json({ error: 'Equipo no encontrado' });
   if (activo.estado === 'dado_de_baja') {
-    return res.status(400).json({ error: 'Este activo está dado de baja y no se puede editar' });
+    return res.status(400).json({ error: 'Este equipo está dado de baja y no se puede editar' });
   }
 
   const campos = ['nombre', 'categoria', 'marca', 'modelo', 'numero_serie', 'ubicacion', 'fecha_adquisicion', 'valor_adquisicion', 'estado'];
@@ -259,8 +286,8 @@ router.patch('/staff/activos/:id', onlyInventario, async (req, res) => {
 
 router.post('/staff/activos/:id/baja', onlyInventario, async (req, res) => {
   const activo = await db.ActivoClinica.findByPk(req.params.id);
-  if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
-  if (activo.estado === 'dado_de_baja') return res.status(400).json({ error: 'Este activo ya está dado de baja' });
+  if (!activo) return res.status(404).json({ error: 'Equipo no encontrado' });
+  if (activo.estado === 'dado_de_baja') return res.status(400).json({ error: 'Este equipo ya está dado de baja' });
 
   const { motivo } = req.body;
   if (!motivo) return res.status(400).json({ error: 'motivo es requerido' });
@@ -274,7 +301,7 @@ router.post('/staff/activos/:id/baja', onlyInventario, async (req, res) => {
 
 router.delete('/staff/activos/:id', onlyInventario, async (req, res) => {
   const activo = await db.ActivoClinica.findByPk(req.params.id);
-  if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
+  if (!activo) return res.status(404).json({ error: 'Equipo no encontrado' });
   borrarImagenActivo(activo.imagen_url);
   await activo.destroy();
   res.status(204).end();
@@ -282,7 +309,7 @@ router.delete('/staff/activos/:id', onlyInventario, async (req, res) => {
 
 router.post('/staff/activos/:id/imagen', onlyInventario, async (req, res) => {
   const activo = await db.ActivoClinica.findByPk(req.params.id);
-  if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
+  if (!activo) return res.status(404).json({ error: 'Equipo no encontrado' });
 
   uploadImagenActivo.single('imagen')(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
@@ -297,7 +324,7 @@ router.post('/staff/activos/:id/imagen', onlyInventario, async (req, res) => {
 
 router.delete('/staff/activos/:id/imagen', onlyInventario, async (req, res) => {
   const activo = await db.ActivoClinica.findByPk(req.params.id);
-  if (!activo) return res.status(404).json({ error: 'Activo no encontrado' });
+  if (!activo) return res.status(404).json({ error: 'Equipo no encontrado' });
 
   borrarImagenActivo(activo.imagen_url);
   activo.imagen_url = null;

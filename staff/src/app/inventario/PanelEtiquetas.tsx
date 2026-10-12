@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { IconTrash, IconX } from '@/components/icons';
+import { IconPencil, IconTrash, IconX } from '@/components/icons';
 import { normalizar } from './filtros';
 
 export type Etiqueta = { id: number; nombre: string };
@@ -21,6 +21,7 @@ export default function PanelEtiquetas({
   usoMarca,
   usoCategoria,
   onCrear,
+  onRenombrar,
   onEliminar,
   onVerProductos,
 }: {
@@ -31,6 +32,7 @@ export default function PanelEtiquetas({
   usoMarca: Map<number, number>;
   usoCategoria: Map<number, number>;
   onCrear: (tipo: Tipo, nombre: string) => Promise<void>;
+  onRenombrar: (tipo: Tipo, id: number, nombre: string) => Promise<void>;
   onEliminar: (tipo: Tipo, id: number) => Promise<void>;
   onVerProductos: (tipo: Tipo, id: number) => void;
 }) {
@@ -39,6 +41,7 @@ export default function PanelEtiquetas({
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
   const [confirmando, setConfirmando] = useState<number | null>(null);
+  const [editando, setEditando] = useState<{ id: number; nombre: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Escape cierra el panel; al abrir, el foco va al campo para agregar.
@@ -63,6 +66,7 @@ export default function PanelEtiquetas({
     setNombre('');
     setError('');
     setConfirmando(null);
+    setEditando(null);
   }
 
   async function crear(e: FormEvent) {
@@ -80,6 +84,41 @@ export default function PanelEtiquetas({
       setNombre('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear');
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  function empezarEdicion(e: Etiqueta) {
+    setError('');
+    setConfirmando(null);
+    setEditando({ id: e.id, nombre: e.nombre });
+  }
+
+  async function guardarEdicion(ev?: FormEvent) {
+    ev?.preventDefault();
+    if (!editando) return;
+    const limpio = editando.nombre.trim();
+    const original = lista.find((x) => x.id === editando.id);
+    if (!limpio) {
+      setError('El nombre no puede quedar vacío.');
+      return;
+    }
+    if (original && limpio === original.nombre) {
+      setEditando(null);
+      return;
+    }
+    if (lista.some((x) => x.id !== editando.id && normalizar(x.nombre) === normalizar(limpio))) {
+      setError(`Ya existe una ${textos.singular} con ese nombre.`);
+      return;
+    }
+    setGuardando(true);
+    setError('');
+    try {
+      await onRenombrar(tipo, editando.id, limpio);
+      setEditando(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo guardar');
     } finally {
       setGuardando(false);
     }
@@ -153,8 +192,35 @@ export default function PanelEtiquetas({
             const n = uso.get(e.id) ?? 0;
             return (
               <li key={e.id} className="flex items-center gap-2 px-4 py-2.5 text-sm">
-                <span className="min-w-0 flex-1 truncate">{e.nombre}</span>
-                {confirmando === e.id ? (
+                {editando?.id === e.id ? (
+                  <form onSubmit={guardarEdicion} className="flex min-w-0 flex-1 items-center gap-1.5">
+                    <input
+                      autoFocus
+                      value={editando.nombre}
+                      onChange={(ev) => setEditando({ id: e.id, nombre: ev.target.value })}
+                      onKeyDown={(ev) => {
+                        // Escape cancela la edición sin cerrar el panel.
+                        if (ev.key === 'Escape') {
+                          ev.stopPropagation();
+                          ev.nativeEvent.stopImmediatePropagation();
+                          setEditando(null);
+                          setError('');
+                        }
+                      }}
+                      aria-label={`Nuevo nombre para ${e.nombre}`}
+                      className="min-w-0 flex-1 rounded border border-accent bg-background px-2 py-1 text-sm"
+                    />
+                    <button type="submit" disabled={guardando} className="shrink-0 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground disabled:opacity-50">
+                      {guardando ? '…' : 'Guardar'}
+                    </button>
+                    <button type="button" onClick={() => { setEditando(null); setError(''); }} className="shrink-0 rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft">
+                      Cancelar
+                    </button>
+                  </form>
+                ) : (
+                  <span className="min-w-0 flex-1 truncate">{e.nombre}</span>
+                )}
+                {editando?.id === e.id ? null : confirmando === e.id ? (
                   <span className="flex shrink-0 items-center gap-1.5 text-xs">
                     ¿Eliminar?
                     <button type="button" onClick={() => eliminar(e.id)} className="rounded border border-danger px-2 py-0.5 font-medium text-danger hover:bg-danger hover:text-white">
@@ -178,6 +244,15 @@ export default function PanelEtiquetas({
                     ) : (
                       <span className="shrink-0 text-xs text-muted-foreground">Sin uso</span>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => empezarEdicion(e)}
+                      title={`Editar ${e.nombre}`}
+                      aria-label={`Editar ${e.nombre}`}
+                      className="shrink-0 rounded p-1 text-muted-foreground hover:bg-accent-soft hover:text-foreground"
+                    >
+                      <IconPencil className="h-4 w-4" />
+                    </button>
                     <button
                       type="button"
                       onClick={() => setConfirmando(e.id)}

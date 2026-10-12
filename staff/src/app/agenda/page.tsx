@@ -112,8 +112,8 @@ export default function AgendaPage() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-panel p-1">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-panel p-1">
             <button
               onClick={() => setFecha((f) => sumarDias(f, -1))}
               className="rounded p-1.5 hover:bg-accent-soft"
@@ -136,14 +136,14 @@ export default function AgendaPage() {
               </svg>
             </button>
           </div>
-          <h1 className="text-lg font-semibold capitalize">{fmtFechaLarga(fecha)}</h1>
+          <h1 className="min-w-0 truncate text-base font-semibold capitalize sm:text-lg">{fmtFechaLarga(fecha)}</h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
           <select
             value={profesionalId}
             onChange={(e) => setProfesionalId(e.target.value)}
-            className="rounded-lg border border-border bg-panel px-3 py-1.5 text-sm"
+            className="col-span-2 w-full min-w-0 rounded-lg border border-border bg-panel px-3 py-2 text-sm sm:w-auto sm:py-1.5"
           >
             <option value="">Todos los profesionales</option>
             {profesionales.map((p) => (
@@ -155,18 +155,25 @@ export default function AgendaPage() {
           <button
             onClick={descargarPDF}
             disabled={descargando}
-            className="flex items-center gap-2 rounded-lg border border-border bg-panel px-4 py-2 text-sm font-medium hover:bg-accent-soft disabled:opacity-60"
+            className="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-border bg-panel px-4 py-2 text-sm font-medium hover:bg-accent-soft disabled:opacity-60"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3v12" />
               <path d="M7 10l5 5 5-5" />
               <path d="M5 21h14" />
             </svg>
-            {descargando ? 'Generando…' : 'Descargar PDF'}
+            {descargando ? (
+              'Generando…'
+            ) : (
+              <>
+                <span className="sm:hidden">PDF</span>
+                <span className="hidden sm:inline">Descargar PDF</span>
+              </>
+            )}
           </button>
           <button
             onClick={() => setMostrarNueva(true)}
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
+            className="whitespace-nowrap rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
           >
             + Nueva cita
           </button>

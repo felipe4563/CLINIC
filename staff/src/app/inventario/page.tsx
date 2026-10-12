@@ -168,12 +168,12 @@ function Inventario() {
         try {
           await api.subirImagenActivo(creado.id, imagenActivo);
         } catch {
-          setError('El activo se creó, pero la imagen no se pudo subir. Puedes agregarla editando el activo.');
+          setError('El equipo se creó, pero la imagen no se pudo subir. Puedes agregarla editando el equipo.');
         }
       }
       cargar();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear el activo');
+      setError(err instanceof Error ? err.message : 'No se pudo crear el equipo');
     } finally {
       setGuardandoActivo(false);
     }
@@ -222,7 +222,7 @@ function Inventario() {
             </button>
           )}
           <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
-            {activosOperativos} activo(s) operativo(s)
+            {activosOperativos} {activosOperativos === 1 ? 'equipo operativo' : 'equipos operativos'}
           </span>
         </div>
       </div>
@@ -238,7 +238,7 @@ function Inventario() {
           onClick={() => setTab('activos')}
           className={`px-3 py-2 text-sm font-medium ${tab === 'activos' ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
         >
-          Activos de la clínica
+          Equipamiento
         </button>
       </div>
 
@@ -257,6 +257,11 @@ function Inventario() {
             onCrear={async (tipo, nombre) => {
               if (tipo === 'marcas') await api.crearMarca(nombre);
               else await api.crearCategoriaProducto(nombre);
+              await cargar();
+            }}
+            onRenombrar={async (tipo, id, nombre) => {
+              if (tipo === 'marcas') await api.actualizarMarca(id, nombre);
+              else await api.actualizarCategoriaProducto(id, nombre);
               await cargar();
             }}
             onEliminar={async (tipo, id) => {
@@ -453,7 +458,7 @@ function Inventario() {
               onClick={() => setFormActivoAbierto((v) => !v)}
               className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft"
             >
-              {formActivoAbierto ? 'Cancelar' : '+ Nuevo activo'}
+              {formActivoAbierto ? 'Cancelar' : '+ Nuevo equipo'}
             </button>
           </div>
 
@@ -501,7 +506,7 @@ function Inventario() {
                 disabled={guardandoActivo}
                 className="rounded bg-accent px-4 py-1.5 font-medium text-accent-foreground disabled:opacity-60 sm:col-span-2 lg:col-span-4"
               >
-                {guardandoActivo ? 'Creando…' : 'Crear activo'}
+                {guardandoActivo ? 'Creando…' : 'Crear equipo'}
               </button>
             </form>
           )}
@@ -552,7 +557,7 @@ function Inventario() {
               <Resultado
                 mostrando={activosVisibles.length}
                 total={activos.length}
-                sustantivo="activos"
+                sustantivo="equipos"
                 hayFiltros={hayFiltroActivos}
                 onLimpiar={limpiarActivos}
               />
@@ -563,7 +568,7 @@ function Inventario() {
             {activosVisibles.map((a) => (
               <ActivoItem key={a.id} activo={a} onChange={cargar} />
             ))}
-            {activos.length === 0 && <p className="text-sm text-muted-foreground">No hay activos registrados todavía.</p>}
+            {activos.length === 0 && <p className="text-sm text-muted-foreground">No hay equipos registrados todavía.</p>}
           </div>
           {activos.length > 0 && activosVisibles.length === 0 && <SinResultados onLimpiar={limpiarActivos} />}
         </div>
