@@ -7,6 +7,7 @@ const { enviarSiCorresponde } = require('../services/notificacionesAutomaticas')
 const { crearReportePDF, dibujarTabla, formatoFecha, COLOR } = require('../services/pdf');
 const { otorgarPuntosPorGasto } = require('../services/fidelizacion');
 const { conPolitica } = require('../services/politicaInasistencia');
+const { otorgarSello, revertirSello } = require('../services/sellos');
 
 const router = express.Router();
 
@@ -223,6 +224,14 @@ router.patch('/staff/citas/:id/estado', requirePermiso('agenda'), async (req, re
     }
   }
 
+  // Tarjeta de sellos: después de asignar el paquete, para saber si la sesión era un premio.
+  let sello = null;
+  if (estado === 'completada' && estadoAnterior !== 'completada') {
+    sello = await otorgarSello(cita, req.usuarioId);
+  } else if (estado !== 'completada' && estadoAnterior === 'completada') {
+    await revertirSello(cita);
+  }
+
   const evento = TEMPLATE_POR_ESTADO[estado];
   if (evento) {
     try {
@@ -238,7 +247,7 @@ router.patch('/staff/citas/:id/estado', requirePermiso('agenda'), async (req, re
     }
   }
 
-  res.json(cita);
+  res.json({ ...cita.toJSON(), sello });
 });
 
 module.exports = router;

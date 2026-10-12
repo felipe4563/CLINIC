@@ -90,8 +90,15 @@ export default function AgendaPage() {
 
   async function cambiarEstado(cita: Cita, estado: Cita['estado']) {
     try {
-      await api.actualizarEstadoCita(cita.id, estado);
-      recargarTodo();
+      const actualizada = await api.actualizarEstadoCita(cita.id, estado);
+      const sello = actualizada?.sello as { servicio: string; sellos: number; requeridos: number; premio: boolean } | null;
+      recargarTodo(
+        sello
+          ? sello.premio
+            ? `🎁 ${cita.Paciente.nombre_completo} completó su tarjeta de ${sello.servicio}: ganó una sesión gratis.`
+            : `Sello sumado a ${cita.Paciente.nombre_completo}: ${sello.servicio} ${sello.sellos}/${sello.requeridos}.`
+          : null,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar la cita');
     }

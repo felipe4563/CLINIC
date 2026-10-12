@@ -80,6 +80,11 @@ export const api = {
     if (profesionalId) params.set('profesionalId', profesionalId);
     return apiFetch(`/staff/citas?${params.toString()}`);
   },
+  buscarTarjeta: (uid) => apiFetch(`/staff/tarjetas/${encodeURIComponent(uid)}`),
+  getTarjetaPaciente: (pacienteId) => apiFetch(`/staff/pacientes/${pacienteId}/tarjeta`),
+  vincularTarjeta: (pacienteId, uid) =>
+    apiFetch(`/staff/pacientes/${pacienteId}/tarjeta`, { method: 'POST', body: JSON.stringify({ uid }) }),
+  bloquearTarjeta: (id) => apiFetch(`/staff/tarjetas/${id}/bloquear`, { method: 'PATCH' }),
   actualizarEstadoCita: (id, estado) =>
     apiFetch(`/staff/citas/${id}/estado`, { method: 'PATCH', body: JSON.stringify({ estado }) }),
   crearCita: (datos) => apiFetch('/staff/citas', { method: 'POST', body: JSON.stringify(datos) }),

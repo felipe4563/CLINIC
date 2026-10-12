@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/authContext';
 import { useTheme } from '@/lib/themeContext';
-import { IconMenu, IconSun, IconMoon, IconLogout, IconHome } from './icons';
+import { IconMenu, IconSun, IconMoon, IconLogout, IconHome, IconCard } from './icons';
+import PasarTarjetaModal from './tarjeta/PasarTarjetaModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -101,6 +102,60 @@ function MenuUsuario() {
   );
 }
 
+// Un lector USB "tipo teclado" escribe el número de la tarjeta y Enter en
+// milisegundos. Si eso pasa sin un campo de texto enfocado, se abre la tarjeta
+// desde cualquier pantalla; la escritura de una persona es mucho más lenta.
+const MAX_MS_ENTRE_TECLAS = 50;
+const MIN_LARGO_UID = 6;
+
+function BotonTarjeta() {
+  const [abierto, setAbierto] = useState(false);
+  const [uidLeido, setUidLeido] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (abierto) return;
+    let buffer = '';
+    let ultima = 0;
+    function alTeclear(e: KeyboardEvent) {
+      const destino = e.target as HTMLElement | null;
+      if (destino && (destino.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(destino.tagName))) return;
+      const ahora = Date.now();
+      if (ahora - ultima > MAX_MS_ENTRE_TECLAS) buffer = '';
+      ultima = ahora;
+      if (e.key === 'Enter') {
+        if (buffer.length >= MIN_LARGO_UID) {
+          e.preventDefault();
+          setUidLeido(buffer);
+          setAbierto(true);
+        }
+        buffer = '';
+      } else if (e.key.length === 1 && /[0-9a-z:]/i.test(e.key)) {
+        buffer += e.key;
+      }
+    }
+    document.addEventListener('keydown', alTeclear);
+    return () => document.removeEventListener('keydown', alTeclear);
+  }, [abierto]);
+
+  return (
+    <>
+      <button
+        onClick={() => {
+          setUidLeido(null);
+          setAbierto(true);
+        }}
+        aria-label="Pasar tarjeta"
+        title="Pasar tarjeta de fidelización"
+        className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm text-foreground/70 hover:bg-accent-soft hover:text-foreground"
+      >
+        <IconCard className="h-5 w-5" />
+        <span className="hidden lg:inline">Pasar tarjeta</span>
+      </button>
+      {abierto && <PasarTarjetaModal uidInicial={uidLeido} onClose={() => setAbierto(false)} />}
+    </>
+  );
+}
+
 function BotonTema() {
   const { dark, toggle } = useTheme();
 
@@ -142,6 +197,7 @@ export default function Topbar({ onToggleSidebar }: { onToggleSidebar: () => voi
       </div>
 
       <div className="flex items-center gap-2">
+        {usuario.permisos?.includes('pacientes') && <BotonTarjeta />}
         <BotonTema />
         <MenuUsuario />
       </div>

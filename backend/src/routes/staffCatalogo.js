@@ -33,12 +33,24 @@ router.delete('/staff/servicios/:id/productos/:productoId', onlyAdmin, async (re
   res.json({ ok: true });
 });
 
+const SELLOS_INVALIDOS = 'sellos_requeridos debe ser un número entero entre 2 y 50, o vacío';
+
+// Tarjeta de sellos: null/'' = sin cartilla; false = valor inválido.
+function leerSellosRequeridos(valor) {
+  if (valor === undefined) return undefined;
+  if (valor === null || valor === '') return null;
+  const n = Number(valor);
+  return Number.isInteger(n) && n >= 2 && n <= 50 ? n : false;
+}
+
 router.post('/staff/servicios', onlyAdmin, async (req, res) => {
   const { nombre, descripcion, duracion_min, precio, activo } = req.body;
   if (!nombre || !duracion_min || precio === undefined) {
     return res.status(400).json({ error: 'nombre, duracion_min y precio son requeridos' });
   }
-  const servicio = await db.Servicio.create({ nombre, descripcion, duracion_min, precio, activo });
+  const sellos = leerSellosRequeridos(req.body.sellos_requeridos);
+  if (sellos === false) return res.status(400).json({ error: SELLOS_INVALIDOS });
+  const servicio = await db.Servicio.create({ nombre, descripcion, duracion_min, precio, activo, sellos_requeridos: sellos ?? null });
   res.status(201).json(servicio);
 });
 
@@ -52,6 +64,11 @@ router.patch('/staff/servicios/:id', onlyAdmin, async (req, res) => {
   if (duracion_min !== undefined) servicio.duracion_min = duracion_min;
   if (precio !== undefined) servicio.precio = precio;
   if (activo !== undefined) servicio.activo = activo;
+  if (req.body.sellos_requeridos !== undefined) {
+    const sellos = leerSellosRequeridos(req.body.sellos_requeridos);
+    if (sellos === false) return res.status(400).json({ error: SELLOS_INVALIDOS });
+    servicio.sellos_requeridos = sellos;
+  }
 
   await servicio.save();
   res.json(servicio);

@@ -8,6 +8,8 @@ const PaqueteSesiones = sequelize.define('PaqueteSesiones', {
   fecha_compra: { type: DataTypes.DATEONLY, allowNull: false },
   estado: { type: DataTypes.ENUM('pendiente', 'pagado'), allowNull: false, defaultValue: 'pagado' },
   referencia_qr: { type: DataTypes.STRING, allowNull: true },
+  // Sesión gratis ganada con la tarjeta de sellos: no suma sellos al usarse.
+  es_premio: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
 }, { tableName: 'paquetes_sesiones', underscored: true });
 
 module.exports = PaqueteSesiones;

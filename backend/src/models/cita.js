@@ -17,6 +17,7 @@ const Cita = sequelize.define('Cita', {
   reprogramacion_usada: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   fecha_original: { type: DataTypes.DATEONLY, allowNull: true },
   hora_original: { type: DataTypes.TIME, allowNull: true },
+  sello_otorgado: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
 }, { tableName: 'citas', underscored: true });
 
 module.exports = Cita;

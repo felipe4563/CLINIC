@@ -29,6 +29,8 @@ const Proveedor = require('./proveedor');
 const Compra = require('./compra');
 const CompraItem = require('./compraItem');
 const PaqueteSesiones = require('./paqueteSesiones');
+const TarjetaFidelizacion = require('./tarjetaFidelizacion');
+const CartillaSellos = require('./cartillaSellos');
 
 Rol.hasMany(Usuario, { foreignKey: 'rol_id' });
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id' });
@@ -146,6 +148,15 @@ PaqueteSesiones.hasOne(MovimientoCaja, { foreignKey: 'paquete_sesiones_id' });
 Cita.belongsTo(PaqueteSesiones, { foreignKey: { name: 'paquete_sesiones_id', allowNull: true } });
 PaqueteSesiones.hasMany(Cita, { foreignKey: 'paquete_sesiones_id' });
 
+TarjetaFidelizacion.belongsTo(Paciente, { foreignKey: { name: 'paciente_id', allowNull: false } });
+Paciente.hasMany(TarjetaFidelizacion, { foreignKey: 'paciente_id' });
+
+CartillaSellos.belongsTo(Paciente, { foreignKey: { name: 'paciente_id', allowNull: false } });
+Paciente.hasMany(CartillaSellos, { foreignKey: 'paciente_id' });
+
+CartillaSellos.belongsTo(Servicio, { foreignKey: { name: 'servicio_id', allowNull: false } });
+Servicio.hasMany(CartillaSellos, { foreignKey: 'servicio_id' });
+
 module.exports = {
   sequelize,
   Paciente,
@@ -178,4 +189,6 @@ module.exports = {
   Compra,
   CompraItem,
   PaqueteSesiones,
+  TarjetaFidelizacion,
+  CartillaSellos,
 };

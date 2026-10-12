@@ -7,6 +7,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/authContext';
 import { IconArrowLeft } from '@/components/icons';
 import TratamientoItem, { type NotaClinica } from './TratamientoItem';
+import SeccionTarjeta from './SeccionTarjeta';
 
 type Cita = {
   id: number;
@@ -36,6 +37,7 @@ type PaqueteSesiones = {
   precio_total: string;
   fecha_compra: string;
   estado: 'pendiente' | 'pagado';
+  es_premio?: boolean;
   Servicio: { id: number; nombre: string };
 };
 
@@ -351,6 +353,8 @@ export default function FichaPacientePage() {
             )}
           </div>
 
+          <SeccionTarjeta pacienteId={params.id} />
+
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-semibold">
               Paquetes de sesiones{paquetes.length > 0 ? ` (${paquetes.length})` : ''}
@@ -464,7 +468,9 @@ export default function FichaPacientePage() {
                 <div key={p.id} className="rounded border border-border bg-panel p-3 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium">{p.Servicio.nombre}</span>
-                    <span className="text-xs text-muted-foreground">{fmtFecha(p.fecha_compra)} · Bs {p.precio_total}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {fmtFecha(p.fecha_compra)} · {p.es_premio ? '🎁 Premio de la tarjeta de sellos' : `Bs ${p.precio_total}`}
+                    </span>
                   </div>
                   <div className="mt-1 flex items-center gap-2 text-xs">
                     {p.estado === 'pendiente' ? (

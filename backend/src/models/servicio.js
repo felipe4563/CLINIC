@@ -7,6 +7,8 @@ const Servicio = sequelize.define('Servicio', {
   duracion_min: { type: DataTypes.INTEGER, allowNull: false },
   precio: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   activo: { type: DataTypes.BOOLEAN, defaultValue: true },
+  // Sesiones completadas que dan una sesión gratis (tarjeta de sellos). null = sin cartilla.
+  sellos_requeridos: { type: DataTypes.INTEGER, allowNull: true },
 }, { tableName: 'servicios', underscored: true });
 
 module.exports = Servicio;

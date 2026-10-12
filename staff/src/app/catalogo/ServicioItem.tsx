@@ -10,6 +10,7 @@ export type Servicio = {
   duracion_min: number;
   precio: string;
   activo: boolean;
+  sellos_requeridos?: number | null;
   Productos?: { id: number; nombre: string }[];
 };
 
@@ -33,6 +34,7 @@ export default function ServicioItem({
   const [descripcion, setDescripcion] = useState(servicio.descripcion || '');
   const [duracion, setDuracion] = useState(String(servicio.duracion_min));
   const [precio, setPrecio] = useState(servicio.precio);
+  const [sellos, setSellos] = useState(servicio.sellos_requeridos ? String(servicio.sellos_requeridos) : '');
   const [guardando, setGuardando] = useState(false);
   const [vinculando, setVinculando] = useState(false);
   const [error, setError] = useState('');
@@ -66,6 +68,7 @@ export default function ServicioItem({
     setDescripcion(servicio.descripcion || '');
     setDuracion(String(servicio.duracion_min));
     setPrecio(servicio.precio);
+    setSellos(servicio.sellos_requeridos ? String(servicio.sellos_requeridos) : '');
     setError('');
     setEditando(true);
   }
@@ -79,6 +82,7 @@ export default function ServicioItem({
         descripcion: descripcion || null,
         duracion_min: Number(duracion),
         precio: Number(precio),
+        sellos_requeridos: sellos.trim() ? Number(sellos) : null,
       });
       setEditando(false);
       onChange();
@@ -122,6 +126,18 @@ export default function ServicioItem({
               className="flex-1 rounded border border-border px-2 py-1.5"
             />
           </div>
+          <label className="text-xs text-muted-foreground">
+            Tarjeta de sellos: sesiones para ganar una gratis (vacío = sin cartilla)
+            <input
+              type="number"
+              min={2}
+              max={50}
+              value={sellos}
+              onChange={(e) => setSellos(e.target.value)}
+              placeholder="Ej. 5"
+              className="mt-1 block w-24 rounded border border-border px-2 py-1.5 text-sm text-foreground"
+            />
+          </label>
           {error && <p className="text-xs text-danger">{error}</p>}
           <div className="flex gap-2">
             <button
@@ -148,7 +164,10 @@ export default function ServicioItem({
             <p className="truncate font-semibold">{servicio.nombre}</p>
             <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">Bs {servicio.precio}</span>
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">{servicio.duracion_min} min</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {servicio.duracion_min} min
+            {servicio.sellos_requeridos ? ` · 🎁 cada ${servicio.sellos_requeridos} sesiones, 1 gratis` : ''}
+          </p>
           {servicio.descripcion && <p className="mt-1.5 text-xs text-foreground/70">{servicio.descripcion}</p>}
           {!servicio.activo && <span className="mt-2 inline-block rounded-full bg-border px-2 py-0.5 text-[11px] text-muted-foreground">Inactivo</span>}
 

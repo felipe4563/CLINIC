@@ -27,6 +27,7 @@ import {
   MapPin,
   Building2,
   Pencil,
+  CreditCard,
 } from 'lucide-react';
 
 type IconProps = { className?: string };
@@ -218,6 +219,10 @@ export function IconPhoto({ className = base }: IconProps) {
 
 export function IconTruck({ className = base }: IconProps) {
   return <Truck className={className} strokeWidth={1.8} />;
+}
+
+export function IconCard({ className = base }: IconProps) {
+  return <CreditCard className={className} strokeWidth={1.8} />;
 }
 
 export function IconPencil({ className = base }: IconProps) {
