@@ -181,3 +181,20 @@ igual antes de los cambios de Inventario:
 
 Los dos de asistencia probablemente vienen de la migración de geolocalización
 (`20261005000000`), que exige ubicación al marcar.
+
+
+---
+
+## 5. Plantilla de WhatsApp `aviso_cita`
+
+Pendiente del cliente: registrar y aprobar la plantilla en Meta.
+
+- **Texto a registrar en Meta**, categoría Utilidad e idioma español:
+  `Hola {{1}}, te escribimos de Clinic NovagED sobre tu cita del {{2}}: {{3}}`.
+- **Después de aprobarla:** agregar `WHATSAPP_AVISO_TEMPLATE=aviso_cita` al
+  `backend/.env` del VPS y reiniciar `api`.
+- **Mientras no esté aprobada:** la anulación por comprobante inválido no
+  avisa al paciente, y el panel lo indica.
+- **Zona horaria:** los plazos usan la hora del servidor (igual que la
+  agenda). Si el contenedor corre en UTC, conviene definir
+  `TZ=America/La_Paz` en el servicio `api`. Esto se revisa aparte.
