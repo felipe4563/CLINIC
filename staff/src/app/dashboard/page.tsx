@@ -27,6 +27,7 @@ type Dashboard = {
   ingresosPeriodo: number;
   proximasCitas: Cita[];
   saldosPendientes: { cantidad: number; total: number };
+  comprobantesPorRevisar: number | null;
   cajaHoy: { ingresos: number; egresos: number; saldoNeto: number } | null;
   ventasHoy: { cantidad: number; total: number } | null;
   inventario: { stockBajo: number; porVencer: number } | null;
@@ -218,6 +219,15 @@ export default function DashboardPage() {
             color="amber"
             href="/saldos"
           />
+          {data.comprobantesPorRevisar !== null && data.comprobantesPorRevisar > 0 && (
+            <StatCard
+              icon={<IconAlertCircle />}
+              label="Comprobantes por revisar"
+              value={String(data.comprobantesPorRevisar)}
+              color="amber"
+              href="/agenda"
+            />
+          )}
           {data.inventario && (data.inventario.stockBajo > 0 || data.inventario.porVencer > 0) && (
             <StatCard
               icon={<IconAlertCircle />}
@@ -340,7 +350,7 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-4">
           {data?.activos && (
             <div className="rounded-xl border border-border bg-panel p-5">
-              <h2 className="mb-3 text-sm font-semibold">Activos de la clínica</h2>
+              <h2 className="mb-3 text-sm font-semibold">Equipamiento</h2>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Operativos</span>
                 <span className="font-medium text-stat-green">{data.activos.operativos}</span>
@@ -349,8 +359,8 @@ export default function DashboardPage() {
                 <span className="text-muted-foreground">En mantenimiento</span>
                 <span className="font-medium text-stat-amber">{data.activos.mantenimiento}</span>
               </div>
-              <Link href="/inventario" className="mt-3 inline-block text-sm text-accent hover:underline">
-                Ver inventario →
+              <Link href="/inventario?tab=activos" className="mt-3 inline-block text-sm text-accent hover:underline">
+                Ver equipamiento →
               </Link>
             </div>
           )}

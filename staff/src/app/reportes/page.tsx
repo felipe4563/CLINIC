@@ -16,6 +16,8 @@ type Financiero = {
 type Citas = {
   total: number;
   noShowRate: number;
+  montoRetenido: number;
+  citasConMontoRetenido: number;
   porEstado: Record<string, number>;
   porProfesional: { profesional: string; cantidad: number }[];
   porServicio: { servicio: string; cantidad: number }[];
@@ -272,9 +274,10 @@ function Reportes() {
 
       {!cargando && !rangoInvalido && tab === 'citas-pacientes' && citas && pacientes && (
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <Card label="Total citas" valor={String(citas.total)} />
             <Card label="Tasa de inasistencia" valor={`${citas.noShowRate.toFixed(1)}%`} />
+            <Card label="Montos retenidos por inasistencia" valor={`${moneda(citas.montoRetenido)} · ${citas.citasConMontoRetenido}`} />
             <Card label="Pacientes nuevos" valor={String(pacientes.pacientesNuevos)} />
             <Card label="Saldos pendientes" valor={moneda(pacientes.totalSaldoPendiente)} />
           </div>

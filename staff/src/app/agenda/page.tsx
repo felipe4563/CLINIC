@@ -3,7 +3,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 import NuevaCitaModal from './NuevaCitaModal';
-import DayAgendaCards, { Cita } from './DayAgendaCards';
+import DayAgendaCards, { Cita, AccionCita } from './DayAgendaCards';
+import ComprobanteModal from './ComprobanteModal';
+import JustificacionModal from './JustificacionModal';
+import ReprogramarModal from './ReprogramarModal';
+import ArchivoPrivado from './ArchivoPrivado';
 import MonthCalendar from '@/components/MonthCalendar';
 
 type Profesional = { id: number; nombre: string };
@@ -35,6 +39,18 @@ export default function AgendaPage() {
   const [error, setError] = useState<string | null>(null);
   const [mostrarNueva, setMostrarNueva] = useState(false);
   const [descargando, setDescargando] = useState(false);
+  const [porRevisar, setPorRevisar] = useState<Cita[]>([]);
+  const [verPorRevisar, setVerPorRevisar] = useState(false);
+  const [modal, setModal] = useState<{ cita: Cita; accion: AccionCita } | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+
+  const cargarPorRevisar = useCallback(async () => {
+    try {
+      setPorRevisar(await api.getCitasPorRevisar());
+    } catch {
+      setPorRevisar([]);
+    }
+  }, []);
 
   const cargarCitas = useCallback(async () => {
     setLoading(true);
@@ -60,10 +76,20 @@ export default function AgendaPage() {
     cargarCitas();
   }, [cargarCitas]);
 
+  useEffect(() => {
+    cargarPorRevisar();
+  }, [cargarPorRevisar]);
+
+  function recargarTodo(textoAviso: string | null = null) {
+    setAviso(textoAviso);
+    cargarCitas();
+    cargarPorRevisar();
+  }
+
   async function cambiarEstado(cita: Cita, estado: Cita['estado']) {
     try {
       await api.actualizarEstadoCita(cita.id, estado);
-      cargarCitas();
+      recargarTodo();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar la cita');
     }
@@ -145,6 +171,13 @@ export default function AgendaPage() {
         </div>
       </div>
 
+      {porRevisar.length > 0 && (
+        <button type="button" onClick={() => setVerPorRevisar((v) => !v)} className="mb-4 flex w-full items-center justify-between rounded-xl border border-stat-amber bg-stat-amber-soft px-4 py-3 text-left text-sm text-stat-amber">
+          <span className="font-medium">{porRevisar.length} {porRevisar.length === 1 ? 'comprobante por revisar' : 'comprobantes por revisar'}</span>
+          <span className="text-xs">{verPorRevisar ? 'Volver a la agenda del día' : 'Ver todos'}</span>
+        </button>
+      )}
+      {aviso && <p className="mb-4 rounded-lg border border-stat-amber px-3 py-2 text-sm text-stat-amber">{aviso}</p>}
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr]">
@@ -154,7 +187,13 @@ export default function AgendaPage() {
           {loading ? (
             <p className="mb-3 text-sm text-muted-foreground">Cargando…</p>
           ) : (
-            <DayAgendaCards citas={citas} mostrarProfesional={!profesionalId} onEstadoChange={cambiarEstado} />
+            <DayAgendaCards
+              citas={verPorRevisar ? porRevisar : citas}
+              mostrarProfesional={!profesionalId}
+              onEstadoChange={cambiarEstado}
+              onAccion={(cita, accion) => setModal({ cita, accion })}
+              mostrarFecha={verPorRevisar}
+            />
           )}
         </div>
       </div>
@@ -165,9 +204,21 @@ export default function AgendaPage() {
           onClose={() => setMostrarNueva(false)}
           onCreated={() => {
             setMostrarNueva(false);
-            cargarCitas();
+            recargarTodo();
           }}
         />
+      )}
+
+      {modal?.accion === 'comprobante' && <ComprobanteModal cita={modal.cita} onClose={() => setModal(null)} onCambio={recargarTodo} />}
+      {modal?.accion === 'justificar' && <JustificacionModal cita={modal.cita} onClose={() => setModal(null)} onCambio={() => recargarTodo()} />}
+      {modal?.accion === 'reprogramar' && <ReprogramarModal cita={modal.cita} onClose={() => setModal(null)} onCambio={recargarTodo} />}
+      {modal?.accion === 'verJustificacion' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setModal(null)}>
+          <div role="dialog" aria-modal="true" aria-label="Prueba de la justificación" onClick={(e) => e.stopPropagation()} className="thin-scroll max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-panel p-6">
+            <div className="mb-3 flex justify-between"><h2 className="text-base font-semibold">Prueba de la justificación</h2><button onClick={() => setModal(null)} aria-label="Cerrar">✕</button></div>
+            <ArchivoPrivado ruta={`/staff/citas/${modal.cita.id}/justificacion`} alt="Prueba de la justificación" />
+          </div>
+        </div>
       )}
     </div>
   );

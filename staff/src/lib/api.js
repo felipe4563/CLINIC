@@ -83,6 +83,31 @@ export const api = {
   actualizarEstadoCita: (id, estado) =>
     apiFetch(`/staff/citas/${id}/estado`, { method: 'PATCH', body: JSON.stringify({ estado }) }),
   crearCita: (datos) => apiFetch('/staff/citas', { method: 'POST', body: JSON.stringify(datos) }),
+  getCitasPorRevisar: () => apiFetch('/staff/citas?revision=sin_revisar'),
+  revisarComprobante: (pagoId, resultado) =>
+    apiFetch(`/staff/pagos/${pagoId}/revision`, { method: 'PATCH', body: JSON.stringify({ resultado }) }),
+  registrarJustificacion: (citaId, { decision, nota, archivo }) => {
+    const datos = new FormData();
+    datos.append('decision', decision);
+    datos.append('nota', nota);
+    if (archivo) datos.append('archivo', archivo);
+    return apiFetch(`/staff/citas/${citaId}/justificacion`, { method: 'POST', body: datos });
+  },
+  reprogramarCita: (citaId, fecha, horaInicio) =>
+    apiFetch(`/staff/citas/${citaId}/reprogramar`, { method: 'PATCH', body: JSON.stringify({ fecha, horaInicio }) }),
+  // Comprobantes y justificaciones: se piden con la sesión del personal y se
+  // muestran como blob, nunca por una URL pública.
+  obtenerArchivoPrivado: async (path) => {
+    const token = getToken();
+    const res = await fetch(`${API_URL}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    if (res.status === 401) limpiarSesionYRedirigir();
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Error ${res.status}`);
+    }
+    const blob = await res.blob();
+    return { url: URL.createObjectURL(blob), tipo: blob.type };
+  },
   descargarAgendaPDF: (fecha, profesionalId) => {
     const params = new URLSearchParams();
     if (fecha) params.set('fecha', fecha);

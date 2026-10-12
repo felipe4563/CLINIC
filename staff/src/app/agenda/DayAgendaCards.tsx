@@ -2,6 +2,31 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { REVISION_LABEL, REVISION_COLOR, fmtFechaHora } from './politica';
+
+export type PagoCita = {
+  id: number;
+  monto: string;
+  monto_total: string;
+  porcentaje: number;
+  estado: 'pendiente' | 'pagado' | 'fallido';
+  metodo_adelanto: 'qr_banco' | 'qr_fijo' | null;
+  comprobante_revision: 'sin_revisar' | 'valido' | 'invalido' | null;
+  tieneComprobante: boolean;
+};
+
+export type PoliticaCita = {
+  conAdelanto: boolean;
+  montoRetenido: boolean;
+  puedeJustificar: boolean;
+  puedeReprogramar: boolean;
+  limiteJustificar: string;
+  justificacionFueraDePlazo: boolean;
+  limiteReprogramar: string | null;
+  reprogramacionFueraDePlazo: boolean;
+};
+
+export type AccionCita = 'comprobante' | 'justificar' | 'reprogramar' | 'verJustificacion';
 
 export type Cita = {
   id: number;
@@ -18,6 +43,14 @@ export type Cita = {
   };
   Profesional: { id: number; nombre: string };
   Servicio: { id: number; nombre: string; precio?: string };
+  Pago: PagoCita | null;
+  politica: PoliticaCita;
+  justificacion_estado: 'aceptada' | 'rechazada' | null;
+  justificacion_nota: string | null;
+  tieneJustificacion: boolean;
+  reprogramacion_usada: boolean;
+  fecha_original: string | null;
+  hora_original: string | null;
 };
 
 const ESTADO_LABEL: Record<Cita['estado'], string> = {
@@ -44,10 +77,14 @@ export default function DayAgendaCards({
   citas,
   mostrarProfesional,
   onEstadoChange,
+  onAccion,
+  mostrarFecha = false,
 }: {
   citas: Cita[];
   mostrarProfesional: boolean;
   onEstadoChange: (cita: Cita, estado: Cita['estado']) => void;
+  onAccion: (cita: Cita, accion: AccionCita) => void;
+  mostrarFecha?: boolean;
 }) {
   const [expandidoId, setExpandidoId] = useState<number | null>(null);
 
@@ -80,7 +117,7 @@ export default function DayAgendaCards({
             >
               <div className="min-w-0">
                 <p className="text-sm font-semibold">
-                  {hora(cita.hora_inicio)} – {hora(cita.hora_fin)}
+                  {mostrarFecha ? `${cita.fecha} · ` : ''}{hora(cita.hora_inicio)} – {hora(cita.hora_fin)}
                 </p>
                 <p className="mt-0.5 truncate text-sm">{cita.Paciente.nombre_completo}</p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -95,6 +132,11 @@ export default function DayAgendaCards({
                 >
                   {ESTADO_LABEL[cita.estado]}
                 </span>
+                {cita.Pago?.comprobante_revision && cita.estado !== 'cancelada' && (
+                  <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: `${REVISION_COLOR[cita.Pago.comprobante_revision]}22`, color: REVISION_COLOR[cita.Pago.comprobante_revision] }}>
+                    {REVISION_LABEL[cita.Pago.comprobante_revision]}
+                  </span>
+                )}
                 <svg
                   width="16"
                   height="16"
@@ -126,6 +168,43 @@ export default function DayAgendaCards({
                   </p>
                   {cita.Servicio.precio && <p className="text-muted-foreground">Bs {cita.Servicio.precio}</p>}
                   {mostrarProfesional && <p className="text-muted-foreground">Con {cita.Profesional.nombre}</p>}
+
+                  {cita.Pago?.tieneComprobante && (
+                    <button type="button" onClick={() => onAccion(cita, 'comprobante')} className="self-start text-sm text-accent hover:underline">
+                      Ver comprobante →
+                    </button>
+                  )}
+
+                  {cita.estado === 'no_asistio' && cita.politica.conAdelanto && (
+                    <div className="rounded-lg border border-border bg-background p-2 text-xs">
+                      {cita.politica.montoRetenido && !cita.justificacion_estado && (
+                        <p className={cita.politica.justificacionFueraDePlazo ? 'text-stat-amber' : 'text-muted-foreground'}>
+                          Monto retenido (Bs {cita.Pago?.monto}) ·{' '}
+                          {cita.politica.justificacionFueraDePlazo ? 'fuera de plazo' : `puede justificar hasta el ${fmtFechaHora(cita.politica.limiteJustificar)}`}
+                        </p>
+                      )}
+                      {cita.justificacion_estado === 'rechazada' && <p className="text-danger">Justificación rechazada · monto retenido</p>}
+                      {cita.justificacion_estado === 'aceptada' && <p className="text-stat-green">Justificación aceptada</p>}
+                      {cita.justificacion_nota && <p className="mt-1 text-muted-foreground">“{cita.justificacion_nota}”</p>}
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {cita.politica.puedeJustificar && (
+                          <button type="button" onClick={() => onAccion(cita, 'justificar')} className="rounded border border-border px-2 py-1 hover:bg-accent-soft">Registrar justificación</button>
+                        )}
+                        {cita.politica.puedeReprogramar && (
+                          <button type="button" onClick={() => onAccion(cita, 'reprogramar')} className="rounded border border-accent px-2 py-1 text-accent hover:bg-accent-soft">Reprogramar</button>
+                        )}
+                        {cita.tieneJustificacion && (
+                          <button type="button" onClick={() => onAccion(cita, 'verJustificacion')} className="rounded border border-border px-2 py-1 hover:bg-accent-soft">Ver prueba</button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {cita.reprogramacion_usada && cita.fecha_original && (
+                    <p className="text-xs text-muted-foreground">
+                      Reprogramada desde el {cita.fecha_original} {cita.hora_original?.slice(0, 5)} · ya se reprogramó una vez
+                    </p>
+                  )}
 
                   <select
                     value={cita.estado}
