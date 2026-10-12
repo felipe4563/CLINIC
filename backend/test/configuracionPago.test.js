@@ -44,6 +44,12 @@ describe('Configuración de pagos', () => {
     expect(res.status).toBe(400);
   });
 
+  test('rechaza qr_fijo_datos de más de 255 caracteres', async () => {
+    const res = await request(app).put('/staff/configuracion').set(auth()).send({ qr_fijo_datos: 'x'.repeat(256) });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Los datos para el paciente no pueden superar 255 caracteres');
+  });
+
   test('no deja elegir qr_fijo sin imagen del QR', async () => {
     const res = await request(app).put('/staff/configuracion').set(auth()).send({ metodo_pago_online: 'qr_fijo' });
     expect(res.status).toBe(400);

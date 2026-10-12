@@ -412,6 +412,7 @@ export default function ConfiguracionPage() {
                 <span className="text-xs text-muted-foreground">Datos para el paciente (opcional)</span>
                 <input
                   value={form.qr_fijo_datos ?? ''}
+                  maxLength={255}
                   onChange={(e) => setForm({ ...form, qr_fijo_datos: e.target.value })}
                   placeholder="Titular: … — Banco …"
                   className="rounded-lg border border-border bg-background px-3 py-2"

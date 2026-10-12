@@ -85,6 +85,9 @@ router.get('/staff/configuracion', onlyConfiguracion, async (req, res) => {
 });
 
 router.put('/staff/configuracion', onlyConfiguracion, async (req, res) => {
+  if (typeof req.body.qr_fijo_datos === 'string' && req.body.qr_fijo_datos.length > 255) {
+    return res.status(400).json({ error: 'Los datos para el paciente no pueden superar 255 caracteres' });
+  }
   const config = await db.ConfiguracionClinica.obtenerConfig();
   for (const campo of CAMPOS_CONFIG) {
     if (typeof req.body[campo] === 'string' || req.body[campo] === null) {

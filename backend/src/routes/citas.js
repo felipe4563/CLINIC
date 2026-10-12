@@ -101,7 +101,12 @@ router.post('/citas', crearCitaLimiter, requirePaciente, recibirArchivo('comprob
 router.get('/citas/mias', requirePaciente, async (req, res) => {
   const citas = await db.Cita.findAll({
     where: { paciente_id: req.pacienteId },
-    include: [db.Profesional, db.Servicio, db.Pago],
+    attributes: { exclude: ['justificacion_archivo', 'justificacion_nota'] },
+    include: [
+      db.Profesional,
+      db.Servicio,
+      { model: db.Pago, attributes: { exclude: ['comprobante_archivo', 'comprobante_revisado_por_id'] } },
+    ],
     order: [['fecha', 'DESC'], ['hora_inicio', 'DESC']],
   });
   res.json(citas);

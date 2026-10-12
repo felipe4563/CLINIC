@@ -67,6 +67,16 @@ describe('citas routes', () => {
     expect(res.body.length).toBe(1);
   });
 
+  test('GET /citas/mias no expone campos privados de comprobante ni justificación', async () => {
+    const res = await request(app).get('/citas/mias').set('Authorization', `Bearer ${token}`);
+    const c = res.body[0];
+    expect(c).not.toHaveProperty('justificacion_archivo');
+    expect(c).not.toHaveProperty('justificacion_nota');
+    expect(c.Pago).toBeTruthy();
+    expect(c.Pago).not.toHaveProperty('comprobante_archivo');
+    expect(c.Pago).not.toHaveProperty('comprobante_revisado_por_id');
+  });
+
   test('books with a 50% deposit and computes monto from monto_total', async () => {
     const res = await request(app)
       .post('/citas')
