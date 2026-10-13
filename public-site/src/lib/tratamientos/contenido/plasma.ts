@@ -20,6 +20,11 @@ const MINIREVISION_PARPADO = {
   titulo: 'Modern blepharoplasty: From bench to bedside',
   url: 'https://pubmed.ncbi.nlm.nih.gov/36969996/',
 };
+const AAD_LUNARES = {
+  sitio: 'American Academy of Dermatology',
+  titulo: 'Moles: Diagnosis and treatment',
+  url: 'https://www.aad.org/public/diseases/a-z/moles-treatment',
+};
 const AAD_ABCDE = {
   sitio: 'American Academy of Dermatology',
   titulo: 'What to look for: ABCDEs of melanoma',
@@ -135,11 +140,11 @@ export const plasma: Tratamiento[] = [
     resumen: 'Retiro de lunares con plasma (plasma pen) tras una evaluación médica; un lunar que cambia debe revisarse antes de retirarlo.',
     queEs: [
       'La eliminación de lunares con plasma consiste en retirar, con un equipo de plasma (plasma pen), un lunar que molesta o que no te gusta por estética. Antes de retirar cualquier lunar, un médico debe determinar si es benigno: la Academia Americana de Dermatología advierte que un lunar que crece, pica o cambia de cualquier manera podría ser un cáncer de piel.',
-      'En las fuentes consultadas no hay datos clínicos sobre el uso del plasma pen específicamente para retirar lunares. Los dispositivos de plasma de uso comercial, además, a menudo no están regulados por la FDA y se asocian a riesgo de cambios de pigmentación, cicatrices y quemaduras. Ningún método de retiro está libre de riesgo.',
+      'Cuando la AAD describe cómo se retira un lunar, la extirpación o el afeitado quirúrgico, el tejido retirado se examina al microscopio. Un método que destruye la lesión, como el plasma, no deja tejido para analizar: por eso, si el lunar es sospechoso o hay cualquier duda, lo adecuado es una biopsia o una evaluación dermatológica en lugar de destruirlo, y la doctora lo decidirá contigo. En las fuentes consultadas no hay datos clínicos sobre el uso del plasma pen específicamente para retirar lunares. Los dispositivos de plasma de uso comercial, además, a menudo no están regulados por la FDA y se asocian a riesgo de cambios de pigmentación, cicatrices y quemaduras. Ningún método de retiro está libre de riesgo.',
     ],
     beneficios: [
       'Permite retirar un lunar que molesta o que no te gusta por estética.',
-      'Se realiza tras una evaluación médica que descarta señales de alarma.',
+      'Retirar un lunar que molesta o que no te gusta por estética es una opción que la AAD reconoce, siempre con evaluación médica previa.',
       'Retirarlo con un profesional reduce los riesgos de infección y cicatrices frente a los métodos caseros.',
     ],
     antes: [
@@ -155,14 +160,14 @@ export const plasma: Tratamiento[] = [
       'Con los dispositivos de plasma se describen riesgos de cambios de pigmentación, cicatrices y quemaduras mecánicas.',
     ],
     contraindicaciones: [
-      'Un lunar que cambia (crece, pica, sangra o cambia de color o forma) o que cumple las señales del ABCDE debe ser evaluado por un médico antes de retirarlo.',
+      'Un lunar que cambia (crece, pica, sangra o cambia de color o forma), que cumple las señales del ABCDE o sobre el que hay cualquier duda debe ser evaluado por un médico, y es posible que necesite biopsia en lugar de ser destruido: si se destruye, no queda tejido para examinar al microscopio.',
       'No es adecuado quitarlo por tu cuenta ni con productos caseros: la FDA no ha aprobado productos de uso doméstico para retirar lunares.',
       'La doctora valorará si el riesgo de cicatrices o cambios de pigmentación es aceptable en tu caso.',
     ],
     preguntas: [
       {
         pregunta: '¿Cualquier lunar se puede retirar?',
-        respuesta: 'No automáticamente. Primero un médico debe evaluarlo. Si el lunar ha cambiado o tiene señales de alarma, debe evaluarse como posible cáncer de piel antes de retirarlo.',
+        respuesta: 'No automáticamente. Primero un médico debe evaluarlo. Si el lunar ha cambiado, tiene señales de alarma o hay dudas, debe evaluarse como posible cáncer de piel, con biopsia si corresponde, y no destruirse sin analizarlo, porque entonces no queda tejido para estudiar.',
       },
       {
         pregunta: '¿Qué señales debo vigilar en un lunar?',
@@ -179,6 +184,7 @@ export const plasma: Tratamiento[] = [
     ],
     fuentes: [
       { sitio: 'American Academy of Dermatology', titulo: '5 reasons to see a dermatologist for mole, skin tag removal', url: 'https://www.aad.org/public/diseases/a-z/mole-skin-tag-removal' },
+      AAD_LUNARES,
       AAD_ABCDE,
       PLASMA_PEN_TIKTOK,
     ],
@@ -194,7 +200,7 @@ export const plasma: Tratamiento[] = [
     beneficios: [
       'Alivia la molestia por roce o la irritación causada por el acrocordón.',
       'Permite retirar lesiones que no te gustan por estética.',
-      'Se realiza tras una evaluación médica, que distingue un acrocordón de otras lesiones.',
+      'La AAD recomienda consultar a un dermatólogo si no estás segura de si una lesión es un acrocordón, una verruga u otra cosa más seria; por eso conviene que te valoren antes de retirarla.',
     ],
     antes: [
       'Ten una consulta de valoración: la doctora confirmará que se trata de un acrocordón. Si una lesión ha cambiado de color, forma o tamaño, o te genera dudas, debe ser evaluada por un médico antes de retirarla.',
@@ -244,7 +250,7 @@ export const plasma: Tratamiento[] = [
     ],
     beneficios: [
       'Permite tratar una verruga que molesta, duele o no se va con los tratamientos de farmacia.',
-      'Se realiza tras una evaluación médica que confirma que es una verruga.',
+      'La AAD indica que un dermatólogo suele reconocer una verruga al examinarla y que, si hace falta, puede confirmarlo con una biopsia.',
       'Un dermatólogo puede elegir entre varias opciones según tu salud, tu edad y el tipo de verruga.',
     ],
     antes: [

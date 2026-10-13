@@ -132,7 +132,7 @@ export const rejuvenecimiento: Tratamiento[] = [
     beneficios: [
       'Dan soporte y reposicionan el tejido en zonas como mejillas, mandíbula, cuello o cejas, sin cirugía.',
       'Es un procedimiento mínimamente invasivo.',
-      'En una revisión, la satisfacción inmediata fue muy alta (alrededor de 98%), aunque bajó con el tiempo (alrededor de 88% a los 6 meses).',
+      'En una revisión, la satisfacción inmediata fue muy alta (alrededor de 98%), aunque bajó con el tiempo (alrededor de 88% a más largo plazo).',
       'Los hilos absorbibles se asociaron con menos complicaciones que los no absorbibles.',
     ],
     antes: [
@@ -156,7 +156,7 @@ export const rejuvenecimiento: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Cuánto dura el efecto?',
-        respuesta: 'Las fuentes consultadas no fijan una duración concreta. Sí señalan que la satisfacción es mayor justo después del procedimiento que a los seis meses, y que el efecto puede no mantenerse a largo plazo.',
+        respuesta: 'Las fuentes consultadas no fijan una duración concreta. Sí señalan que la satisfacción es mayor justo después del procedimiento que a más largo plazo, y que el efecto puede no mantenerse a largo plazo.',
       },
       {
         pregunta: '¿Qué complicaciones puede haber?',
@@ -231,13 +231,13 @@ export const rejuvenecimiento: Tratamiento[] = [
     resumen: 'Transferencia de grasa propia al rostro para reponer volumen y mejorar la calidad de la piel; es un procedimiento con riesgos que requiere experiencia.',
     queEs: [
       'La adipoestructuración, también llamada lipotransferencia o injerto de grasa facial, consiste en tomar grasa de otra zona de tu propio cuerpo y colocarla en áreas de la cara donde se ha perdido volumen. Al ser grasa propia, es biocompatible y puede aportar tanto volumen como una mejora en la calidad de la piel.',
-      'Se usa desde hace mucho tiempo y hoy se realizan más de medio millón de procedimientos de injerto de grasa facial al año en el mundo. Aun así, es un procedimiento más complejo que una inyección de relleno, y no se conoce con certeza su tasa real de complicaciones: una revisión sistemática halló que las cifras publicadas van desde 1,5% hasta más de 80%, por falta de criterios comunes y de ensayos aleatorizados. Entre las complicaciones están irregularidades, asimetrías, hinchazón prolongada y, rara vez pero con consecuencias graves, la inyección dentro de un vaso sanguíneo. Por eso conviene que lo realice un profesional con amplia experiencia.',
+      'Se usa desde hace mucho tiempo y hoy se realizan más de medio millón de procedimientos de injerto de grasa facial al año en el mundo. Aun así, es un procedimiento más complejo que una inyección de relleno, y no se conoce con certeza su tasa real de complicaciones: una revisión sistemática halló que las cifras publicadas van desde 1,5% hasta más de 80%, por falta de criterios comunes y de ensayos aleatorizados. Entre las complicaciones están irregularidades, asimetrías, hinchazón prolongada y, con menor frecuencia pero con consecuencias muy graves, la inyección dentro de un vaso sanguíneo o la migración de la grasa, que según la revisión pueden requerir manejo neurológico o neuroquirúrgico y llevar a discapacidad permanente o incluso a la muerte. Por eso conviene que lo realice un profesional con amplia experiencia.',
     ],
     beneficios: [
       'Repone volumen en zonas de la cara que lo han perdido por la edad o por una enfermedad.',
       'Usa tu propia grasa, que es biocompatible y de fácil acceso.',
       'Puede mejorar también la calidad de la piel de la zona tratada.',
-      'En personas con pérdida importante de volumen facial, los cirujanos plásticos lo consideran uno de los avances más importantes de la cirugía estética, porque logra una mejoría que no se obtiene con tratamientos de superficie ni con lifting.',
+      'Según una revisión de especialistas, cuando se realiza correctamente puede dar una mejoría sostenida en personas con pérdida importante de volumen facial.',
     ],
     antes: [
       'Ten una consulta de valoración: la doctora evaluará la pérdida de volumen de tu rostro y si el procedimiento es adecuado para ti.',
@@ -263,7 +263,7 @@ export const rejuvenecimiento: Tratamiento[] = [
       },
       {
         pregunta: '¿Qué riesgos tiene?',
-        respuesta: 'Las complicaciones más frecuentes son hinchazón prolongada, irregularidades y asimetrías, y a veces granos o hipertrofia de la grasa injertada. Las más graves, aunque raras, son la inyección intravascular o la migración de la grasa, que pueden causar secuelas serias. Por eso es indispensable un profesional con experiencia.',
+        respuesta: 'Las complicaciones más frecuentes son hinchazón prolongada, irregularidades y asimetrías, y a veces granos o hipertrofia de la grasa injertada. Las más graves son la inyección intravascular o la migración de la grasa, que pueden requerir manejo neurológico o neuroquirúrgico y llevar a discapacidad permanente o incluso a la muerte. La revisión señala que la frecuencia real de estas complicaciones no se conoce con precisión. Por eso es indispensable un profesional con experiencia.',
       },
       {
         pregunta: '¿Es lo mismo que un relleno?',
