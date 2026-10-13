@@ -41,7 +41,7 @@ const NHS_TENS = {
   url: 'https://www.nhs.uk/conditions/transcutaneous-electrical-nerve-stimulation-tens/',
 };
 const PMC_ULTRASONIDO = {
-  sitio: 'PubMed Central',
+  sitio: 'PubMed Central (AIUM)',
   titulo: 'Overview of therapeutic ultrasound applications and safety considerations',
   url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3810427/',
 };
@@ -81,7 +81,7 @@ export const fisioterapia: Tratamiento[] = [
     contraindicaciones: [
       'Antes de aplicar técnicas, el fisioterapeuta debería hacerte un examen y preguntarte por tu salud, tus medicamentos y tus antecedentes; con esa información decide qué técnicas son adecuadas para ti.',
       'Si no sabes qué causa tu dolor, conviene empezar por la valoración: la APTA señala que los estudios de imagen pueden ayudar a descartar otras condiciones.',
-      'Puedes rechazar cualquier técnica o tratamiento en el momento que quieras, según indica el NHS.',
+      'Cuéntale al fisioterapeuta cómo respondes durante y después del tratamiento: la APTA indica que revisa tu respuesta y ajusta el plan.',
     ],
     preguntas: [
       {
@@ -224,7 +224,7 @@ export const fisioterapia: Tratamiento[] = [
     contraindicaciones: [
       'Cuando la causa es una condición grave (por ejemplo, un ictus, una lesión de la médula espinal o una cirugía mayor de huesos o articulaciones), MedlinePlus describe que la rehabilitación suele requerir un equipo de varios profesionales y, a veces, comenzar en el hospital; tu médico indicará dónde y cómo.',
       'Un reposo prolongado en cama (más de uno o dos días) puede empeorar el dolor y causar otras complicaciones, según la APTA; el fisioterapeuta te ayuda a definir un nivel de actividad seguro.',
-      'Si un ejercicio te causa dolor o te preocupa, díselo al fisioterapeuta: revisa tu respuesta y ajusta el tratamiento (APTA). También puedes rechazar un tratamiento en cualquier momento (NHS).',
+      'Si un ejercicio te causa dolor o te preocupa, díselo al fisioterapeuta: revisa tu respuesta y ajusta el tratamiento (APTA).',
     ],
     preguntas: [
       {
@@ -257,7 +257,7 @@ export const fisioterapia: Tratamiento[] = [
       'El NHS los incluye entre los tratamientos de la fisioterapia, junto con el ejercicio, la terapia manual y los consejos para manejar los síntomas.',
     ],
     antes: [
-      'Si tienes epilepsia, un marcapasos o estás embarazada, díselo al fisioterapeuta antes de usar TENS: el NHS indica consultar con un profesional de salud primero.',
+      'Avisa si tienes epilepsia o un marcapasos: el NHS indica que la TENS no debe usarse en esos casos. Si estás en embarazo, solo se usa si lo indica un médico o una partera.',
       'Avisa si tienes la piel irritada, lastimada, infectada o con pérdida de sensibilidad en la zona.',
       'Si no sabes qué causa tu dolor, consulta con un profesional de salud antes de usar TENS (NHS).',
     ],

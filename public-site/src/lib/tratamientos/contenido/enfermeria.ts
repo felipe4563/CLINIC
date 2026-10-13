@@ -157,7 +157,7 @@ export const enfermeria: Tratamiento[] = [
       },
       {
         pregunta: '¿Con qué frecuencia debo controlarme?',
-        respuesta: 'MedlinePlus indica que los adultos de 40 años o más y las personas con mayor riesgo deberían controlarse cada año, y los adultos de 18 a 39 años con valores normales y sin otros factores de riesgo, cada 3 a 5 años. Tu médico decide qué te corresponde.',
+        respuesta: 'Según MedlinePlus, al menos una vez al año en adultos de 40 años o más y en personas con mayor riesgo. Tu médico puede indicarte otra frecuencia según tu caso.',
       },
       {
         pregunta: '¿Duele?',
@@ -216,7 +216,7 @@ export const enfermeria: Tratamiento[] = [
     resumen: 'Medición del azúcar en sangre con una gota obtenida del dedo; tu médico interpreta el valor y decide si hacen falta más análisis.',
     queEs: [
       'La glicemia capilar mide la glucosa (azúcar) en una gota de sangre. Con una lanceta se pincha el dedo, la gota se aplica sobre una tira reactiva y se lee en un medidor electrónico pequeño (MedlinePlus).',
-      'Un valor aislado no es un diagnóstico: los CDC señalan que un resultado en rango de prediabetes o diabetes no es el diagnóstico final por sí solo y que el médico puede repetir la prueba para confirmarlo. Tu médico interpreta tu resultado.',
+      'Esta medición no es una prueba diagnóstica por sí sola: tu médico interpreta tu resultado y, si hace falta, pide análisis de laboratorio. Los CDC indican que un resultado obtenido en una farmacia o feria de salud debe consultarse con un médico, que puede repetir la prueba para confirmar que es exacto.',
     ],
     beneficios: [
       'Es una prueba sencilla: solo requiere una gota de sangre del dedo (MedlinePlus).',
@@ -230,7 +230,7 @@ export const enfermeria: Tratamiento[] = [
     ],
     despues: [
       'Tu médico interpreta el resultado y decide si necesitas repetirlo o hacerte un análisis en laboratorio (MedlinePlus, CDC).',
-      'Como referencia, los CDC (EE. UU.) consideran en ayunas: normal hasta 99 mg/dL, prediabetes de 100 a 125 mg/dL y diabetes desde 126 mg/dL. Estas cifras las confirma y aplica tu médico, y un único valor no basta para diagnosticar.',
+      'Como referencia, los CDC (EE. UU.) usan estas cifras para una prueba de sangre en laboratorio hecha tras un ayuno nocturno: normal hasta 99 mg/dL, prediabetes de 100 a 125 mg/dL y diabetes desde 126 mg/dL. No son cifras para leer en un glucómetro: tu médico interpreta los valores de tu medidor.',
       'Si estás con tratamiento para la diabetes, sigue las indicaciones de tu médico según el resultado.',
     ],
     contraindicaciones: [
@@ -249,7 +249,7 @@ export const enfermeria: Tratamiento[] = [
       },
       {
         pregunta: '¿Un valor alto significa que tengo diabetes?',
-        respuesta: 'No necesariamente. Los CDC señalan que un resultado en rango de diabetes no es el diagnóstico final por sí solo y que el médico puede repetir la prueba para confirmarlo.',
+        respuesta: 'No necesariamente. Esta medición la interpreta tu médico, y los CDC indican que ante un resultado de farmacia o feria de salud el médico puede repetir la prueba para confirmar su exactitud.',
       },
     ],
     fuentes: [MEDLINE_GLUCOSA, CDC_GLUCOSA, NHS_HIPOGLUCEMIA, NHS_HIPERGLUCEMIA],
@@ -270,7 +270,7 @@ export const enfermeria: Tratamiento[] = [
     ],
     antes: [
       'Trae tu receta médica: el suero se administra solo con prescripción.',
-      'Cuéntale al personal si tienes enfermedad del corazón, presión alta, enfermedad de los riñones o estás embarazada: Cleveland Clinic recomienda evitar o tener cautela con la terapia intravenosa de vitaminas en esos casos.',
+      'Cuéntale al personal si tienes enfermedad del corazón, presión alta, enfermedad de los riñones o estás en embarazo: Cleveland Clinic recomienda evitar o tener cautela con la terapia intravenosa de vitaminas en esos casos.',
       'Informa los medicamentos que tomas: la terapia intravenosa puede tener interacciones con ellos.',
       'Si tienes dudas sobre qué contiene tu suero, pregunta: Cleveland Clinic aconseja informarse sobre cómo se formula y quién lo supervisa.',
     ],
@@ -287,7 +287,7 @@ export const enfermeria: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Necesito receta para un suero?',
-        respuesta: 'Sí. El suero se administra siempre con prescripción médica. Trae tu receta al agendar o a la cita.',
+        respuesta: 'En la clínica, los sueros se administran siempre con prescripción médica. Trae tu receta al agendar o a la cita.',
       },
       {
         pregunta: '¿Un suero me da más energía o refuerza mis defensas?',
@@ -332,7 +332,7 @@ export const enfermeria: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Necesito receta para un inyectable?',
-        respuesta: 'Sí. Los inyectables se aplican siempre con prescripción médica. Trae tu receta.',
+        respuesta: 'En la clínica, los inyectables se aplican siempre con prescripción médica. Trae tu receta.',
       },
       {
         pregunta: '¿Dónde se aplica una inyección intramuscular?',
