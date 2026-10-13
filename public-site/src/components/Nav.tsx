@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import MagneticButton from './MagneticButton';
 
-export default function Nav({ onReservar }: { onReservar: () => void }) {
+export default function Nav({ onReservar, solido = false }: { onReservar: () => void; solido?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -16,7 +17,7 @@ export default function Nav({ onReservar }: { onReservar: () => void }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const solid = scrolled || menuOpen;
+  const solid = solido || scrolled || menuOpen;
 
   return (
     <header
@@ -25,7 +26,7 @@ export default function Nav({ onReservar }: { onReservar: () => void }) {
       }`}
     >
       <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-5">
-        <a href="#top" className="flex items-center">
+        <Link href="/#top" className="flex items-center">
           <Image
             src={solid ? '/novaged-assets/horizontal_dark-YqD6kOfW.png' : '/novaged-assets/horizontal_light-D14IcGKW.png'}
             alt="Clinic NovagED"
@@ -34,15 +35,15 @@ export default function Nav({ onReservar }: { onReservar: () => void }) {
             className="h-12 w-auto md:h-14"
             priority
           />
-        </a>
+        </Link>
         <nav
           className={`hidden md:flex items-center gap-10 text-[10px] tracking-[0.22em] uppercase transition-colors duration-500 ${
             solid ? 'text-ink' : 'text-cream/90'
           }`}
         >
-          <a href="#tratamientos" className="hover:opacity-70">Tratamientos</a>
-          <a href="#nosotros" className="hover:opacity-70">Nosotros</a>
-          <a href="#ubicacion" className="hover:opacity-70">Ubicación</a>
+          <Link href="/#tratamientos" className="hover:opacity-70">Tratamientos</Link>
+          <Link href="/#nosotros" className="hover:opacity-70">Nosotros</Link>
+          <Link href="/#ubicacion" className="hover:opacity-70">Ubicación</Link>
         </nav>
         <MagneticButton>
           <button
@@ -75,15 +76,15 @@ export default function Nav({ onReservar }: { onReservar: () => void }) {
       </div>
       {menuOpen && (
         <div className="md:hidden absolute left-0 right-0 w-full bg-cream border-t border-tan/30 px-6 py-4 flex flex-col items-start gap-4 text-xs tracking-widest uppercase text-ink">
-          <a href="#tratamientos" onClick={() => setMenuOpen(false)}>
+          <Link href="/#tratamientos" onClick={() => setMenuOpen(false)}>
             Tratamientos
-          </a>
-          <a href="#nosotros" onClick={() => setMenuOpen(false)}>
+          </Link>
+          <Link href="/#nosotros" onClick={() => setMenuOpen(false)}>
             Nosotros
-          </a>
-          <a href="#ubicacion" onClick={() => setMenuOpen(false)}>
+          </Link>
+          <Link href="/#ubicacion" onClick={() => setMenuOpen(false)}>
             Ubicación
-          </a>
+          </Link>
           <button
             onClick={() => {
               setMenuOpen(false);

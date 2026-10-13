@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -29,9 +30,9 @@ export default function Footer() {
         <div>
           <p className="text-xs tracking-widest uppercase text-tan mb-4">Navegación</p>
           <ul className="space-y-2 text-sm text-espresso">
-            <li><a href="#tratamientos" className="hover:text-manhattan transition-colors">Tratamientos</a></li>
-            <li><a href="#nosotros" className="hover:text-manhattan transition-colors">Nosotros</a></li>
-            <li><a href="#ubicacion" className="hover:text-manhattan transition-colors">Ubicación</a></li>
+            <li><Link href="/#tratamientos" className="hover:text-manhattan transition-colors">Tratamientos</Link></li>
+            <li><Link href="/#nosotros" className="hover:text-manhattan transition-colors">Nosotros</Link></li>
+            <li><Link href="/#ubicacion" className="hover:text-manhattan transition-colors">Ubicación</Link></li>
           </ul>
         </div>
         <div className="text-sm text-espresso md:text-right">
