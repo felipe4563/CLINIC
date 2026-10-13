@@ -1,12 +1,14 @@
 'use client';
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useRef, useState, ReactNode } from 'react';
 import type { Servicio, Profesional, Pago, ConfiguracionPublica } from './types';
+import { api } from './api';
+import { buscarServicioPorNombre } from './servicios';
 
 type Step = 'servicio' | 'profesional' | 'horario' | 'login' | 'confirmar' | 'pago' | 'confirmada';
 
 interface BookingState {
   isOpen: boolean;
-  open: () => void;
+  open: (nombreServicio?: string) => void;
   close: () => void;
   step: Step;
   setStep: (s: Step) => void;
@@ -50,8 +52,11 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<ConfiguracionPublica | null>(null);
   const [porcentaje, setPorcentaje] = useState<50 | 100>(100);
   const [aceptaPolitica, setAceptaPolitica] = useState(false);
+  const aperturaRef = useRef(0);
 
-  function open() {
+  // `nombreServicio` llega como texto desde las páginas de tratamiento. El Nav y el
+  // botón flotante pasan `open` directo a onClick, así que ahí llega un evento: se ignora.
+  function open(nombreServicio?: unknown) {
     setStep('servicio');
     setServicioId(null);
     setServicio(null);
@@ -64,8 +69,22 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setPorcentaje(100);
     setAceptaPolitica(false);
     setIsOpen(true);
+    const apertura = ++aperturaRef.current;
+    if (typeof nombreServicio !== 'string') return;
+    api
+      .getServicios()
+      .then((servicios: Servicio[]) => {
+        if (apertura !== aperturaRef.current) return; // se cerró o se volvió a abrir
+        const encontrado = buscarServicioPorNombre(servicios, nombreServicio);
+        if (!encontrado) return; // renombrado o inactivo: queda en "Elige un servicio"
+        setServicioId(encontrado.id);
+        setServicio(encontrado);
+        setStep('profesional');
+      })
+      .catch(() => {}); // StepServicio ya muestra su propio error de carga
   }
   function close() {
+    aperturaRef.current++;
     setIsOpen(false);
   }
 
