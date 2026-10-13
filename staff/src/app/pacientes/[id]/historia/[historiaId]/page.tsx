@@ -36,11 +36,6 @@ type Historia = {
 
 const ESTADOS_CIVILES = { S: 'Soltera/o', C: 'Casada/o', D: 'Divorciada/o', V: 'Viuda/o' } as const;
 
-function fmtFecha(fecha: string) {
-  const [a, m, d] = fecha.split('-');
-  return `${d}/${m}/${a}`;
-}
-
 function fmtFechaHora(iso: string) {
   const f = new Date(iso);
   if (Number.isNaN(f.getTime())) return '';
@@ -57,6 +52,18 @@ function edadA(nacimiento: string | null, referencia: string) {
   return edad >= 0 ? edad : null;
 }
 
+// Datos personales que se completan desde la historia (se guardan en la paciente).
+const CAMPOS_PERSONALES = ['fecha_nacimiento', 'sexo', 'estado_civil', 'grupo_sanguineo', 'direccion', 'ocupacion', 'email', 'contacto_emergencia', 'parentesco_emergencia'] as const;
+type CampoPersonal = (typeof CAMPOS_PERSONALES)[number];
+const TEXTOS_PERSONALES: [CampoPersonal, string, number][] = [
+  ['grupo_sanguineo', 'Grupo sanguíneo', 5],
+  ['direccion', 'Dirección', 255],
+  ['ocupacion', 'Ocupación', 120],
+  ['email', 'E-mail', 160],
+  ['contacto_emergencia', 'Contacto de emergencia', 160],
+  ['parentesco_emergencia', 'Parentesco', 60],
+];
+
 const CAMPOS_GUARDABLES = ['fecha', 'motivo_consulta', 'datos_clinicos', 'datos_esteticos', 'analisis_estetico', 'diagnostico', 'protocolo', 'procedimiento_autorizado', 'profesional_id'] as const;
 
 export default function EditorHistoria() {
@@ -65,6 +72,7 @@ export default function EditorHistoria() {
   const [historia, setHistoria] = useState<Historia | null>(null);
   const [profesionales, setProfesionales] = useState<{ id: number; nombre: string }[]>([]);
   const [sucio, setSucio] = useState(false);
+  const [personalesSucios, setPersonalesSucios] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -114,6 +122,13 @@ export default function EditorHistoria() {
     setAviso(null);
   }
 
+  function cambiarPersonal(campo: CampoPersonal, valor: string) {
+    setHistoria((h) => (h ? { ...h, Paciente: { ...h.Paciente, [campo]: valor || null } } : h));
+    setPersonalesSucios(true);
+    setSucio(true);
+    setAviso(null);
+  }
+
   function cambiarEnSeccion(seccion: Seccion['clave'], clave: string, valor: string | boolean) {
     setHistoria((h) => (h ? { ...h, [seccion]: { ...h[seccion], [clave]: valor } } : h));
     setSucio(true);
@@ -125,6 +140,11 @@ export default function EditorHistoria() {
     setGuardando(true);
     setError(null);
     try {
+      // Primero la paciente: la evaluación guardada vuelve con sus datos ya actualizados.
+      if (personalesSucios) {
+        await api.actualizarPaciente(params.id, Object.fromEntries(CAMPOS_PERSONALES.map((c) => [c, historia.Paciente[c] ?? ''])));
+        setPersonalesSucios(false);
+      }
       const datos = Object.fromEntries(CAMPOS_GUARDABLES.map((c) => [c, historia[c]]));
       const guardada = await api.guardarHistoria(historia.id, datos);
       setHistoria((h) => (h ? { ...guardada, tratamientos: h.tratamientos } : guardada));
@@ -204,21 +224,54 @@ export default function EditorHistoria() {
       <div className="flex flex-col gap-3">
         <details open className="rounded-lg border border-border bg-panel p-4">
           <summary className="cursor-pointer text-base font-semibold">1. Datos personales</summary>
-          <div className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+          <div className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
             <p><span className="text-muted-foreground">Nombre:</span> {p.nombre_completo}</p>
             <p><span className="text-muted-foreground">C.I.:</span> {p.carnet_identidad} {p.carnet_expedido}</p>
             <p><span className="text-muted-foreground">Teléfono:</span> {p.telefono}</p>
-            <p><span className="text-muted-foreground">Nacimiento:</span> {p.fecha_nacimiento ? fmtFecha(p.fecha_nacimiento) : '—'}</p>
-            <p><span className="text-muted-foreground">Edad:</span> {edadA(p.fecha_nacimiento, historia.fecha) ?? '—'}</p>
-            <p><span className="text-muted-foreground">Sexo:</span> {p.sexo ?? '—'}</p>
-            <p><span className="text-muted-foreground">Estado civil:</span> {p.estado_civil ? ESTADOS_CIVILES[p.estado_civil] : '—'}</p>
-            <p><span className="text-muted-foreground">Grupo sanguíneo:</span> {p.grupo_sanguineo ?? '—'}</p>
-            <p><span className="text-muted-foreground">Dirección:</span> {p.direccion ?? '—'}</p>
-            <p><span className="text-muted-foreground">Ocupación:</span> {p.ocupacion ?? '—'}</p>
-            <p><span className="text-muted-foreground">E-mail:</span> {p.email ?? '—'}</p>
-            <p><span className="text-muted-foreground">Contacto de emergencia:</span> {p.contacto_emergencia ?? '—'}{p.parentesco_emergencia ? ` (${p.parentesco_emergencia})` : ''}</p>
           </div>
-          <Link href={`/pacientes/${params.id}`} onClick={salirSiConfirma} className="mt-2 inline-block text-xs text-accent hover:underline">Editar datos personales en la ficha</Link>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Nombre, C.I. y teléfono se cambian en la{' '}
+            <Link href={`/pacientes/${params.id}`} onClick={salirSiConfirma} className="text-accent hover:underline">ficha de la paciente</Link>.
+          </p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="text-xs text-muted-foreground">
+              Fecha de nacimiento
+              <input type="date" value={p.fecha_nacimiento ?? ''} onChange={(e) => cambiarPersonal('fecha_nacimiento', e.target.value)} className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground" />
+            </label>
+            <div className="text-xs text-muted-foreground">
+              Edad
+              <p className="mt-1 py-1.5 text-sm text-foreground">{edadA(p.fecha_nacimiento, historia.fecha) ?? '—'}</p>
+            </div>
+            <label className="text-xs text-muted-foreground">
+              Sexo
+              <select value={p.sexo ?? ''} onChange={(e) => cambiarPersonal('sexo', e.target.value)} className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground">
+                <option value="">—</option>
+                <option value="F">Femenino</option>
+                <option value="M">Masculino</option>
+              </select>
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Estado civil
+              <select value={p.estado_civil ?? ''} onChange={(e) => cambiarPersonal('estado_civil', e.target.value)} className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground">
+                <option value="">—</option>
+                {Object.entries(ESTADOS_CIVILES).map(([clave, etiqueta]) => (
+                  <option key={clave} value={clave}>{etiqueta}</option>
+                ))}
+              </select>
+            </label>
+            {TEXTOS_PERSONALES.map(([campo, etiqueta, max]) => (
+              <label key={campo} className={`text-xs text-muted-foreground ${campo === 'direccion' ? 'sm:col-span-2' : ''}`}>
+                {etiqueta}
+                <input
+                  type={campo === 'email' ? 'email' : 'text'}
+                  value={p[campo] ?? ''}
+                  onChange={(e) => cambiarPersonal(campo, e.target.value)}
+                  maxLength={max}
+                  className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground"
+                />
+              </label>
+            ))}
+          </div>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
             <label className="text-xs text-muted-foreground">
               Fecha de la evaluación
