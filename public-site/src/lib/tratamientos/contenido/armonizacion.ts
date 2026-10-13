@@ -25,7 +25,7 @@ export const armonizacion: Tratamiento[] = [
       'Devuelve o añade volumen en zonas como mejillas, labios, mentón o mandíbula.',
       'Es un procedimiento ambulatorio: te vas a casa el mismo día.',
       'Es temporal, de modo que puedes decidir más adelante si lo repites.',
-      'El ácido hialurónico es un material que el cuerpo reconoce y puede descomponer de forma gradual.',
+      'El ácido hialurónico es un material que el cuerpo absorbe de forma gradual y que, según las revisiones, es reversible.',
     ],
     antes: [
       'Consulta con un profesional con formación en dermatología o cirugía plástica que te explique riesgos, beneficios y la zona donde se inyectará.',
@@ -60,10 +60,14 @@ export const armonizacion: Tratamiento[] = [
       },
       {
         pregunta: '¿Se puede corregir si no me gusta el resultado?',
-        respuesta: 'El ácido hialurónico es reversible, a diferencia de otros materiales: existe una enzima que lo descompone. Aun así, retirar o reducir un relleno puede requerir procedimientos adicionales, así que lo mejor es hablarlo con la doctora antes.',
+        respuesta: 'Según una revisión sobre rellenos de mentón y mandíbula, el ácido hialurónico es reversible: se puede tratar con hialuronidasa, una enzima que lo descompone. Aun así, retirar o reducir un relleno puede requerir procedimientos adicionales, así que lo mejor es hablarlo con la doctora antes.',
       },
     ],
-    fuentes: [FDA_CONSUMO, FDA_RELLENOS],
+    fuentes: [
+      FDA_CONSUMO,
+      FDA_RELLENOS,
+      { sitio: 'PubMed Central', titulo: 'Using injectable fillers for chin and jawline rejuvenation', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10296042/' },
+    ],
   },
   {
     slug: 'toxina-botulinica',
@@ -78,7 +82,7 @@ export const armonizacion: Tratamiento[] = [
       'Es un procedimiento breve, con pocas molestias y casi sin tiempo de recuperación.',
       'Un buen tratamiento busca relajar solo lo necesario para que conserves tus expresiones naturales.',
       'No afecta la sensibilidad de la zona tratada.',
-      'Con la experiencia clínica acumulada de más de 20 años, es un tratamiento ampliamente estudiado.',
+      'Con la experiencia clínica acumulada de más de 20 años, es un tratamiento con una larga trayectoria de uso.',
     ],
     antes: [
       'Dile a la doctora qué medicamentos y suplementos tomas.',
@@ -88,8 +92,8 @@ export const armonizacion: Tratamiento[] = [
     ],
     despues: [
       'Puedes retomar tu rutina enseguida.',
-      'No frotes ni masajees la zona tratada.',
-      'Evita el ejercicio intenso o levantar peso durante las horas siguientes; la indicación habitual es esperar al menos dos horas, aunque la doctora te dirá el tiempo exacto.',
+      'No frotes, masajees ni presiones la zona tratada durante unas 12 horas, o lo que te indique la doctora.',
+      'Evita el ejercicio intenso durante las 24 horas siguientes, o el tiempo que te indique la doctora.',
       'El efecto se nota a partir de los primeros días y se completa en unas dos semanas.',
       'Consulta de inmediato si tienes problemas de visión, dificultad para respirar o para tragar, o entumecimiento o parálisis en zonas no tratadas.',
     ],
@@ -112,8 +116,8 @@ export const armonizacion: Tratamiento[] = [
         respuesta: 'Los más comunes son hinchazón, enrojecimiento, molestia y hematomas, que suelen mejorar en uno o dos días (el hematoma puede durar cerca de una semana). Con menos frecuencia, dolor de cabeza. Rara vez, debilidad en un músculo vecino que provoca una ceja o un párpado caído de forma temporal.',
       },
       {
-        pregunta: '¿Puedo dejar de ponérmela cuando quiera?',
-        respuesta: 'Sí. Como el efecto es temporal, puedes dejar de aplicarla en cualquier momento y el músculo recupera su movimiento.',
+        pregunta: '¿Hay que repetirlo?',
+        respuesta: 'El efecto es temporal: cuando pasa, el músculo recupera su movimiento y las líneas pueden volver. Si quieres mantener el resultado, el tratamiento se puede repetir cuando reaparezcan; la doctora te orientará sobre los tiempos.',
       },
     ],
     fuentes: [
@@ -242,13 +246,13 @@ export const armonizacion: Tratamiento[] = [
     resumen: 'Mentoplastia no quirúrgica: relleno en el mentón para mejorar su proyección y equilibrar el perfil, sin pasar por quirófano.',
     queEs: [
       'En esta clínica, la mentoplastia es un procedimiento no quirúrgico: se inyecta un relleno, como ácido hialurónico o hidroxiapatita de calcio, en el mentón para darle más proyección, definirlo y equilibrar el perfil del rostro. No es una cirugía de mentón ni coloca implantes.',
-      'El ácido hialurónico es el material más usado y estudiado en esta zona, y es reversible; la hidroxiapatita de calcio es semipermanente. Las revisiones señalan que los rellenos funcionan menos cuando el mentón está muy retraído, y que en esos casos la cirugía (genioplastia) logra resultados más estables. La doctora te dirá qué opción se ajusta a tu caso.',
+      'El ácido hialurónico es el material más usado y estudiado en esta zona, y es reversible: existe una enzima que lo disuelve. La hidroxiapatita de calcio es semipermanente y no es reversible: no hay una enzima que la disuelva, por lo que si hay una complicación o no te gusta el resultado no se puede deshacer con una inyección y habría que esperar a que el cuerpo la absorba. Las revisiones señalan que los rellenos funcionan menos cuando el mentón está muy retraído, y que en esos casos la cirugía (genioplastia) logra resultados más estables. La doctora te dirá qué opción se ajusta a tu caso.',
     ],
     beneficios: [
       'Mejora la proyección y la definición del mentón sin cirugía.',
       'Ayuda a equilibrar el perfil del rostro.',
       'Es un procedimiento ambulatorio con poco tiempo de recuperación.',
-      'Con ácido hialurónico, el resultado es reversible.',
+      'Con ácido hialurónico, el resultado es reversible; la hidroxiapatita de calcio no lo es.',
       'Se puede combinar con relleno en la línea de la mandíbula para un contorno más armónico.',
     ],
     antes: [
@@ -292,8 +296,8 @@ export const armonizacion: Tratamiento[] = [
     nombre: 'Marcación mandibular',
     resumen: 'Relleno no quirúrgico a lo largo de la mandíbula para definir el ángulo y enderezar la línea de la mandíbula.',
     queEs: [
-      'La marcación mandibular es un procedimiento no quirúrgico en el que se inyecta un relleno en puntos de la mandíbula para definir el ángulo y hacer que la línea del contorno se vea más recta. Se emplea ácido hialurónico de alta densidad, hidroxiapatita de calcio o una mezcla de ambos, según el resultado que se busque.',
-      'La FDA aprueba el uso de rellenos en la línea de la mandíbula en adultos desde los 22 años. La evidencia aún es limitada: la mayoría de los estudios sobre esta zona son pequeños, y los datos con hidroxiapatita en la mandíbula son escasos. Es una zona con puntos anatómicos de riesgo, por eso conviene un profesional con formación y conocimiento de la anatomía facial.',
+      'La marcación mandibular es un procedimiento no quirúrgico en el que se inyecta un relleno en puntos de la mandíbula para definir el ángulo y hacer que la línea del contorno se vea más recta. Se emplea ácido hialurónico de alta densidad, hidroxiapatita de calcio o una mezcla de ambos, según el resultado que se busque. A diferencia del ácido hialurónico, que es reversible, la hidroxiapatita de calcio no se puede disolver con una enzima: si el resultado no te convence o hay una complicación, no es posible revertirla de inmediato.',
+      'La FDA aprueba el uso de rellenos en la línea de la mandíbula en adultos desde los 22 años. La evidencia aún es limitada: los trabajos disponibles son sobre todo descripciones de técnica y series pequeñas, y no hay ensayos de alta calidad para todos los materiales. Es una zona con puntos anatómicos de riesgo, por eso conviene un profesional con formación y conocimiento de la anatomía facial.',
     ],
     beneficios: [
       'Define el ángulo de la mandíbula y endereza el contorno.',
@@ -322,7 +326,7 @@ export const armonizacion: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Qué material se usa?',
-        respuesta: 'Según el objetivo se puede usar ácido hialurónico de alta densidad, hidroxiapatita de calcio o una mezcla de ambos. La doctora te explicará cuál conviene en tu caso.',
+        respuesta: 'Según el objetivo se puede usar ácido hialurónico de alta densidad, hidroxiapatita de calcio o una mezcla de ambos. El ácido hialurónico es reversible; la hidroxiapatita no, y eso pesa al elegir el material. La doctora te explicará cuál conviene en tu caso.',
       },
       {
         pregunta: '¿Cuánto dura?',
@@ -373,7 +377,7 @@ export const armonizacion: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Cuánto dura?',
-        respuesta: 'Depende del producto y de la cantidad aplicada. Varía con el tipo de relleno y la cantidad aplicada, y los autores de la revisión señalan que faltan estudios con seguimiento más largo para conocer la durabilidad.',
+        respuesta: 'Varía con el tipo de relleno y la cantidad aplicada, y los autores de la revisión señalan que faltan estudios con seguimiento más largo para conocer la durabilidad.',
       },
       {
         pregunta: '¿Todos los rellenos de ácido hialurónico dan el mismo resultado?',
