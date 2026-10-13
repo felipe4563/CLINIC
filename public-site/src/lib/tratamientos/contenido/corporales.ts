@@ -84,7 +84,7 @@ export const corporales: Tratamiento[] = [
     nombre: 'Enzimas recombinantes',
     resumen: 'Inyecciones con enzimas como la colagenasa, estudiada para la celulitis en glúteos con ensayos financiados por el fabricante.',
     queEs: [
-      '"Enzimas recombinantes" es un término que se usa en estética para varios productos inyectables distintos, así que conviene preguntar cuál se usará en tu caso. Las fuentes consultadas no estudian ese término como tal: analizan la colagenasa de Clostridium histolyticum, una combinación de enzimas inyectable que se investigó para la celulitis de los glúteos en mujeres adultas.',
+      '"Enzimas recombinantes" es un término que se usa en estética para varios productos inyectables distintos, así que conviene preguntar cuál se usará en tu caso. Las fuentes consultadas no estudian una categoría general de "enzimas" con evidencia propia: analizan un producto concreto, la colagenasa de Clostridium histolyticum, una combinación de enzimas inyectable que se investigó para la celulitis de los glúteos en mujeres adultas. Lo que muestran esos estudios no puede extrapolarse a otras enzimas. La doctora te dirá exactamente qué producto se usa en tu caso y cuál es su situación de aprobación y disponibilidad; no des por hecho que es el mismo que se estudió.',
       'Esa enzima no se estudió como tratamiento para reducir medidas ni para eliminar grasa. La evidencia procede de ensayos financiados por el fabricante, y sus autores reconocen que algunas mediciones son estrictas y que los resultados pueden no reflejar a todas las personas que consultan por celulitis.',
     ],
     beneficios: [
@@ -140,7 +140,7 @@ export const corporales: Tratamiento[] = [
     ],
     beneficios: [
       'Lo que se busca con estas inyecciones es reducir pequeñas acumulaciones de grasa en una zona concreta, sin cirugía.',
-      'No hay en las fuentes consultadas datos que muestren cuánto se reduce la grasa con productos no aprobados, así que no podemos prometer un resultado.',
+      'No hay en las fuentes consultadas datos que muestren cuánto se reduce la grasa con productos no aprobados, así que no hay datos que permitan prometer un resultado.',
       'Para la grasa bajo el mentón existe un medicamento aprobado por la FDA, con riesgos y límites descritos oficialmente.',
     ],
     antes: [
