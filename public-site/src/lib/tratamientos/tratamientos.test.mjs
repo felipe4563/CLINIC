@@ -122,3 +122,10 @@ test('cada foto registrada existe, pesa ≤ 350 KB y tiene licencia válida', ()
     assert.ok(statSync(archivo).size <= 350 * 1024, `${slug}.jpg pesa más de 350 KB`);
   }
 });
+
+test('están los 54 tratamientos', () => {
+  const escritos = new Set(TODOS.map((t) => t.slug));
+  const faltan = slugsDeCategorias().filter((s) => !escritos.has(s));
+  assert.deepEqual(faltan, [], `sin contenido: ${faltan.join(', ')}`);
+  assert.equal(TODOS.length, 54);
+});

@@ -102,7 +102,7 @@ export default async function PaginaTratamiento({ params }: Props) {
 
           {hermanos.length > 0 && (
             <section>
-              <Titulo>Otros tratamientos de {contexto}</Titulo>
+              <Titulo>También en {contexto}</Titulo>
               <ul className="mt-6 flex flex-wrap gap-3">
                 {hermanos.map((h) => (
                   <li key={h.slug} className="max-w-full">

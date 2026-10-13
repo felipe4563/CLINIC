@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import Chevron from './Chevron';
 import { CATEGORIAS } from '@/lib/tratamientos/categorias';
@@ -96,6 +97,14 @@ export default function Tratamientos() {
                         {abierto && (
                           <div className="pb-6">
                             <p className="text-sm text-muted">{g.descripcion}</p>
+                            {g.slug && (
+                              <Link
+                                href={`/tratamientos/${g.slug}`}
+                                className="mt-4 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-tan hover:opacity-70"
+                              >
+                                Ver tratamiento <span aria-hidden="true">→</span>
+                              </Link>
+                            )}
                             {g.columnas && (
                               <div className="mt-4 grid gap-6 sm:grid-cols-2">
                                 {g.columnas.map((col) => (
@@ -103,7 +112,16 @@ export default function Tratamientos() {
                                     <p className="text-xs tracking-widest uppercase text-muted">{col.titulo}</p>
                                     <ul className="mt-2 space-y-1 text-sm text-ink">
                                       {col.items.map((it) => (
-                                        <li key={it.nombre}>✦ {it.nombre}</li>
+                                        <li key={it.nombre}>
+                                          {it.slug ? (
+                                            <Link href={`/tratamientos/${it.slug}`} className="group inline-flex items-baseline gap-1 hover:text-tan">
+                                              ✦ {it.nombre}
+                                              <span aria-hidden="true" className="opacity-0 transition-opacity group-hover:opacity-100">→</span>
+                                            </Link>
+                                          ) : (
+                                            <>✦ {it.nombre}</>
+                                          )}
+                                        </li>
                                       ))}
                                     </ul>
                                   </div>
