@@ -116,6 +116,9 @@ test('cada foto registrada existe, pesa ≤ 350 KB y tiene licencia válida', ()
     assert.ok(enCategorias.has(slug), `crédito de un slug inexistente: ${slug}`);
     assert.ok(textoLleno(c.autor) && textoLleno(c.sitio), `${slug}: crédito sin autor o sitio`);
     assert.match(c.licencia, LICENCIAS, `${slug}: licencia no permitida`);
+    if (c.licencia.startsWith('CC')) {
+      assert.match(c.licenciaUrl ?? '', /^https:\/\/creativecommons\.org\//, `${slug}: falta el enlace a la licencia`);
+    }
     assert.ok(dominioPermitido(c.url, DOMINIOS_FOTOS), `${slug}: foto de un sitio no permitido ${c.url}`);
     const archivo = new URL(`${slug}.jpg`, CARPETA_FOTOS);
     assert.ok(existsSync(archivo), `falta public/tratamientos/${slug}.jpg`);
@@ -128,4 +131,25 @@ test('están los 54 tratamientos', () => {
   const faltan = slugsDeCategorias().filter((s) => !escritos.has(s));
   assert.deepEqual(faltan, [], `sin contenido: ${faltan.join(', ')}`);
   assert.equal(TODOS.length, 54);
+});
+
+const textosDe = (t) => [
+  t.resumen, ...t.queEs, ...t.beneficios, ...t.antes, ...t.despues, ...t.contraindicaciones,
+  ...t.preguntas.flatMap((p) => [p.pregunta, p.respuesta]),
+];
+
+test('sin primera persona sobre la investigación', () => {
+  const PRIMERA = /\b(encontramos|podemos|nuestr[oa]s?|hemos)\b/i;
+  for (const t of TODOS) {
+    for (const x of textosDe(t)) assert.doesNotMatch(x, PRIMERA, `${t.slug}: primera persona en "${x.slice(0, 60)}"`);
+  }
+});
+
+test('no hay viñetas repetidas dentro de una misma lista', () => {
+  for (const t of TODOS) {
+    for (const campo of ['queEs', 'beneficios', 'antes', 'despues', 'contraindicaciones']) {
+      const norm = t[campo].map((x) => x.trim().toLowerCase());
+      assert.equal(new Set(norm).size, norm.length, `${t.slug}.${campo}: viñetas repetidas`);
+    }
+  }
 });

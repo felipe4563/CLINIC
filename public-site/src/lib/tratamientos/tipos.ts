@@ -14,7 +14,7 @@ export type Tratamiento = {
   fuentes: Fuente[]; // 1–4
 };
 
-export type Credito = { autor: string; sitio: string; url: string; licencia: string };
+export type Credito = { autor: string; sitio: string; url: string; licencia: string; licenciaUrl?: string };
 
 export type Item = { nombre: string; slug?: string };
 export type Columna = { titulo: string; items: Item[] };

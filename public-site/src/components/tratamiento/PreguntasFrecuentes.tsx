@@ -1,10 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import Chevron from '@/components/Chevron';
 import type { Pregunta } from '@/lib/tratamientos/tipos';
 
 export default function PreguntasFrecuentes({ preguntas }: { preguntas: Pregunta[] }) {
   const [abierta, setAbierta] = useState<number | null>(null);
+  const base = useId();
   return (
     <div className="mt-6 divide-y divide-manhattan/40 border-y border-manhattan/40">
       {preguntas.map((p, i) => {
@@ -15,12 +16,13 @@ export default function PreguntasFrecuentes({ preguntas }: { preguntas: Pregunta
               type="button"
               onClick={() => setAbierta(estaAbierta ? null : i)}
               aria-expanded={estaAbierta}
+              aria-controls={`${base}-r${i}`}
               className="flex w-full items-center justify-between gap-4 py-5 text-left font-serif text-lg text-espresso"
             >
               {p.pregunta}
               <Chevron abierto={estaAbierta} />
             </button>
-            {estaAbierta && <p className="pb-6 leading-relaxed text-ink">{p.respuesta}</p>}
+            <p id={`${base}-r${i}`} hidden={!estaAbierta} className="pb-6 leading-relaxed text-ink">{p.respuesta}</p>
           </div>
         );
       })}

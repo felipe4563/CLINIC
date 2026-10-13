@@ -116,7 +116,7 @@ export default function Tratamientos() {
                                           {it.slug ? (
                                             <Link href={`/tratamientos/${it.slug}`} className="group inline-flex items-baseline gap-1 hover:text-tan">
                                               ✦ {it.nombre}
-                                              <span aria-hidden="true" className="opacity-0 transition-opacity group-hover:opacity-100">→</span>
+                                              <span aria-hidden="true" className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">→</span>
                                             </Link>
                                           ) : (
                                             <>✦ {it.nombre}</>

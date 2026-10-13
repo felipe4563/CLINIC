@@ -54,7 +54,7 @@ export default async function PaginaTratamiento({ params }: Props) {
       <article className="pt-[88px] md:pt-24">
         <header className="md:flex md:min-h-[70vh]">
           <div className="relative h-[45vh] md:h-auto md:w-1/2">
-            <Image src={imagen} alt={t.nombre} fill priority sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+            <Image src={imagen} alt={credito ? t.nombre : ''} fill priority sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
           </div>
           <div className="flex items-center px-6 py-12 md:w-1/2 md:px-16">
             <div className="max-w-md">
@@ -136,7 +136,15 @@ export default async function PaginaTratamiento({ params }: Props) {
                 <a href={credito.url} target="_blank" rel="noopener noreferrer" className="underline decoration-manhattan underline-offset-2 hover:text-espresso">
                   {credito.autor} · {credito.sitio}
                 </a>{' '}
-                ({credito.licencia})
+                (
+                {credito.licenciaUrl ? (
+                  <a href={credito.licenciaUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-manhattan underline-offset-2 hover:text-espresso">
+                    {credito.licencia}
+                  </a>
+                ) : (
+                  credito.licencia
+                )}
+                )
               </p>
             )}
           </footer>
