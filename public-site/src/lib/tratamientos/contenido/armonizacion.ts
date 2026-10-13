@@ -82,7 +82,7 @@ export const armonizacion: Tratamiento[] = [
       'Es un procedimiento breve, con pocas molestias y casi sin tiempo de recuperación.',
       'Un buen tratamiento busca relajar solo lo necesario para que conserves tus expresiones naturales.',
       'No afecta la sensibilidad de la zona tratada.',
-      'Con la experiencia clínica acumulada de más de 20 años, es un tratamiento con una larga trayectoria de uso.',
+      'Se usa desde hace más de 20 años, por lo que tiene una larga trayectoria clínica.',
     ],
     antes: [
       'Dile a la doctora qué medicamentos y suplementos tomas.',
@@ -194,8 +194,6 @@ export const armonizacion: Tratamiento[] = [
     beneficios: [
       'Aumenta el volumen y mejora la definición de los labios.',
       'Puede corregir asimetrías y suavizar líneas finas alrededor de la boca.',
-      'Se aplica con anestesia tópica y toma desde unos 30 minutos.',
-      'Suele haber una cita de control unas dos semanas después.',
       'Como el efecto es temporal, puedes cambiar de opinión más adelante.',
     ],
     antes: [
@@ -355,7 +353,6 @@ export const armonizacion: Tratamiento[] = [
       'Define los pómulos y da un aspecto más descansado.',
       'No requiere cirugía y se hace en consulta.',
       'Tiene poco tiempo de recuperación.',
-      'La doctora define contigo la cantidad según tu anatomía.',
     ],
     antes: [
       'Ten una consulta de valoración para revisar tu rostro, tus expectativas y los productos posibles.',

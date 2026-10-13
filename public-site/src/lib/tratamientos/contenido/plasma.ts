@@ -143,8 +143,8 @@ export const plasma: Tratamiento[] = [
       'Cuando la AAD describe cómo se retira un lunar, la extirpación o el afeitado quirúrgico, el tejido retirado se examina al microscopio. Un método que destruye la lesión, como el plasma, no deja tejido para analizar: por eso, si el lunar es sospechoso o hay cualquier duda, lo adecuado es una biopsia o una evaluación dermatológica en lugar de destruirlo, y la doctora lo decidirá contigo. En las fuentes consultadas no hay datos clínicos sobre el uso del plasma pen específicamente para retirar lunares. Los dispositivos de plasma de uso comercial, además, a menudo no están regulados por la FDA y se asocian a riesgo de cambios de pigmentación, cicatrices y quemaduras. Ningún método de retiro está libre de riesgo.',
     ],
     beneficios: [
-      'Permite retirar un lunar que molesta o que no te gusta por estética.',
-      'Retirar un lunar que molesta o que no te gusta por estética es una opción que la AAD reconoce, siempre con evaluación médica previa.',
+      'Permite retirar un lunar que molesta o que no te gusta por estética, siempre con evaluación médica previa.',
+      'Si el lunar roza con la ropa o se irrita, retirarlo puede aliviar esa molestia.',
       'Retirarlo con un profesional reduce los riesgos de infección y cicatrices frente a los métodos caseros.',
     ],
     antes: [
@@ -195,12 +195,12 @@ export const plasma: Tratamiento[] = [
     resumen: 'Retiro de acrocordones (pequeños crecimientos de piel) con plasma pen; suelen ser inofensivos y no siempre necesitan quitarse.',
     queEs: [
       'Los acrocordones son crecimientos inofensivos de la piel, del color de la piel, más oscuros o rosados, que cuelgan de un pequeño tallo o están adheridos. Aparecen donde la piel roza con piel, joyas o ropa, como el cuello, los párpados o las axilas.',
-      'Por lo general no necesitan retirarse; se recomienda cuando se irritan, sangran, duelen o, en el párpado, afectan la visión. Retirarlos solo por estética es un procedimiento cosmético. La AAD describe como métodos profesionales la congelación, la electrodesecación y el corte con instrumentos estériles; no menciona el plasma. En las fuentes consultadas no hay datos clínicos sobre el plasma pen para acrocordones, por lo que la doctora valorará si es adecuado en tu caso. Si no estás seguro de qué es una lesión (si es un acrocordón, una verruga u otra cosa), hay que evaluarla antes de retirarla.',
+      'Por lo general no necesitan retirarse; se recomienda cuando se irritan, sangran, duelen o, en el párpado, afectan la visión. Retirarlos solo por estética es un procedimiento cosmético. La AAD describe como métodos profesionales la congelación, la electrodesecación y el corte con instrumentos estériles; no menciona el plasma. En las fuentes consultadas no hay datos clínicos sobre el plasma pen para acrocordones, por lo que la doctora valorará si es adecuado en tu caso. Si tienes dudas sobre qué es una lesión (si es un acrocordón, una verruga u otra cosa), hay que evaluarla antes de retirarla.',
     ],
     beneficios: [
       'Alivia la molestia por roce o la irritación causada por el acrocordón.',
       'Permite retirar lesiones que no te gustan por estética.',
-      'La AAD recomienda consultar a un dermatólogo si no estás segura de si una lesión es un acrocordón, una verruga u otra cosa más seria; por eso conviene que te valoren antes de retirarla.',
+      'Hacerlo en consulta evita recurrir a retirarlo en casa con hilos o productos no aprobados, algo que no es adecuado.',
     ],
     antes: [
       'Ten una consulta de valoración: la doctora confirmará que se trata de un acrocordón. Si una lesión ha cambiado de color, forma o tamaño, o te genera dudas, debe ser evaluada por un médico antes de retirarla.',
@@ -213,7 +213,7 @@ export const plasma: Tratamiento[] = [
       'Con los dispositivos de plasma se describen riesgos de cambios de pigmentación, cicatrices y quemaduras mecánicas.',
     ],
     contraindicaciones: [
-      'Una lesión que no estés seguro de que sea un acrocordón, o que haya cambiado de color, forma o tamaño, debe ser evaluada por un médico antes de retirarla.',
+      'Una lesión de la que dudes que sea un acrocordón, o que haya cambiado de color, forma o tamaño, debe ser evaluada por un médico antes de retirarla.',
       'No es adecuado retirarlos en casa con hilos ni productos no aprobados.',
       'La doctora valorará si el riesgo de cicatrices o cambios de pigmentación es aceptable en tu caso.',
     ],
@@ -228,7 +228,7 @@ export const plasma: Tratamiento[] = [
       },
       {
         pregunta: '¿Por qué conviene que me los revise un médico antes?',
-        respuesta: 'Porque no siempre es fácil distinguir un acrocordón de una verruga o de otra lesión más seria. La AAD recomienda consultar si no estás segura de qué es.',
+        respuesta: 'Porque no siempre es fácil distinguir un acrocordón de una verruga o de otra lesión más seria. La AAD recomienda consultar si tienes dudas sobre qué es.',
       },
       {
         pregunta: '¿Puedo quitarlo en casa?',
@@ -250,11 +250,11 @@ export const plasma: Tratamiento[] = [
     ],
     beneficios: [
       'Permite tratar una verruga que molesta, duele o no se va con los tratamientos de farmacia.',
-      'La AAD indica que un dermatólogo suele reconocer una verruga al examinarla y que, si hace falta, puede confirmarlo con una biopsia.',
-      'Un dermatólogo puede elegir entre varias opciones según tu salud, tu edad y el tipo de verruga.',
+      'Existen varias opciones médicas (como el ácido salicílico, la congelación, la electrocirugía o el láser), de modo que el tratamiento puede adaptarse a tu salud, tu edad y el tipo de verruga.',
+      'Cuando una verruga te incomoda por su aspecto, retirarla es una opción.',
     ],
     antes: [
-      'Ten una consulta de valoración: la doctora confirmará el diagnóstico. Si una lesión ha cambiado de color, forma o tamaño, o no estás segura de si es una verruga, debe evaluarse antes de retirarla.',
+      'Ten una consulta de valoración: la doctora confirmará el diagnóstico. Si una lesión ha cambiado de color, forma o tamaño, o tienes dudas sobre si es una verruga, debe evaluarse antes de retirarla.',
       'Consulta a un médico, y no uses productos caseros, si la verruga está en la cara o en los genitales, si cambia, duele, pica, arde o sangra, si tienes muchas, o si el tratamiento casero no funcionó.',
       'Avisa si tienes diabetes o un sistema inmunitario debilitado: en esos casos se recomienda consultar con un dermatólogo.',
     ],
@@ -264,7 +264,7 @@ export const plasma: Tratamiento[] = [
       'Con los dispositivos de plasma se describen riesgos de cambios de pigmentación, cicatrices y quemaduras mecánicas.',
     ],
     contraindicaciones: [
-      'Una lesión que cambia, crece rápido, parece una llaga o no estás segura de qué es, debe evaluarse por un médico antes de retirarla.',
+      'Una lesión que cambia, crece rápido, parece una llaga o tienes dudas sobre qué es, debe evaluarse por un médico antes de retirarla.',
       'Las verrugas en la cara o genitales, o en personas con diabetes o con las defensas bajas, requieren valoración médica.',
       'La doctora valorará si el riesgo de cicatrices o cambios de pigmentación es aceptable en tu caso.',
     ],

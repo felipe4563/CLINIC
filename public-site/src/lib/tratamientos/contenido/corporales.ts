@@ -38,8 +38,7 @@ export const corporales: Tratamiento[] = [
     beneficios: [
       'Es un procedimiento con inyecciones, sin cirugía.',
       'El desoxicolato está aprobado por la FDA para mejorar la apariencia de la grasa bajo el mentón en adultos.',
-      'Debe aplicarlo un profesional de la salud, según la FDA.',
-      'Los riesgos del producto aprobado están descritos en la información oficial de la FDA, lo que permite conocerlos de antemano.',
+      'Busca reducir una acumulación de grasa localizada en una zona concreta, sin pasar por quirófano.',
     ],
     antes: [
       'Ten una consulta de valoración: la doctora revisará la zona y decidirá si este tratamiento es adecuado para ti.',
@@ -136,11 +135,11 @@ export const corporales: Tratamiento[] = [
     resumen: 'Inyecciones que buscan descomponer grasa localizada. Los productos para disolver grasa que no están aprobados por la FDA pueden causar daños serios.',
     queEs: [
       '"Enzimas lipolíticas" es un nombre comercial que se da a inyecciones pensadas para romper las células de grasa en una zona concreta. Las fuentes consultadas no incluyen una ficha sobre enzimas lipolíticas como tal; sí describen la lipólisis por inyección ("injection lipolysis"), un procedimiento sin cirugía que usa una serie de inyecciones bajo la piel para descomponer grasa, y cuyos ingredientes más comunes son la fosfatidilcolina y el desoxicolato de sodio.',
-      'La FDA indica que los productos de este tipo vendidos con nombres como Lipodissolve, Aqualyx o Kabelline no han sido evaluados en cuanto a su seguridad y eficacia, y que el único inyectable aprobado para disolver grasa es el desoxicolato (Kybella), únicamente para la grasa bajo el mentón. Por eso es importante preguntar qué contiene exactamente lo que te van a inyectar.',
+      'La FDA indica que los productos de este tipo vendidos con nombres como Lipodissolve, Aqualyx o Kabelline no han sido evaluados en cuanto a su seguridad y eficacia, y que el único inyectable aprobado para disolver grasa es el desoxicolato (Kybella), únicamente para la grasa bajo el mentón. Por eso es importante preguntar qué contiene exactamente lo que te van a inyectar. En las fuentes consultadas no hay datos que muestren cuánto se reduce la grasa con productos no aprobados, así que no se puede prometer un resultado.',
     ],
     beneficios: [
       'Lo que se busca con estas inyecciones es reducir pequeñas acumulaciones de grasa en una zona concreta, sin cirugía.',
-      'No hay en las fuentes consultadas datos que muestren cuánto se reduce la grasa con productos no aprobados, así que no hay datos que permitan prometer un resultado.',
+      'Las fuentes consultadas la describen como un procedimiento sin cirugía, con una serie de inyecciones bajo la piel.',
       'Para la grasa bajo el mentón existe un medicamento aprobado por la FDA, con riesgos y límites descritos oficialmente.',
     ],
     antes: [
@@ -321,14 +320,14 @@ export const corporales: Tratamiento[] = [
     antes: [
       'Si tienes hinchazón en brazos o piernas, consulta primero a un médico para conocer la causa; el masaje no la sustituye.',
       'Cuéntale al terapeuta tus problemas de salud antes de empezar; Cleveland Clinic lo recomienda para cualquier masaje.',
-      'Si tienes linfedema, cáncer o has usado radioterapia, consulta a tu médico antes de recibir drenaje.',
+      'Si tienes linfedema, cáncer o has usado radioterapia, consulta a la doctora antes de recibir drenaje.',
       'Normalmente la sesión comienza masajeando zonas de ganglios, como axilas y cuello, y, con tu consentimiento, la ingle.',
     ],
     despues: [
-      'Pocas personas tienen reacciones, pero pueden aparecer cansancio, dolor de cabeza o náuseas; si te ocurre, avisa a tu médico.',
+      'Pocas personas tienen reacciones, pero pueden aparecer cansancio, dolor de cabeza o náuseas; si te ocurre, avisa a la doctora.',
       'Si usas prendas de compresión por prescripción médica, sigue usándolas.',
       'No lo uses como único tratamiento del linfedema.',
-      'Los resultados pueden no notarse enseguida; si tras varias sesiones no hay cambios, habla de otras opciones con tu médico.',
+      'Los resultados pueden no notarse enseguida; si tras varias sesiones no hay cambios, habla de otras opciones con la doctora.',
       'Consulta si la hinchazón aumenta en el abdomen, las articulaciones, los brazos o las piernas.',
     ],
     contraindicaciones: [
@@ -337,7 +336,7 @@ export const corporales: Tratamiento[] = [
       'Enfermedad del corazón.',
       'Insuficiencia renal.',
       'No debe hacerse directamente sobre tejido con cáncer ni sobre piel dañada por radioterapia.',
-      'Si tomas anticoagulantes, tienes implantes o dispositivos médicos, o estás embarazada, consulta antes con tu médico, como recomienda Cleveland Clinic para el masaje en general.',
+      'Si tomas anticoagulantes, tienes implantes o dispositivos médicos, o estás embarazada, consulta antes con la doctora, como recomienda Cleveland Clinic para el masaje en general.',
     ],
     preguntas: [
       {
@@ -346,7 +345,7 @@ export const corporales: Tratamiento[] = [
       },
       {
         pregunta: '¿Cuándo se notan los resultados?',
-        respuesta: 'Cleveland Clinic no da un plazo fijo y advierte que los resultados pueden no verse enseguida. Si tras varias sesiones no notas ninguna mejoría, conviene consultar otras opciones con tu médico.',
+        respuesta: 'Cleveland Clinic no da un plazo fijo y advierte que los resultados pueden no verse enseguida. Si tras varias sesiones no notas ninguna mejoría, conviene consultar otras opciones con la doctora.',
       },
       {
         pregunta: '¿Duele?',
@@ -382,7 +381,7 @@ export const corporales: Tratamiento[] = [
     ],
     antes: [
       'Cuéntale al terapeuta tus problemas de salud y los medicamentos que tomas antes de empezar.',
-      'Si tomas anticoagulantes, tienes coágulos en las piernas, osteoporosis, un tumor, un dispositivo médico implantado o estás embarazada, consulta a tu médico antes.',
+      'Si tomas anticoagulantes, tienes coágulos en las piernas, osteoporosis, un tumor, un dispositivo médico implantado o estás embarazada, consulta a la doctora antes.',
       'Evita el masaje si has tenido una lesión aguda o una cirugía en las últimas 48 horas, o consulta antes.',
       'Pide que te expliquen la técnica; las técnicas varían mucho y la presión puede ir de ligera a intensa.',
     ],

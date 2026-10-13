@@ -121,27 +121,26 @@ export const enfermeria: Tratamiento[] = [
   {
     slug: 'control-presion-arterial',
     nombre: 'Control de presión arterial',
-    resumen: 'Medición rápida con un brazalete para conocer tu presión; tu médico interpreta los valores y decide si hace falta repetirla.',
+    resumen: 'Medición rápida con un brazalete para conocer tu presión; la doctora interpreta los valores y decide si hace falta repetirla.',
     queEs: [
       'El control de presión arterial mide la fuerza con la que la sangre empuja las paredes de las arterias. Se hace con un brazalete en la parte superior del brazo que se infla y se desinfla lentamente. Se registran dos números: la presión sistólica (el primero, más alto) y la diastólica (el segundo).',
-      'Un solo valor no basta para diagnosticar: según MedlinePlus, el diagnóstico de presión alta suele requerir dos o más lecturas altas en días diferentes. Tu médico interpreta los resultados y decide cada cuánto controlarte.',
+      'Un solo valor no basta para diagnosticar: según MedlinePlus, el diagnóstico de presión alta suele requerir dos o más lecturas altas en días diferentes. La doctora interpreta los resultados y decide cada cuánto controlarte.',
     ],
     beneficios: [
       'Es una prueba rápida: dura aproximadamente un minuto (MedlinePlus).',
       'Permite detectar presión alta, que habitualmente no causa síntomas (NHS).',
-      'Tu médico decide cada cuánto repetirla según tus factores de riesgo y tus resultados (MedlinePlus).',
       'Si un valor sale alto, el NHS señala que pueden pedirte medirla en casa durante unos días, repetirla en consulta o usar un monitor portátil durante 24 horas para confirmarlo.',
     ],
     antes: [
       'Evita el ejercicio, el alcohol, el tabaco y la cafeína al menos 30 minutos antes (MedlinePlus).',
-      'Ve al baño antes de la medición y descansa sentado unos 5 minutos (MedlinePlus).',
+      'Ve al baño antes de la medición y descansa unos 5 minutos en posición sentada (MedlinePlus).',
       'Siéntate con la espalda apoyada, las piernas sin cruzar, los pies planos en el piso y el brazo a la altura del corazón, con la manga recogida y sin que apriete.',
       'Avisa al personal qué medicamentos tomas, porque algunos pueden influir en los resultados (MedlinePlus).',
     ],
     despues: [
       'Durante el inflado puedes sentir una ligera molestia en el brazo (MedlinePlus).',
-      'Si te mides en casa, MedlinePlus sugiere tomar dos o tres lecturas con un minuto de diferencia, sentado, y anotar la hora.',
-      'Tu médico interpreta los valores. Las guías usan cifras distintas: MedlinePlus (guía de EE. UU.) considera normal menos de 120/80 y presión alta desde 130/80, mientras que el NHS (Reino Unido) sugiere presión alta con 140/90 o más en consulta y 135/85 o más en casa. Las cifras que se aplican a ti las define tu médico.',
+      'Si te mides en casa, MedlinePlus sugiere tomar dos o tres lecturas con un minuto de diferencia, en posición sentada, y anotar la hora.',
+      'La doctora interpreta los valores. Las guías usan cifras distintas: MedlinePlus (guía de EE. UU.) considera normal menos de 120/80 y presión alta desde 130/80, mientras que el NHS (Reino Unido) sugiere presión alta con 140/90 o más en consulta y 135/85 o más en casa. Las cifras que se aplican a ti las define la doctora.',
       'Si tomas la presión en casa, comparte las lecturas con tu médico antes de hacer cambios (MedlinePlus).',
     ],
     contraindicaciones: [
@@ -153,11 +152,11 @@ export const enfermeria: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Un valor alto significa que tengo hipertensión?',
-        respuesta: 'No necesariamente. MedlinePlus indica que el diagnóstico suele requerir dos o más lecturas altas en días diferentes. Tu médico decidirá si hay que repetirla o seguirla en casa.',
+        respuesta: 'No necesariamente. MedlinePlus indica que el diagnóstico suele requerir dos o más lecturas altas en días diferentes. La doctora decidirá si hay que repetirla o seguirla en casa.',
       },
       {
         pregunta: '¿Con qué frecuencia debo controlarme?',
-        respuesta: 'Según MedlinePlus, al menos una vez al año en adultos de 40 años o más y en personas con mayor riesgo. Tu médico puede indicarte otra frecuencia según tu caso.',
+        respuesta: 'Según MedlinePlus, al menos una vez al año en adultos de 40 años o más y en personas con mayor riesgo. La doctora puede indicarte otra frecuencia según tu caso.',
       },
       {
         pregunta: '¿Duele?',
@@ -177,7 +176,7 @@ export const enfermeria: Tratamiento[] = [
     beneficios: [
       'Es una forma rápida y de bajo costo de orientar si tu peso es adecuado para tu estatura (CDC).',
       'Seguir tu IMC en el tiempo permite notar si has ganado o perdido peso (CDC).',
-      'Aporta datos para que tu médico valore, junto con otros factores, tu riesgo de enfermedades crónicas (CDC).',
+      'Aporta datos para que la doctora valore, junto con otros factores, tu riesgo de enfermedades crónicas (CDC).',
       'En adultos, a veces se complementa con la medida de la cintura (MedlinePlus).',
     ],
     antes: [
@@ -185,9 +184,9 @@ export const enfermeria: Tratamiento[] = [
       'Comenta si eres una persona muy musculosa, si tienes 65 años o más o si el control es para un niño o adolescente: el IMC puede interpretarse distinto en estos casos.',
     ],
     despues: [
-      'Tu médico interpreta el resultado junto con tu historia de salud, tu examen físico y tus análisis (CDC).',
+      'La doctora interpreta el resultado junto con tu historia de salud, tu examen físico y tus análisis (CDC).',
       'El IMC no es un diagnóstico por sí solo. En adultos, el personal también puede usar la medida de la cintura o la relación cintura-cadera (MedlinePlus).',
-      'Si tu médico lo indica, se repite la medición en el tiempo para seguir la tendencia.',
+      'Si la doctora lo indica, se repite la medición en el tiempo para seguir la tendencia.',
     ],
     contraindicaciones: [
       'En niños y adolescentes no se usa la calculadora de adultos: los CDC interpretan el IMC como un percentil según sexo y edad (de 2 a 19 años), y MedlinePlus indica no usar su tabla en niños.',
@@ -201,7 +200,7 @@ export const enfermeria: Tratamiento[] = [
       },
       {
         pregunta: '¿Un IMC alto significa que tengo una enfermedad?',
-        respuesta: 'No por sí solo. MedlinePlus explica que no predice el riesgo de salud por sí mismo y los CDC indican que se interpreta junto con otros datos clínicos. Tu médico te explicará qué significa en tu caso.',
+        respuesta: 'No por sí solo. MedlinePlus explica que no predice el riesgo de salud por sí mismo y los CDC indican que se interpreta junto con otros datos clínicos. La doctora te explicará qué significa en tu caso.',
       },
       {
         pregunta: '¿Sirve para niños?',
@@ -213,10 +212,10 @@ export const enfermeria: Tratamiento[] = [
   {
     slug: 'glicemia-capilar',
     nombre: 'Glicemia capilar',
-    resumen: 'Medición del azúcar en sangre con una gota obtenida del dedo; tu médico interpreta el valor y decide si hacen falta más análisis.',
+    resumen: 'Medición del azúcar en sangre con una gota obtenida del dedo; la doctora interpreta el valor y decide si hacen falta más análisis.',
     queEs: [
       'La glicemia capilar mide la glucosa (azúcar) en una gota de sangre. Con una lanceta se pincha el dedo, la gota se aplica sobre una tira reactiva y se lee en un medidor electrónico pequeño (MedlinePlus).',
-      'Esta medición no es una prueba diagnóstica por sí sola: tu médico interpreta tu resultado y, si hace falta, pide análisis de laboratorio. Los CDC indican que un resultado obtenido en una farmacia o feria de salud debe consultarse con un médico, que puede repetir la prueba para confirmar que es exacto.',
+      'Esta medición no es una prueba diagnóstica por sí sola: la doctora interpreta tu resultado y, si hace falta, pide análisis de laboratorio. Los CDC indican que un resultado obtenido en una farmacia o feria de salud debe consultarse con un médico, que puede repetir la prueba para confirmar que es exacto.',
     ],
     beneficios: [
       'Es una prueba sencilla: solo requiere una gota de sangre del dedo (MedlinePlus).',
@@ -229,7 +228,7 @@ export const enfermeria: Tratamiento[] = [
       'Comenta si tienes síntomas en este momento, por ejemplo temblor, sudor, mareo, hambre intensa, sed o visión borrosa.',
     ],
     despues: [
-      'Tu médico interpreta el resultado y decide si necesitas repetirlo o hacerte un análisis en laboratorio (MedlinePlus, CDC).',
+      'La doctora interpreta el resultado y decide si necesitas repetirlo o hacerte un análisis en laboratorio (MedlinePlus, CDC).',
       'Como referencia, los CDC (EE. UU.) usan estas cifras para una prueba de sangre en laboratorio hecha tras un ayuno nocturno: normal hasta 99 mg/dL, prediabetes de 100 a 125 mg/dL y diabetes desde 126 mg/dL. No son cifras para leer en un glucómetro: tu médico interpreta los valores de tu medidor.',
       'Si estás con tratamiento para la diabetes, sigue las indicaciones de tu médico según el resultado.',
     ],
@@ -249,7 +248,7 @@ export const enfermeria: Tratamiento[] = [
       },
       {
         pregunta: '¿Un valor alto significa que tengo diabetes?',
-        respuesta: 'No necesariamente. Esta medición la interpreta tu médico, y los CDC indican que ante un resultado de farmacia o feria de salud el médico puede repetir la prueba para confirmar su exactitud.',
+        respuesta: 'No necesariamente. Esta medición la interpreta la doctora, y los CDC indican que ante un resultado de farmacia o feria de salud el médico puede repetir la prueba para confirmar su exactitud.',
       },
     ],
     fuentes: [MEDLINE_GLUCOSA, CDC_GLUCOSA, NHS_HIPOGLUCEMIA, NHS_HIPERGLUCEMIA],
@@ -310,8 +309,8 @@ export const enfermeria: Tratamiento[] = [
     ],
     beneficios: [
       'Permite administrar medicamentos que necesitan llegar al músculo para actuar bien (MedlinePlus).',
-      'El proceso descrito por MedlinePlus incluye confirmar el medicamento y la dosis, limpiar la piel y usar una jeringa y aguja nuevas.',
-      'La zona de la inyección se elige según la edad y el tamaño del músculo, y se recomienda variar el sitio en inyecciones repetidas (MedlinePlus).',
+      'Hay varias zonas posibles para la inyección intramuscular, de modo que se puede elegir la más adecuada según tu edad y el tamaño del músculo (MedlinePlus).',
+      'Si necesitas inyecciones repetidas, el sitio puede variarse para no usar siempre el mismo (MedlinePlus).',
     ],
     antes: [
       'Trae tu receta médica: los inyectables se aplican solo con prescripción.',

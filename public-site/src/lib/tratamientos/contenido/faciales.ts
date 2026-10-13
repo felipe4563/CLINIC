@@ -17,7 +17,7 @@ export const faciales: Tratamiento[] = [
       'Los resultados aparecen de forma gradual, porque el colágeno nuevo tarda semanas en formarse.',
     ],
     antes: [
-      'Consulta antes con tu médico: revisará tu piel, tu historial de salud y lo que esperas lograr.',
+      'Consulta antes con la doctora: revisará tu piel, tu historial de salud y lo que esperas lograr.',
       'Durante las semanas previas se suele indicar una rutina de cuidado de la piel; puede incluir pausar retinoides unos días.',
       'Protege tu piel del sol antes del procedimiento y evita llegar con bronceado o quemadura reciente.',
       'Si tomaste isotretinoína, avisa: se suele esperar al menos un mes después de la última pastilla.',
@@ -25,7 +25,7 @@ export const faciales: Tratamiento[] = [
     despues: [
       'Es normal ver enrojecimiento (o un tono más oscuro en pieles morenas), sensación de piel quemada e hinchazón leve; suele pasar en unos días hasta una semana.',
       'Espera 24 horas antes de maquillarte.',
-      'Usa la crema que te indique tu médico y sigue sus cuidados al pie de la letra para prevenir infecciones.',
+      'Usa la crema que te indique la doctora y sigue sus cuidados al pie de la letra para prevenir infecciones.',
       'Protege la piel del sol; así también ayudas a que los resultados duren más.',
       'Pregunta por las sesiones: el número depende del motivo de consulta y de la zona tratada.',
     ],
@@ -40,11 +40,11 @@ export const faciales: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Duele?',
-        respuesta: 'Suele causar molestia leve y pasajera, además de enrojecimiento e hinchazón que se calman en pocos días. Si te preocupa, coméntalo con tu médico antes del procedimiento.',
+        respuesta: 'Suele causar molestia leve y pasajera, además de enrojecimiento e hinchazón que se calman en pocos días. Si te preocupa, coméntalo con la doctora antes del procedimiento.',
       },
       {
         pregunta: '¿Cuántas sesiones necesito?',
-        respuesta: 'Depende de lo que se quiera tratar y de la zona. Para cicatrices de acné, por ejemplo, la AAD menciona series de varias sesiones espaciadas por algunas semanas. Tu médico definirá el plan después de valorarte.',
+        respuesta: 'Depende de lo que se quiera tratar y de la zona. Para cicatrices de acné, por ejemplo, la AAD menciona series de varias sesiones espaciadas por algunas semanas. La doctora definirá el plan después de valorarte.',
       },
       {
         pregunta: '¿Los resultados son definitivos?',
@@ -75,14 +75,14 @@ export const faciales: Tratamiento[] = [
       'Puede combinarse con otros procedimientos faciales, como el microneedling.',
     ],
     antes: [
-      'Tu médico revisará tu historial de salud y los medicamentos que tomas.',
+      'La doctora revisará tu historial de salud y los medicamentos que tomas.',
       'Si usas anticoagulantes o antiinflamatorios, díselo: puede pedirte suspenderlos antes; no lo hagas por tu cuenta.',
       'Llega con la piel limpia y sin infecciones activas en la zona.',
     ],
     despues: [
       'Es habitual tener hinchazón y molestia durante uno o dos días.',
       'Los cambios en la piel aparecen de forma gradual, a lo largo de semanas.',
-      'Sigue las indicaciones de tu médico sobre limpieza, hidratación y protección solar.',
+      'Sigue las indicaciones de la doctora sobre limpieza, hidratación y protección solar.',
       'Si notas dolor creciente, calor, secreción o fiebre, consulta de inmediato.',
     ],
     contraindicaciones: [
@@ -98,7 +98,7 @@ export const faciales: Tratamiento[] = [
       },
       {
         pregunta: '¿Cuándo veré resultados?',
-        respuesta: 'Los cambios suelen notarse después de algunas semanas y siguen evolucionando. Algunas personas necesitan más de una sesión; tu médico te orientará según tu caso.',
+        respuesta: 'Los cambios suelen notarse después de algunas semanas y siguen evolucionando. Algunas personas necesitan más de una sesión; la doctora te orientará según tu caso.',
       },
       {
         pregunta: '¿Está comprobado que funciona?',
@@ -125,21 +125,21 @@ export const faciales: Tratamiento[] = [
       'Muchas personas tratadas reportan satisfacción de moderada a alta.',
     ],
     antes: [
-      'Cuenta a tu médico tus alergias, enfermedades y medicamentos; tomará la decisión de si es adecuado para ti.',
+      'Cuenta a la doctora tus alergias, enfermedades y medicamentos; tomará la decisión de si es adecuado para ti.',
       'Llega con la piel limpia y sin infecciones o lesiones en la zona.',
       'Pregunta qué producto se usará y qué se sabe de él, ya que las preparaciones varían.',
     ],
     despues: [
       'Pueden aparecer enrojecimiento o pequeñas molestias en los puntos de aplicación que se calman solos.',
-      'Sigue las indicaciones de tu médico sobre limpieza, maquillaje y protección solar.',
+      'Sigue las indicaciones de la doctora sobre limpieza, maquillaje y protección solar.',
       'Avisa si notas dolor intenso, hinchazón que aumenta o signos de infección.',
-      'Los cambios son graduales; tu médico puede proponerte una o más sesiones según tu caso.',
+      'Los cambios son graduales; la doctora puede proponerte una o más sesiones según tu caso.',
     ],
     contraindicaciones: [
       'Alergia conocida a alguno de los componentes del producto.',
       'Infección activa o lesiones en la piel de la zona a tratar.',
       'Embarazo y lactancia: no hay estudios suficientes, por lo que el médico lo valora con cautela.',
-      'Cualquier condición médica que tu médico considere un riesgo.',
+      'Cualquier condición médica que la doctora considere un riesgo.',
     ],
     preguntas: [
       {
@@ -174,25 +174,25 @@ export const faciales: Tratamiento[] = [
       'Es un campo de investigación activo que podría ofrecer opciones en el futuro.',
     ],
     antes: [
-      'Pregunta a tu médico qué producto se usa, de dónde proviene y qué respaldo tiene; la calidad varía mucho entre preparaciones.',
+      'Pregunta a la doctora qué producto se usa, de dónde proviene y qué respaldo tiene; la calidad varía mucho entre preparaciones.',
       'Comenta tus alergias, enfermedades y medicamentos para que valore si es adecuado para ti.',
       'Llega con la piel limpia y sin infecciones o lesiones en la zona.',
     ],
     despues: [
       'Sigue al pie de la letra las indicaciones de limpieza, hidratación y protección solar.',
       'Vigila la zona: si aparece dolor creciente, calor, secreción, fiebre o mucho enrojecimiento, consulta de inmediato.',
-      'Si tuviste una reacción inesperada, avísale a tu médico para que se registre y se atienda.',
+      'Si tuviste una reacción inesperada, avísale a la doctora para que se registre y se atienda.',
     ],
     contraindicaciones: [
       'Infección activa o lesiones en la piel de la zona a tratar.',
       'Alergia a componentes del producto.',
-      'Antecedente de cáncer o lesiones de la piel sospechosas: tu médico debe valorarlo antes, porque falta información sobre seguridad.',
+      'Antecedente de cáncer o lesiones de la piel sospechosas: la doctora debe valorarlo antes, porque falta información sobre seguridad.',
       'Embarazo y lactancia: no hay estudios suficientes.',
     ],
     preguntas: [
       {
         pregunta: '¿Están aprobados los exosomas?',
-        respuesta: 'La FDA de Estados Unidos indica que actualmente no existe ningún producto de exosomas aprobado. Por eso conviene hablar con tu médico sobre el producto concreto, su origen y su respaldo antes de decidir.',
+        respuesta: 'La FDA de Estados Unidos indica que actualmente no existe ningún producto de exosomas aprobado. Por eso conviene hablar con la doctora sobre el producto concreto, su origen y su respaldo antes de decidir.',
       },
       {
         pregunta: '¿Tienen evidencia científica?',
@@ -225,14 +225,14 @@ export const faciales: Tratamiento[] = [
     ],
     antes: [
       'Evita el bronceado y el sol directo durante las dos semanas previas.',
-      'Tu médico puede pedirte pausar retinoides una o dos semanas antes, o usar productos despigmentantes: no cambies tu rutina por tu cuenta.',
+      'La doctora puede pedirte pausar retinoides una o dos semanas antes, o usar productos despigmentantes: no cambies tu rutina por tu cuenta.',
       'La piel no debe tener heridas, lesiones ni infecciones en la zona.',
       'Si has tenido herpes labial, avisa; puede recetarse un antiviral preventivo.',
     ],
     despues: [
       'Espera enrojecimiento y descamación; en los superficiales dura entre tres y siete días, y más tiempo en los medios y profundos.',
       'No rasques, no arranques las pieles ni uses camas solares.',
-      'Mantén la piel hidratada con las cremas que te indique tu médico.',
+      'Mantén la piel hidratada con las cremas que te indique la doctora.',
       'Evita el sol durante la curación y usa protector solar a diario cuando la piel haya sanado.',
       'Consulta si la piel arde, pica o se hincha de forma importante.',
     ],
@@ -247,11 +247,11 @@ export const faciales: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Cuántos peelings necesito?',
-        respuesta: 'Los superficiales suelen hacerse en una serie de varias sesiones, espaciadas por algunas semanas. Los medios se repiten con más tiempo entre sesiones. Tu médico definirá el plan.',
+        respuesta: 'Los superficiales suelen hacerse en una serie de varias sesiones, espaciadas por algunas semanas. Los medios se repiten con más tiempo entre sesiones. La doctora definirá el plan.',
       },
       {
         pregunta: '¿Puedo maquillarme después?',
-        respuesta: 'Tras un peeling superficial suele permitirse el mismo día o al siguiente. Después de uno medio se espera varios días, hasta que tu médico lo autorice.',
+        respuesta: 'Tras un peeling superficial suele permitirse el mismo día o al siguiente. Después de uno medio se espera varios días, hasta que la doctora lo autorice.',
       },
       {
         pregunta: '¿Qué riesgos tiene?',
@@ -282,15 +282,15 @@ export const faciales: Tratamiento[] = [
       'En los estudios, el nivel de satisfacción fue alto y el tratamiento se consideró seguro.',
     ],
     antes: [
-      'Consulta con tu médico para valorar tu piel y definir si es lo que necesitas.',
+      'Consulta con la doctora para valorar tu piel y definir si es lo que necesitas.',
       'Informa tus alergias y los medicamentos que usas, sobre todo anticoagulantes.',
       'Llega con la piel limpia, sin infecciones ni herpes activo en la zona.',
     ],
     despues: [
       'Es normal tener pequeñas marcas de las punciones, enrojecimiento o hinchazón leve por un tiempo corto.',
-      'Sigue las indicaciones de tu médico sobre maquillaje, limpieza y protección solar.',
+      'Sigue las indicaciones de la doctora sobre maquillaje, limpieza y protección solar.',
       'Avisa si notas dolor intenso, bultos que no ceden o signos de infección.',
-      'Los resultados no son permanentes: el producto se va absorbiendo; tu médico te dirá cada cuánto repetir.',
+      'Los resultados no son permanentes: el producto se va absorbiendo; la doctora te dirá cada cuánto repetir.',
     ],
     contraindicaciones: [
       'Alergia conocida al ácido hialurónico o a algún componente del producto.',
@@ -305,7 +305,7 @@ export const faciales: Tratamiento[] = [
       },
       {
         pregunta: '¿Cuánto duran los efectos?',
-        respuesta: 'No son permanentes. La duración depende del producto y de cada piel, y los efectos disminuyen con el tiempo. Tu médico te indicará cada cuánto repetirlo según tu caso.',
+        respuesta: 'No son permanentes. La duración depende del producto y de cada piel, y los efectos disminuyen con el tiempo. La doctora te indicará cada cuánto repetirlo según tu caso.',
       },
       {
         pregunta: '¿Hay respaldo científico?',
@@ -331,13 +331,13 @@ export const faciales: Tratamiento[] = [
       'Es un procedimiento breve y de recuperación rápida.',
     ],
     antes: [
-      'Consulta con tu médico y cuéntale tus alergias, enfermedades y medicamentos.',
+      'Consulta con la doctora y cuéntale tus alergias, enfermedades y medicamentos.',
       'Pregunta qué contiene el producto y por qué te lo recomiendan.',
       'Llega con la piel limpia y sin infecciones en la zona.',
     ],
     despues: [
       'Puede haber enrojecimiento, pequeñas marcas o molestia leve en los puntos de aplicación.',
-      'Sigue las indicaciones de tu médico sobre limpieza, maquillaje y protección solar.',
+      'Sigue las indicaciones de la doctora sobre limpieza, maquillaje y protección solar.',
       'Avisa si notas dolor creciente, hinchazón o ronchas que se extienden.',
     ],
     contraindicaciones: [
@@ -349,7 +349,7 @@ export const faciales: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Qué lleva el cóctel?',
-        respuesta: 'La composición cambia según el producto y la necesidad de tu piel. Pídele a tu médico que te explique qué contiene el que te propone.',
+        respuesta: 'La composición cambia según el producto y la necesidad de tu piel. Pídele a la doctora que te explique qué contiene el que te propone.',
       },
       {
         pregunta: '¿Tiene respaldo científico?',
@@ -357,7 +357,7 @@ export const faciales: Tratamiento[] = [
       },
       {
         pregunta: '¿Cuántas sesiones se necesitan?',
-        respuesta: 'No hay un número estándar establecido. Tu médico lo propondrá según tu piel y tu objetivo, y evaluará si te está beneficiando.',
+        respuesta: 'No hay un número estándar establecido. La doctora lo propondrá según tu piel y tu objetivo, y evaluará si te está beneficiando.',
       },
     ],
     fuentes: [
@@ -371,7 +371,7 @@ export const faciales: Tratamiento[] = [
     resumen: 'Combinación de DMAE y silicio orgánico buscada para dar firmeza a la piel. Cada componente tiene datos limitados y la combinación casi no se ha estudiado.',
     queEs: [
       'El DMAE (dimetilaminoetanol) es una sustancia relacionada con la colina que se ha estudiado para dar firmeza a la piel. El silicio orgánico es una fuente de silicio que se asocia a la salud de la piel. En estética se usan juntos con la idea de mejorar la firmeza y el aspecto del rostro.',
-      'La evidencia es limitada. En DMAE, el estudio más sólido es de un gel aplicado sobre la piel durante 16 semanas, con mejoras en líneas de la frente y arrugas alrededor de los ojos. Del silicio orgánico, lo publicado muestra que puede llegar a las capas de la piel en pruebas de laboratorio, pero no demuestra que firme la piel. No encontramos estudios clínicos amplios que evalúen la combinación inyectada. Por eso es importante la valoración médica y mantener expectativas realistas.',
+      'La evidencia es limitada. En DMAE, el estudio más sólido es de un gel aplicado sobre la piel durante 16 semanas, con mejoras en líneas de la frente y arrugas alrededor de los ojos. Del silicio orgánico, lo publicado muestra que puede llegar a las capas de la piel en pruebas de laboratorio, pero no demuestra que firme la piel. Las fuentes consultadas no incluyen estudios clínicos amplios que evalúen la combinación inyectada. Por eso es importante la valoración médica y mantener expectativas realistas.',
     ],
     beneficios: [
       'El DMAE aplicado sobre la piel se ha asociado, en un estudio controlado, con mejoras en arrugas finas de la frente y alrededor de los ojos.',
@@ -379,20 +379,20 @@ export const faciales: Tratamiento[] = [
       'En ese estudio el DMAE fue bien tolerado y no hubo más irritación que con el placebo.',
     ],
     antes: [
-      'Consulta con tu médico, que valorará tu piel y si este tratamiento tiene sentido para ti.',
+      'Consulta con la doctora, que valorará tu piel y si este tratamiento tiene sentido para ti.',
       'Informa tus alergias, enfermedades y medicamentos.',
       'Pregunta cómo se usará (inyectado o en crema) y qué respaldo tiene en tu caso.',
     ],
     despues: [
       'Puede haber enrojecimiento o molestia leve en la zona tratada.',
-      'Sigue las indicaciones de tu médico sobre limpieza, maquillaje y protección solar.',
+      'Sigue las indicaciones de la doctora sobre limpieza, maquillaje y protección solar.',
       'Consulta si notas dolor creciente, hinchazón, ronchas o signos de infección.',
     ],
     contraindicaciones: [
       'Alergia a alguno de los componentes.',
       'Infección o lesiones activas en la piel de la zona.',
       'Embarazo y lactancia: por falta de estudios, el médico lo valora con cautela.',
-      'Cualquier condición médica que tu médico considere un riesgo.',
+      'Cualquier condición médica que la doctora considere un riesgo.',
     ],
     preguntas: [
       {
@@ -405,7 +405,7 @@ export const faciales: Tratamiento[] = [
       },
       {
         pregunta: '¿Tiene respaldo científico?',
-        respuesta: 'Es limitado. Hay un estudio controlado de DMAE tópico y datos de laboratorio del silicio, pero casi nada sobre la combinación en este tratamiento. Tu médico puede explicarte qué esperar.',
+        respuesta: 'Es limitado. Hay un estudio controlado de DMAE tópico y datos de laboratorio del silicio, pero casi nada sobre la combinación en este tratamiento. La doctora puede explicarte qué esperar.',
       },
     ],
     fuentes: [
@@ -427,13 +427,13 @@ export const faciales: Tratamiento[] = [
       'Es un procedimiento breve y de recuperación rápida.',
     ],
     antes: [
-      'Consulta con tu médico y cuéntale tus alergias, enfermedades y medicamentos.',
+      'Consulta con la doctora y cuéntale tus alergias, enfermedades y medicamentos.',
       'Pregunta qué contiene el producto y qué se espera lograr en tu piel.',
       'Llega con la piel limpia y sin infecciones en la zona.',
     ],
     despues: [
       'Puede haber enrojecimiento, pequeñas marcas o molestia leve en los puntos de aplicación.',
-      'Sigue las indicaciones de tu médico sobre limpieza, maquillaje y protección solar.',
+      'Sigue las indicaciones de la doctora sobre limpieza, maquillaje y protección solar.',
       'Consulta si notas dolor creciente, hinchazón o signos de infección.',
     ],
     contraindicaciones: [
@@ -453,7 +453,7 @@ export const faciales: Tratamiento[] = [
       },
       {
         pregunta: '¿Cuántas sesiones necesito?',
-        respuesta: 'No hay un número estándar. Tu médico lo propondrá según tu piel y valorará si estás respondiendo al tratamiento.',
+        respuesta: 'No hay un número estándar. La doctora lo propondrá según tu piel y valorará si estás respondiendo al tratamiento.',
       },
     ],
     fuentes: [
