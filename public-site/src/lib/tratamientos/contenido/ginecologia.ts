@@ -20,6 +20,11 @@ const ACOG_PRUEBAS_EMBARAZO = {
   titulo: 'Routine Tests During Pregnancy',
   url: 'https://www.acog.org/womens-health/faqs/routine-tests-during-pregnancy',
 };
+const CDC_ALARMA = {
+  sitio: 'CDC',
+  titulo: 'Matte Article: Recognizing Urgent Pregnancy-Related Warning Signs',
+  url: 'https://www.cdc.gov/hearher/news-media/article-urgent-warning-signs.html',
+};
 const MEDLINE_PRENATAL = {
   sitio: 'MedlinePlus',
   titulo: 'Cuidado prenatal',
@@ -127,11 +132,12 @@ export const ginecologia: Tratamiento[] = [
       'La doctora debería indicarte cuándo es tu próxima visita; el calendario puede ajustarse según tu salud y el riesgo de tu embarazo.',
       'Los resultados de los análisis de sangre u orina se conocen después y se te comunican.',
       'Habla con tu equipo de salud antes de empezar o suspender cualquier medicamento durante el embarazo.',
+      'Busca atención médica de inmediato si notas alguno de estos signos de alarma: dolor de cabeza intenso que no se va o empeora, mareo o desmayo, cambios en la visión, fiebre, hinchazón importante de manos o cara, dificultad para respirar, dolor de pecho o latidos muy rápidos, náuseas y vómitos intensos más allá de las náuseas habituales del embarazo, dolor abdominal intenso que no cede, que el bebé se mueva menos o deje de moverse, sangrado vaginal o pérdida de líquido, hinchazón, enrojecimiento o dolor en una pierna, cansancio extremo, o pensamientos de hacerte daño a ti o a tu bebé (según los CDC).',
     ],
     contraindicaciones: [
       'Si tienes una enfermedad previa o aparece una durante el embarazo, puedes necesitar visitas más frecuentes.',
       'Los embarazos de mayor riesgo pueden requerir derivación a un especialista en medicina materno-fetal.',
-      'Si no estás protegida contra la rubéola, la vacuna triple viral no se recomienda durante el embarazo, porque contiene un virus vivo; la doctora te orientará.',
+      'Si no tienes protección contra la rubéola, la vacuna triple viral no se recomienda durante el embarazo, porque contiene un virus vivo; la doctora te orientará.',
       'Tener 35 años o más también puede implicar visitas adicionales.',
     ],
     preguntas: [
@@ -148,7 +154,7 @@ export const ginecologia: Tratamiento[] = [
         respuesta: 'ACOG menciona análisis de sangre y orina de rutina, como hemograma, grupo sanguíneo y factor Rh, y pruebas para ciertas infecciones. Sirven para encontrar condiciones que podrían afectar el embarazo.',
       },
     ],
-    fuentes: [ACOG_PRENATAL, ACOG_PRUEBAS_EMBARAZO],
+    fuentes: [ACOG_PRENATAL, ACOG_PRUEBAS_EMBARAZO, CDC_ALARMA],
   },
   {
     slug: 'planificacion-familiar',
@@ -222,6 +228,7 @@ export const ginecologia: Tratamiento[] = [
       'Los resultados de análisis de sangre u orina se conocen después y, si hace falta, se piden más pruebas.',
       'Consulta con tu profesional antes de empezar o suspender cualquier medicamento: algunos pueden dañar al bebé.',
       'Evitar tabaco, alcohol y drogas protege tu salud y la de tu bebé, según MedlinePlus.',
+      'Busca atención médica de inmediato si notas alguno de estos signos de alarma: dolor de cabeza intenso que no se va o empeora, mareo o desmayo, cambios en la visión, fiebre, hinchazón importante de manos o cara, dificultad para respirar, dolor de pecho o latidos muy rápidos, náuseas y vómitos intensos más allá de las náuseas habituales del embarazo, dolor abdominal intenso que no cede, que el bebé se mueva menos o deje de moverse, sangrado vaginal o pérdida de líquido, hinchazón, enrojecimiento o dolor en una pierna, cansancio extremo, o pensamientos de hacerte daño a ti o a tu bebé (según los CDC).',
     ],
     contraindicaciones: [
       'Si tienes una condición previa como diabetes o presión alta, o si tienes 35 años o más, puedes necesitar más visitas.',
@@ -242,7 +249,7 @@ export const ginecologia: Tratamiento[] = [
         respuesta: 'Según ACOG, lo mejor es comenzar en el primer trimestre; antes de las 10 semanas desde la última regla es lo ideal.',
       },
     ],
-    fuentes: [MEDLINE_PRENATAL, ACOG_PRENATAL],
+    fuentes: [MEDLINE_PRENATAL, ACOG_PRENATAL, CDC_ALARMA],
   },
   {
     slug: 'papanicolau',
@@ -262,7 +269,7 @@ export const ginecologia: Tratamiento[] = [
       'Evita durante los 2 días previos las duchas vaginales y los medicamentos o productos vaginales, que pueden alterar la muestra.',
       'MedlinePlus indica evitar además tampones y relaciones sexuales durante las 24 horas previas.',
       'Lo mejor es programarla fuera de tu regla; puede hacerse durante ella, pero se prefiere otra fecha. Si tienes sangrado inesperado, consulta: la doctora decidirá si se puede hacer.',
-      'Avisa si ya tuviste un resultado anormal o una prueba de VPH positiva, o si estás o podrías estar embarazada.',
+      'Comenta tus antecedentes, como un resultado anormal o una prueba de VPH positiva, y si estás o podrías estar embarazada.',
     ],
     despues: [
       'Puedes sentir una molestia leve, parecida a un cólico, y algo de presión; después puede haber sangrado ligero.',
@@ -273,6 +280,8 @@ export const ginecologia: Tratamiento[] = [
     contraindicaciones: [
       'ACOG no recomienda el tamizaje antes de los 21 años: en ese grupo no reduce el cáncer cervical y puede llevar a tratamientos innecesarios.',
       'Entre los 21 y los 29 años, ACOG recomienda un Pap cada 3 años; entre los 30 y los 65, una prueba de VPH cada 5 años o una prueba conjunta (Pap y VPH) cada 5 años.',
+      'Estas son recomendaciones de ACOG, de Estados Unidos. Otras guías difieren en la edad de inicio (por ejemplo, 25 años con prueba de VPH) y en los intervalos; MedlinePlus señala que los expertos no coinciden. La doctora definirá tu calendario.',
+      'Si tienes VIH, un sistema inmunitario debilitado u otros factores de riesgo, el calendario puede ser distinto; la doctora lo indicará.',
       'Después de los 65 años puede suspenderse solo si hubo tamizaje regular con resultados normales y no hay antecedente de cambios moderados o graves ni de cáncer; la doctora lo valorará.',
       'Tras una histerectomía, el tamizaje puede seguir siendo necesario si se conservó el cuello uterino o si antes hubo cambios de alto grado o cáncer.',
       'Si estás con la regla, se prefiere reprogramarla para otra fecha.',
@@ -311,7 +320,7 @@ export const ginecologia: Tratamiento[] = [
       'Lo ideal es hacerla cuando no tienes la regla; si tienes sangrado anormal, o es el inicio o el final de la regla, puede mantenerse la cita.',
       'Durante las 24 horas previas no uses duchas vaginales, no coloques nada en la vagina ni tengas relaciones sexuales.',
       'Avisa si estás o podrías estar embarazada.',
-      'Vaciar la vejiga y el intestino antes ayuda a sentirte más cómoda; pregunta a la doctora si puedes tomar un analgésico antes y cuál.',
+      'Vaciar la vejiga y el intestino antes ayuda a que te sientas más cómodo; pregunta a la doctora si puedes tomar un analgésico antes y cuál.',
     ],
     despues: [
       'Si no hubo biopsia, normalmente te sientes bien enseguida y puede haber un poco de manchado vaginal unos días.',
@@ -326,7 +335,7 @@ export const ginecologia: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Duele?',
-        respuesta: 'Puede resultar incómoda: la colocación del espéculo, la solución que se aplica puede arder levemente y cada toma de biopsia puede sentirse como un pellizco o un cólico. Respirar lenta y profundamente ayuda a relajarse, y puedes ir acompañada de alguien.',
+        respuesta: 'Puede resultar incómoda: la colocación del espéculo, la solución que se aplica puede arder levemente y cada toma de biopsia puede sentirse como un pellizco o un cólico. Respirar lenta y profundamente ayuda a relajarse, y puedes ir con alguien que te acompañe.',
       },
       {
         pregunta: '¿Afecta mi fertilidad o un futuro embarazo?',

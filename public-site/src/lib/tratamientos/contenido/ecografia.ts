@@ -102,7 +102,7 @@ export const ecografia: Tratamiento[] = [
     ],
     antes: [
       'Para la ecografía abdominal pélvica suele pedirse la vejiga llena: te pueden indicar beber varios vasos de agua y no orinar hasta terminar. ACOG menciona beber durante las 2 horas previas.',
-      'Para la ecografía transvaginal se recomienda vaciar la vejiga antes, o que esté parcialmente llena, según MedlinePlus.',
+      'Para la ecografía transvaginal suele indicarse vaciar la vejiga, o tenerla parcialmente llena, según MedlinePlus; sigue lo que te indiquen al agendar.',
       'Te pedirán cambiarte con una bata o desvestirte de la cintura para abajo, según el tipo de estudio.',
       'Si tienes alergia al látex, avísalo: la sonda interna lleva una cubierta de látex.',
     ],
@@ -120,7 +120,7 @@ export const ecografia: Tratamiento[] = [
     preguntas: [
       {
         pregunta: '¿Cuál es la diferencia entre la abdominal y la transvaginal?',
-        respuesta: 'En la abdominal la sonda se mueve sobre el abdomen y suele requerir vejiga llena. En la transvaginal una sonda delgada, con cubierta y lubricante, se introduce en la vagina y se hace con la vejiga vacía o parcialmente llena.',
+        respuesta: 'En la abdominal la sonda se mueve sobre el abdomen y suele requerir vejiga llena. En la transvaginal una sonda delgada, con cubierta y lubricante, se introduce en la vagina y la preparación de la vejiga la indicará el centro (MedlinePlus menciona vejiga vacía o parcialmente llena).',
       },
       {
         pregunta: '¿Duele la ecografía transvaginal?',
