@@ -11,13 +11,20 @@ const LADO_MAX = 1600;
 // Reduce la foto en el navegador (las del celular pesan varios MB) y la pasa
 // a JPEG: el servidor solo acepta JPEG/PNG de hasta 5 MB y el PDF no engorda.
 async function reducir(archivo: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(archivo);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(archivo, { imageOrientation: 'from-image' });
+  } catch {
+    throw new Error(`No se pudo leer "${archivo.name}". Usa una foto JPG o PNG.`);
+  }
   const escala = Math.min(1, LADO_MAX / Math.max(bitmap.width, bitmap.height));
   const lienzo = document.createElement('canvas');
   lienzo.width = Math.round(bitmap.width * escala);
   lienzo.height = Math.round(bitmap.height * escala);
   const ctx = lienzo.getContext('2d');
   if (!ctx) throw new Error('No se pudo procesar la imagen');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, lienzo.width, lienzo.height);
   ctx.drawImage(bitmap, 0, 0, lienzo.width, lienzo.height);
   bitmap.close();
   return new Promise((resolver, rechazar) =>
@@ -39,11 +46,9 @@ export default function FotosHistoria<H>({ historiaId, fotos, onCambio }: { hist
     setError('');
     setSubiendo(true);
     try {
-      let ultima: H | null = null;
       for (const archivo of archivos.slice(0, MAX_FOTOS - fotos.length)) {
-        ultima = await api.subirFotoHistoria(historiaId, await reducir(archivo), '');
+        onCambio(await api.subirFotoHistoria(historiaId, await reducir(archivo), ''));
       }
-      if (ultima) onCambio(ultima);
       if (archivos.length > MAX_FOTOS - fotos.length) setError(`Solo se admiten ${MAX_FOTOS} fotos por evaluación`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo subir la foto');
@@ -58,6 +63,7 @@ export default function FotosHistoria<H>({ historiaId, fotos, onCambio }: { hist
     try {
       onCambio(await api.cambiarNotaFoto(historiaId, archivo, nota));
       setNotas((n) => {
+        if (n[archivo] !== nota) return n;
         const resto = { ...n };
         delete resto[archivo];
         return resto;
@@ -112,7 +118,7 @@ export default function FotosHistoria<H>({ historiaId, fotos, onCambio }: { hist
       )}
       {abierta && (
         <div className="mt-3 rounded border border-border p-2">
-          <ArchivoPrivado ruta={`/staff/historias/${historiaId}/fotos/${encodeURIComponent(abierta)}`} alt="Foto en grande" />
+          <ArchivoPrivado key={abierta} ruta={`/staff/historias/${historiaId}/fotos/${encodeURIComponent(abierta)}`} alt="Foto en grande" />
           <button type="button" onClick={() => setAbierta(null)} className="mt-2 text-xs hover:underline">Cerrar</button>
         </div>
       )}
