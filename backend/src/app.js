@@ -35,6 +35,8 @@ const app = express();
 app.use(cors({ exposedHeaders: ['Content-Disposition'] }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Guías de referencia de la historia clínica (sin datos de pacientes).
+app.use('/assets/historia', express.static(path.join(__dirname, '..', 'assets', 'historia')));
 
 app.use('/auth', authRoutes);
 app.use('/', catalogoRoutes);

@@ -2,20 +2,31 @@
 // papel). De aquí salen la validación del backend, el formulario del panel,
 // el PDF y el Word: agregar o quitar una casilla es cambiar solo este archivo.
 //
+const path = require('path');
+
 // Tipos de campo:
 //   check   -> true/false; `detalles` son textos asociados que se guardan
 //              planos como `<clave>_<detalle>` (ej. tabaco_frecuencia)
 //   texto   -> línea corta (500 caracteres)
 //   parrafo -> texto largo (4000 caracteres)
 //   opcion  -> una sola de `opciones`, se guarda la clave
+//   numero  -> entero 0 a 99 (fórmula obstétrica)
+//   fecha   -> YYYY-MM-DD
+// Un grupo puede tener `imagen`: archivo de DIR_GUIAS que se muestra arriba
+// de sus campos en el panel, el PDF y el Word.
 
 const check = (clave, etiqueta, detalles) => ({ clave, etiqueta, tipo: 'check', ...(detalles ? { detalles } : {}) });
 const texto = (clave, etiqueta) => ({ clave, etiqueta, tipo: 'texto' });
 const parrafo = (clave, etiqueta) => ({ clave, etiqueta, tipo: 'parrafo' });
 const opcion = (clave, etiqueta, opciones) => ({ clave, etiqueta, tipo: 'opcion', opciones });
 const o = (clave, etiqueta) => ({ clave, etiqueta });
+const numero = (clave, etiqueta) => ({ clave, etiqueta, tipo: 'numero' });
+const fecha = (clave, etiqueta) => ({ clave, etiqueta, tipo: 'fecha' });
 const FRECUENCIA = [o('frecuencia', 'Frecuencia')];
 const TIPO_FRECUENCIA = [o('tipo', 'Tipo'), o('frecuencia', 'Frecuencia')];
+const TIPO_TIEMPO = [o('tipo', 'Tipo'), o('tiempo', 'Tiempo')];
+// Guías de referencia que envió la clínica (sin datos de pacientes).
+const DIR_GUIAS = path.join(__dirname, '..', '..', 'assets', 'historia');
 
 const SECCIONES = [
   {
@@ -52,17 +63,21 @@ const SECCIONES = [
         ],
       },
       {
+        titulo: 'Antecedentes personales no patológicos',
+        campos: [parrafo('no_patologicos', 'Especificar')],
+      },
+      {
         titulo: 'Antecedentes ginecológicos',
         campos: [
-          check('menstruacion_regular', 'Menstruación regular'),
-          check('menstruacion_dolorosa', 'Dolorosa'),
-          texto('metodo_anticonceptivo', 'Uso de método anticonceptivo'),
-          check('parto_natural', 'Embarazos: parto natural'),
-          check('cesarea', 'Cesárea'),
-          check('perdidas', 'Pérdidas'),
+          texto('menstruacion', 'Menstruación (¿cómo es?)'),
+          fecha('fum', 'Fecha de última menstruación (FUM)'),
+          texto('planificacion_familiar', 'Planificación familiar (método)'),
           check('menopausia', 'Menopausia'),
-          check('esterilizacion', 'Esterilización'),
         ],
+      },
+      {
+        titulo: 'Fórmula obstétrica',
+        campos: [numero('gestas', 'Gestas'), numero('partos', 'Partos'), numero('cesareas', 'Cesáreas'), numero('abortos', 'Abortos')],
       },
       {
         titulo: 'Hábitos de vida',
@@ -71,21 +86,20 @@ const SECCIONES = [
           check('alcohol', 'Alcohol', FRECUENCIA),
           check('cafeina', 'Cafeína', FRECUENCIA),
           check('toxicomania', 'Toxicomanía', FRECUENCIA),
+          check('actividad_fisica', 'Actividad física', TIPO_TIEMPO),
           texto('sueno', 'Horas y calidad de sueño'),
-          check('actividad_fisica', 'Actividad física', TIPO_FRECUENCIA),
-          opcion('dieta', 'Ud. considera su dieta', [
-            o('balanceada', 'Balanceada'),
-            o('desequilibrada', 'Desequilibrada'),
-            o('vegana', 'Vegana'),
-            o('vegetariana', 'Vegetariana'),
-          ]),
+          texto('agua', 'Agua al día (litros)'),
           parrafo('observaciones', 'Observaciones'),
-          opcion('agua', 'Cuánta agua consume al día', [
-            o('muy_poca', 'Muy poca'),
-            o('poca', 'Poca'),
-            o('adecuada', 'Adecuada'),
-            o('mucha', 'Mucha'),
-          ]),
+        ],
+      },
+      {
+        titulo: 'Alimentación',
+        campos: [
+          texto('desayuno', 'Desayuno'),
+          texto('media_manana', 'Media mañana'),
+          texto('almuerzo', 'Almuerzo'),
+          texto('media_tarde', 'Media tarde'),
+          texto('cena', 'Cena'),
         ],
       },
     ],
@@ -95,28 +109,17 @@ const SECCIONES = [
     titulo: '3. Datos estéticos',
     grupos: [
       {
-        titulo: 'Rutina facial diurna',
+        titulo: 'Rutina facial (skin care)',
         campos: [
-          check('diurna_limpiador', 'Limpiador facial'),
-          check('diurna_tonico', 'Tónico'),
-          check('diurna_serum', 'Sérum'),
-          check('diurna_hidratante', 'Hidratante/Humectante'),
-          check('diurna_protector', 'Protector solar'),
-          check('diurna_maquillaje', 'Maquillaje'),
-          check('diurna_otro', 'Otro'),
-          parrafo('diurna_especifique', 'Especifique'),
-        ],
-      },
-      {
-        titulo: 'Rutina facial nocturna',
-        campos: [
-          check('nocturna_desmaquillante', 'Desmaquillante'),
-          check('nocturna_limpiador', 'Limpiador facial'),
-          check('nocturna_tonico', 'Tónico'),
-          check('nocturna_serum', 'Sérum'),
-          check('nocturna_hidratante', 'Hidratante/Humectante'),
-          check('nocturna_otro', 'Otro'),
-          parrafo('nocturna_especifique', 'Especifique'),
+          check('skin_limpiador', 'Limpiador facial', FRECUENCIA),
+          check('skin_desmaquillante', 'Desmaquillante', FRECUENCIA),
+          check('skin_tonico', 'Tónico', FRECUENCIA),
+          check('skin_serum', 'Sérum', FRECUENCIA),
+          check('skin_hidratante', 'Hidratante/Humectante', FRECUENCIA),
+          check('skin_protector', 'Protector solar', FRECUENCIA),
+          check('skin_maquillaje', 'Maquillaje', FRECUENCIA),
+          check('skin_otro', 'Otro', FRECUENCIA),
+          parrafo('skin_especifique', 'Especifique'),
         ],
       },
       {
@@ -127,18 +130,9 @@ const SECCIONES = [
         ],
       },
       {
-        titulo: 'Procedimientos estéticos anteriores',
-        campos: [
-          check('toxina_botulinica', 'Toxina botulínica', FRECUENCIA),
-          check('rellenos_dermicos', 'Rellenos dérmicos', TIPO_FRECUENCIA),
-          check('hilos_tensores', 'Hilos tensores', FRECUENCIA),
-          check('prp', 'PRP', FRECUENCIA),
-          check('peeling_quimico', 'Peeling químico', FRECUENCIA),
-          check('micropuncion', 'Micropunción dérmica', FRECUENCIA),
-          check('limpieza_profunda', 'Limpieza facial profunda', FRECUENCIA),
-          check('terapia_laser', 'Terapia láser', TIPO_FRECUENCIA),
-          parrafo('otros_procedimientos', 'Otros'),
-        ],
+        titulo: 'Antecedentes estéticos',
+        subtitulo: '(procedimientos que se realizó antes)',
+        campos: [1, 2, 3, 4, 5, 6].map((n) => texto(`antecedente_${n}`, `${n}.`)),
       },
     ],
   },
@@ -271,6 +265,18 @@ const SECCIONES = [
           parrafo('acne_observacion', 'Observación'),
         ],
       },
+      {
+        titulo: 'Tipo facial',
+        imagen: 'guia-tipos-faciales.png',
+        campos: [
+          opcion('tipo_facial', 'Tipo facial', [o('braquifacial', 'Braquifacial'), o('mesofacial', 'Mesofacial'), o('dolicofacial', 'Dolicofacial')]),
+        ],
+      },
+      {
+        titulo: 'Ubicación de grasa corporal',
+        imagen: 'guia-grasa-corporal.png',
+        campos: [check('grasa_abdominal', 'Abdominal'), check('grasa_muslos', 'Muslos'), check('grasa_cadera_cintura', 'Cadera/cintura')],
+      },
     ],
   },
 ];
@@ -281,4 +287,4 @@ const COLUMNAS_PROTOCOLO = [
   { clave: 'comentario', etiqueta: 'Comentario' },
 ];
 
-module.exports = { SECCIONES, COLUMNAS_PROTOCOLO };
+module.exports = { SECCIONES, COLUMNAS_PROTOCOLO, DIR_GUIAS };

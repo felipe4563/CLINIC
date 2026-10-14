@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
-const { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos } = require('../services/historiaClinica');
+const { ErrorValidacion, fechaValida, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos } = require('../services/historiaClinica');
 const { armarDocumento } = require('../services/historiaClinicaDocumento');
 const { enviarHistoriaPdf } = require('../services/historiaClinicaPdf');
 const { generarHistoriaWord } = require('../services/historiaClinicaWord');
@@ -17,13 +17,6 @@ const ORDEN_RECIENTE = [['fecha', 'DESC'], ['id', 'DESC']];
 function hoyISO() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function fechaValida(texto) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false;
-  const [a, m, d] = texto.split('-').map(Number);
-  const f = new Date(Date.UTC(a, m - 1, d));
-  return f.getUTCFullYear() === a && f.getUTCMonth() === m - 1 && f.getUTCDate() === d;
 }
 
 function textoOpcional(valor, max) {

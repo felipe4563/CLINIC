@@ -4,7 +4,7 @@ const path = require('path');
 
 process.env.PRIVADO_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'privado-hc-'));
 
-const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../src/config/historiaClinica');
+const { SECCIONES, COLUMNAS_PROTOCOLO, DIR_GUIAS } = require('../src/config/historiaClinica');
 const { validarSeccion, validarProtocolo, ErrorValidacion } = require('../src/services/historiaClinica');
 const bcrypt = require('bcryptjs');
 const request = require('supertest');
@@ -27,18 +27,21 @@ describe('Historia clínica: definición y validación', () => {
       const claves = [];
       for (const grupo of seccion.grupos) {
         for (const campo of grupo.campos) {
-          expect(['check', 'texto', 'parrafo', 'opcion']).toContain(campo.tipo);
+          expect(['check', 'texto', 'parrafo', 'opcion', 'numero', 'fecha']).toContain(campo.tipo);
           claves.push(campo.clave);
           for (const det of campo.detalles || []) claves.push(`${campo.clave}_${det.clave}`);
           if (campo.tipo === 'opcion') expect(campo.opciones.length).toBeGreaterThan(1);
         }
       }
       expect(new Set(claves).size).toBe(claves.length);
+      for (const grupo of seccion.grupos) {
+        if (grupo.imagen) expect(fs.existsSync(path.join(DIR_GUIAS, grupo.imagen))).toBe(true);
+      }
     }
     expect(COLUMNAS_PROTOCOLO.map((c) => c.clave)).toEqual(['procedimiento', 'sesiones', 'comentario']);
   });
 
-  test('descarta claves desconocidas y vacías, y recorta textos', () => {
+  test('descarta claves desconocidas (incluidas las que se quitaron del formulario) y recorta textos', () => {
     const limpio = validarSeccion('datos_clinicos', {
       alergias: true,
       cardiovascular: false,
@@ -47,8 +50,46 @@ describe('Historia clínica: definición y validación', () => {
       especificar: '',
       inventado: 'x',
       dieta: 'vegana',
+      esterilizacion: true,
+      menstruacion_dolorosa: true,
+      agua: '  2 litros ',
     });
-    expect(limpio).toEqual({ alergias: true, cardiovascular: false, tabaco: true, tabaco_frecuencia: 'diario', dieta: 'vegana' });
+    expect(limpio).toEqual({ alergias: true, cardiovascular: false, tabaco: true, tabaco_frecuencia: 'diario', agua: '2 litros' });
+  });
+
+  test('números de la fórmula obstétrica: enteros 0–99, también si llegan como texto', () => {
+    expect(validarSeccion('datos_clinicos', { gestas: 2, partos: '1', cesareas: '', abortos: 0 })).toEqual({ gestas: 2, partos: 1, abortos: 0 });
+    for (const malo of ['abc', -1, 100, 1.5, true]) {
+      try {
+        validarSeccion('datos_clinicos', { gestas: malo });
+        throw new Error(`aceptó ${malo}`);
+      } catch (err) {
+        expect(err).toBeInstanceOf(ErrorValidacion);
+        expect(err.campo).toBe('gestas');
+      }
+    }
+  });
+
+  test('FUM: fecha YYYY-MM-DD real', () => {
+    expect(validarSeccion('datos_clinicos', { fum: '2026-09-30' })).toEqual({ fum: '2026-09-30' });
+    expect(validarSeccion('datos_clinicos', { fum: '' })).toEqual({});
+    for (const malo of ['2026-02-30', '30/09/2026', 5]) {
+      expect(() => validarSeccion('datos_clinicos', { fum: malo })).toThrow(ErrorValidacion);
+    }
+  });
+
+  test('el formulario tiene los grupos pedidos por la clínica', () => {
+    const titulos = (clave) => SECCIONES.find((s) => s.clave === clave).grupos.map((g) => g.titulo);
+    expect(titulos('datos_clinicos')).toEqual([
+      'Antecedentes personales patológicos',
+      'Antecedentes personales no patológicos',
+      'Antecedentes ginecológicos',
+      'Fórmula obstétrica',
+      'Hábitos de vida',
+      'Alimentación',
+    ]);
+    expect(titulos('datos_esteticos')).toEqual(['Rutina facial (skin care)', 'Mascarillas y exfoliantes', 'Antecedentes estéticos']);
+    expect(titulos('analisis_estetico').slice(-2)).toEqual(['Tipo facial', 'Ubicación de grasa corporal']);
   });
 
   test('rechaza tipos y opciones inválidas indicando el campo', () => {

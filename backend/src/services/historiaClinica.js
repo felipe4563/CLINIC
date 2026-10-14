@@ -37,6 +37,13 @@ function limpiarTexto(clave, valor, max) {
 }
 
 // Devuelve solo las claves conocidas, con valores válidos; descarta vacíos.
+function fechaValida(texto) {
+  if (typeof texto !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false;
+  const [a, m, d] = texto.split('-').map(Number);
+  const f = new Date(Date.UTC(a, m - 1, d));
+  return f.getUTCFullYear() === a && f.getUTCMonth() === m - 1 && f.getUTCDate() === d;
+}
+
 function validarSeccion(claveSeccion, datos) {
   const campos = CAMPOS_POR_SECCION.get(claveSeccion);
   if (!campos) throw new Error(`Sección desconocida: ${claveSeccion}`);
@@ -54,6 +61,17 @@ function validarSeccion(claveSeccion, datos) {
     } else if (campo.tipo === 'opcion') {
       if (valor === null || valor === undefined || valor === '') continue;
       if (!campo.opciones.includes(valor)) throw new ErrorValidacion(clave, `${clave} tiene una opción inválida`);
+      final = valor;
+    } else if (campo.tipo === 'numero') {
+      if (valor === null || valor === undefined || valor === '') continue;
+      const n = typeof valor === 'string' ? Number(valor.trim()) : valor;
+      if (typeof n !== 'number' || !Number.isInteger(n) || n < 0 || n > 99) {
+        throw new ErrorValidacion(clave, `${clave} debe ser un número entero entre 0 y 99`);
+      }
+      final = n;
+    } else if (campo.tipo === 'fecha') {
+      if (valor === null || valor === undefined || valor === '') continue;
+      if (!fechaValida(valor)) throw new ErrorValidacion(clave, `${clave} debe ser una fecha válida`);
       final = valor;
     } else {
       final = limpiarTexto(clave, valor, campo.tipo === 'parrafo' ? MAX_PARRAFO : MAX_TEXTO);
@@ -135,4 +153,4 @@ async function calcularTratamientos(historia) {
   return { desde, hasta, filas: filas.map(({ hora, ...resto }) => resto) };
 }
 
-module.exports = { ErrorValidacion, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos, MAX_TEXTO, MAX_PARRAFO };
+module.exports = { ErrorValidacion, fechaValida, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos, MAX_TEXTO, MAX_PARRAFO };
