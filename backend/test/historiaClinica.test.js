@@ -11,7 +11,7 @@ const request = require('supertest');
 const db = require('../src/models');
 const app = require('../src/app');
 const { PERMISOS_POR_DEFECTO } = require('../src/config/permisos');
-const { pngFalso, exeFalso } = require('./helpers/archivos');
+const { pngFalso, pdfFalso, exeFalso, jpgFalso } = require('./helpers/archivos');
 const { armarDocumento } = require('../src/services/historiaClinicaDocumento');
 
 function binario(res, cb) {
@@ -518,5 +518,68 @@ describe('Historia clínica: API', () => {
     expect(res.status).toBe(201);
     expect(res.body.fotos).toEqual([]);
     expect(res.body.consentimientos).toEqual([]);
+  });
+
+  describe('fotos', () => {
+    const subir = (id, buffer, nombre = 'f.jpg', nota) => {
+      const r = request(app).post(`/staff/historias/${id}/fotos`).set(auth()).attach('archivo', buffer, nombre);
+      return nota === undefined ? r : r.field('nota', nota);
+    };
+    const carpeta = path.join(process.env.PRIVADO_DIR, 'historias-fotos');
+
+    test('sube, lista con nota, envía, cambia nota y borra', async () => {
+      const h = await crearEvaluacion();
+      const r1 = await subir(h.id, jpgFalso(), 'f.jpg', ' frente, antes ');
+      expect(r1.status).toBe(200);
+      expect(r1.body.fotos).toHaveLength(1);
+      const { archivo, nota } = r1.body.fotos[0];
+      expect(nota).toBe('frente, antes');
+      expect(fs.existsSync(path.join(carpeta, archivo))).toBe(true);
+
+      const ver = await request(app).get(`/staff/historias/${h.id}/fotos/${archivo}`).set(auth());
+      expect(ver.status).toBe(200);
+      expect(ver.headers['content-type']).toMatch(/image\/jpeg/);
+
+      const nueva = await request(app).patch(`/staff/historias/${h.id}/fotos/${archivo}`).set(auth()).send({ nota: 'perfil' });
+      expect(nueva.body.fotos[0].nota).toBe('perfil');
+
+      const borrada = await request(app).delete(`/staff/historias/${h.id}/fotos/${archivo}`).set(auth());
+      expect(borrada.body.fotos).toEqual([]);
+      expect(fs.existsSync(path.join(carpeta, archivo))).toBe(false);
+    });
+
+    test('rechaza formatos que no son JPEG/PNG y más de 10 fotos', async () => {
+      const h = await crearEvaluacion();
+      expect((await subir(h.id, pdfFalso(), 'a.pdf')).status).toBe(400);
+      expect((await subir(h.id, exeFalso(), 'a.jpg')).status).toBe(400);
+      for (let i = 0; i < 10; i += 1) expect((await subir(h.id, pngFalso(), 'a.png')).status).toBe(200);
+      expect((await subir(h.id, pngFalso(), 'a.png')).status).toBe(409);
+    });
+
+    test('no entrega fotos de otra evaluación ni nombres manipulados', async () => {
+      const a = await crearEvaluacion();
+      const b = await crearEvaluacion();
+      const { archivo } = (await subir(a.id, jpgFalso())).body.fotos[0];
+      for (const ruta of [`/staff/historias/${b.id}/fotos/${archivo}`, `/staff/historias/${a.id}/fotos/..%2F..%2F.env`, `/staff/historias/${a.id}/fotos/nada.jpg`]) {
+        expect((await request(app).get(ruta).set(auth())).status).toBe(404);
+      }
+      expect((await request(app).delete(`/staff/historias/${b.id}/fotos/${archivo}`).set(auth())).status).toBe(404);
+    });
+
+    test('borrar la evaluación o la paciente borra sus fotos', async () => {
+      const h = await crearEvaluacion();
+      const { archivo } = (await subir(h.id, jpgFalso())).body.fotos[0];
+      expect((await request(app).delete(`/staff/historias/${h.id}`).set(auth())).status).toBe(204);
+      expect(fs.existsSync(path.join(carpeta, archivo))).toBe(false);
+
+      // Paciente nueva, sin citas, notas ni puntos: se puede borrar.
+      const limpia = await db.Paciente.create({ nombre_completo: 'Con Fotos', telefono: '59170000094', codigo_paciente: 'P-0094', carnet_identidad: '94', carnet_expedido: 'CB' });
+      const h2 = await crearEvaluacion(limpia);
+      const otra = (await subir(h2.id, jpgFalso())).body.fotos[0].archivo;
+      expect(fs.existsSync(path.join(carpeta, otra))).toBe(true);
+      const res = await request(app).delete(`/staff/pacientes/${limpia.id}`).set(auth());
+      expect(res.status).toBe(204);
+      expect(fs.existsSync(path.join(carpeta, otra))).toBe(false);
+    });
   });
 });

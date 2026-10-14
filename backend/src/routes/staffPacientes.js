@@ -4,6 +4,7 @@ const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { generarCodigoCliente } = require('../services/codigoCliente');
 const { borrarArchivoPrivado } = require('../services/archivosPrivados');
+const { borrarFotosDe } = require('./staffHistoriaClinica');
 
 const router = express.Router();
 
@@ -121,9 +122,10 @@ router.delete('/staff/pacientes/:id', requirePermiso('pacientes'), async (req, r
 
   // La FK borra las evaluaciones en cascada; los archivos firmados se borran a mano,
   // pero solo después de que el borrado de la paciente haya tenido éxito.
-  const historias = await db.HistoriaClinica.findAll({ where: { paciente_id: paciente.id }, attributes: ['documento_firmado'] });
+  const historias = await db.HistoriaClinica.findAll({ where: { paciente_id: paciente.id }, attributes: ['documento_firmado', 'fotos'] });
   await paciente.destroy();
   for (const h of historias) await borrarArchivoPrivado('historias', h.documento_firmado);
+  await borrarFotosDe(historias);
   res.status(204).end();
 });
 

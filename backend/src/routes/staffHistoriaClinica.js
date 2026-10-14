@@ -7,7 +7,7 @@ const { ErrorValidacion, fechaValida, validarSeccion, validarProtocolo, validarC
 const { armarDocumento } = require('../services/historiaClinicaDocumento');
 const { enviarHistoriaPdf } = require('../services/historiaClinicaPdf');
 const { generarHistoriaWord } = require('../services/historiaClinicaWord');
-const { recibirArchivo, guardarArchivoPrivado, borrarArchivoPrivado, enviarArchivoPrivado } = require('../services/archivosPrivados');
+const { recibirArchivo, recibirImagen, guardarArchivoPrivado, borrarArchivoPrivado, enviarArchivoPrivado } = require('../services/archivosPrivados');
 
 const router = express.Router();
 const onlyHistoria = requirePermiso('historia_clinica');
@@ -163,6 +163,7 @@ router.delete('/staff/historias/:id', onlyHistoria, async (req, res) => {
   const firmado = historia.documento_firmado;
   await historia.destroy();
   await borrarArchivoPrivado('historias', firmado);
+  await borrarFotosDe([historia]);
   res.status(204).end();
 });
 
@@ -193,6 +194,88 @@ router.delete('/staff/historias/:id/documento-firmado', onlyHistoria, async (req
   historia.actualizado_por_id = req.usuarioId;
   await historia.save();
   await borrarArchivoPrivado('historias', anterior);
+  res.json(await cargarCompleta(historia.id));
+});
+
+const MAX_FOTOS = 10;
+const CARPETA_FOTOS = 'historias-fotos';
+
+function notaDeFoto(valor) {
+  if (valor === undefined || valor === null) return null;
+  if (typeof valor !== 'string') throw new ErrorValidacion('nota', 'Nota inválida');
+  const limpia = valor.trim();
+  if (limpia.length > 120) throw new ErrorValidacion('nota', 'La nota admite hasta 120 caracteres');
+  return limpia || null;
+}
+
+// La foto se busca en el JSON de ESA evaluación: un nombre de otra historia o
+// manipulado nunca llega al disco.
+async function historiaYFoto(req, res) {
+  const historia = await db.HistoriaClinica.findByPk(req.params.id);
+  if (!historia) {
+    res.status(404).json({ error: 'Evaluación no encontrada' });
+    return {};
+  }
+  const foto = historia.fotos.find((f) => f.archivo === req.params.archivo);
+  if (!foto) {
+    res.status(404).json({ error: 'Foto no encontrada' });
+    return {};
+  }
+  return { historia, foto };
+}
+
+async function borrarFotosDe(historias) {
+  for (const h of historias) {
+    for (const f of h.fotos || []) await borrarArchivoPrivado(CARPETA_FOTOS, f.archivo);
+  }
+}
+
+router.post('/staff/historias/:id/fotos', onlyHistoria, recibirImagen('archivo'), async (req, res) => {
+  const historia = await db.HistoriaClinica.findByPk(req.params.id);
+  if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
+  if (!req.file) return res.status(400).json({ error: 'Adjunta una foto JPG o PNG' });
+  if (historia.fotos.length >= MAX_FOTOS) return res.status(409).json({ error: `Máximo ${MAX_FOTOS} fotos por evaluación` });
+  let nota;
+  try {
+    nota = notaDeFoto(req.body.nota);
+  } catch (err) {
+    return res.status(400).json({ error: err.message, campo: 'nota' });
+  }
+  const archivo = await guardarArchivoPrivado(CARPETA_FOTOS, req.file.buffer);
+  historia.fotos = [...historia.fotos, { archivo, nota }];
+  historia.actualizado_por_id = req.usuarioId;
+  await historia.save();
+  res.json(await cargarCompleta(historia.id));
+});
+
+router.get('/staff/historias/:id/fotos/:archivo', onlyHistoria, async (req, res) => {
+  const { foto } = await historiaYFoto(req, res);
+  if (!foto) return;
+  return enviarArchivoPrivado(res, CARPETA_FOTOS, foto.archivo);
+});
+
+router.patch('/staff/historias/:id/fotos/:archivo', onlyHistoria, async (req, res) => {
+  const { historia, foto } = await historiaYFoto(req, res);
+  if (!foto) return;
+  let nota;
+  try {
+    nota = notaDeFoto(req.body.nota);
+  } catch (err) {
+    return res.status(400).json({ error: err.message, campo: 'nota' });
+  }
+  historia.fotos = historia.fotos.map((f) => (f.archivo === foto.archivo ? { ...f, nota } : f));
+  historia.actualizado_por_id = req.usuarioId;
+  await historia.save();
+  res.json(await cargarCompleta(historia.id));
+});
+
+router.delete('/staff/historias/:id/fotos/:archivo', onlyHistoria, async (req, res) => {
+  const { historia, foto } = await historiaYFoto(req, res);
+  if (!foto) return;
+  historia.fotos = historia.fotos.filter((f) => f.archivo !== foto.archivo);
+  historia.actualizado_por_id = req.usuarioId;
+  await historia.save();
+  await borrarArchivoPrivado(CARPETA_FOTOS, foto.archivo);
   res.json(await cargarCompleta(historia.id));
 });
 
@@ -235,3 +318,4 @@ router.get('/staff/historias/:id/word', onlyHistoria, async (req, res) => {
 });
 
 module.exports = router;
+module.exports.borrarFotosDe = borrarFotosDe;

@@ -18,4 +18,13 @@ function pngGrande() {
   return Buffer.concat([FIRMA_PNG, Buffer.alloc(5 * 1024 * 1024 + 1 - FIRMA_PNG.length)]);
 }
 
-module.exports = { pngFalso, pdfFalso, exeFalso, pngGrande };
+function jpgFalso() {
+  return Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(32)]);
+}
+
+// PNG 1x1 válido: pdfkit y docx lo pueden decodificar (los "falsos" no).
+function pngReal() {
+  return Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+}
+
+module.exports = { pngFalso, pdfFalso, exeFalso, pngGrande, jpgFalso, pngReal };

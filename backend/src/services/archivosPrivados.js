@@ -8,7 +8,7 @@ const multer = require('multer');
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const MENSAJE_FORMATO = 'Sube una imagen (JPG, PNG o WebP) o un PDF de hasta 5 MB';
-const CARPETAS = ['comprobantes', 'justificaciones', 'historias'];
+const CARPETAS = ['comprobantes', 'justificaciones', 'historias', 'historias-fotos'];
 const MIME_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 const MIME_POR_EXT = { '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf' };
 const FIRMA_PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -52,6 +52,25 @@ function recibirArchivo(campo) {
   };
 }
 
+const MENSAJE_IMAGEN = 'Sube una foto JPG o PNG de hasta 5 MB';
+
+// Como recibirArchivo, pero solo fotos (las fotos de la historia van dentro
+// del PDF y del Word, que no leen WebP ni PDF).
+function recibirImagen(campo) {
+  const single = upload.single(campo);
+  return (req, res, next) => {
+    if (!req.is('multipart/form-data')) return next();
+    single(req, res, (err) => {
+      if (err) return res.status(400).json({ error: MENSAJE_IMAGEN });
+      if (req.file) {
+        const tipo = detectarTipo(req.file.buffer);
+        if (!tipo || !['image/jpeg', 'image/png'].includes(tipo.mime)) return res.status(400).json({ error: MENSAJE_IMAGEN });
+      }
+      next();
+    });
+  };
+}
+
 function rutaArchivo(carpeta, nombre) {
   if (!CARPETAS.includes(carpeta)) throw new Error(`Carpeta privada desconocida: ${carpeta}`);
   return path.join(directorioBase(), carpeta, path.basename(String(nombre)));
@@ -88,6 +107,8 @@ module.exports = {
   MENSAJE_FORMATO,
   detectarTipo,
   recibirArchivo,
+  recibirImagen,
+  rutaArchivo,
   guardarArchivoPrivado,
   borrarArchivoPrivado,
   enviarArchivoPrivado,
