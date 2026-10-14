@@ -7,6 +7,7 @@ import { api, API_URL } from '@/lib/api';
 import { IconArrowLeft } from '@/components/icons';
 import ArchivoPrivado from '@/app/agenda/ArchivoPrivado';
 import CampoHistoria, { type Grupo, type Valores } from './CampoHistoria';
+import FotosHistoria from './FotosHistoria';
 import TablaTratamientos, { type FilaTratamiento } from './TablaTratamientos';
 
 type Seccion = { clave: 'datos_clinicos' | 'datos_esteticos' | 'analisis_estetico'; titulo: string; grupos: Grupo[] };
@@ -336,6 +337,11 @@ export default function EditorHistoria() {
           <TablaTratamientos pacienteId={params.id} filas={historia.tratamientos.filas} desde={historia.tratamientos.desde} onCambio={recargarTratamientos} />
 
           <p className="mb-1 mt-4 text-sm font-semibold">Fotos</p>
+          <FotosHistoria<Historia>
+            historiaId={historia.id}
+            fotos={historia.fotos}
+            onCambio={(h) => setHistoria((actual) => (actual ? { ...actual, fotos: h.fotos, updated_at: h.updated_at, updatedAt: h.updatedAt, ActualizadoPor: h.ActualizadoPor } : h))}
+          />
         </details>
 
         <details className="rounded-lg border border-border bg-panel p-4">

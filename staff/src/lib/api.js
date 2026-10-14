@@ -166,6 +166,15 @@ export const api = {
     datos.append('archivo', archivo);
     return apiFetch(`/staff/historias/${id}/documento-firmado`, { method: 'POST', body: datos });
   },
+  subirFotoHistoria: (id, archivo, nota) => {
+    const datos = new FormData();
+    datos.append('archivo', archivo, 'foto.jpg');
+    if (nota) datos.append('nota', nota);
+    return apiFetch(`/staff/historias/${id}/fotos`, { method: 'POST', body: datos });
+  },
+  cambiarNotaFoto: (id, archivo, nota) =>
+    apiFetch(`/staff/historias/${id}/fotos/${encodeURIComponent(archivo)}`, { method: 'PATCH', body: JSON.stringify({ nota }) }),
+  borrarFotoHistoria: (id, archivo) => apiFetch(`/staff/historias/${id}/fotos/${encodeURIComponent(archivo)}`, { method: 'DELETE' }),
   quitarDocumentoFirmado: (id) => apiFetch(`/staff/historias/${id}/documento-firmado`, { method: 'DELETE' }),
   descargarHistoriaPdf: (id) => descargarPDF(`/staff/historias/${id}/pdf`),
   descargarHistoriaWord: (id) => descargarPDF(`/staff/historias/${id}/word`),
