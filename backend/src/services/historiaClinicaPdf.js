@@ -98,7 +98,16 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
     doc.x = izq;
   }
 
-  for (const b of documento.bloques) {
+  // Alto que necesita el bloque siguiente a un título, para no dejarlo solo al pie.
+  const altoSiguiente = (b) => {
+    if (!b) return 0;
+    if (b.tipo === 'imagen') return 174;
+    if (b.tipo === 'fotos') return b.fotos.length ? 224 : 90;
+    if (b.tipo === 'parrafo' && !b.valor) return TAM * (b.lineas || 2) + TAM;
+    return 0;
+  };
+
+  for (const [idx, b] of documento.bloques.entries()) {
     if (b.tipo === 'seccion') {
       // El consentimiento y las firmas van juntos en la misma hoja.
       asegurar(b.titulo.includes('Consentimiento') ? 230 : 40);
@@ -106,7 +115,7 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
       doc.font('Helvetica-Bold').fontSize(12).fillColor(COLOR.ink).text(b.titulo, izq, doc.y);
       doc.moveDown(0.2);
     } else if (b.tipo === 'grupo') {
-      asegurar(30);
+      asegurar(30 + altoSiguiente(documento.bloques[idx + 1]));
       doc.moveDown(0.3);
       doc.font('Helvetica-Bold').fontSize(10).fillColor(COLOR.espresso).text(b.titulo, izq, doc.y);
       if (b.subtitulo) doc.font('Helvetica-Oblique').fontSize(8.5).fillColor(COLOR.muted).text(b.subtitulo, izq, doc.y);
@@ -149,15 +158,19 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
         const col = (ancho - 12) / 2;
         const altoFoto = 200;
         for (let i = 0; i < b.fotos.length; i += 2) {
-          asegurar(altoFoto + 24);
+          const fila = b.fotos.slice(i, i + 2);
+          doc.font('Helvetica').fontSize(8);
+          const altoNota = (f) => (f.nota ? doc.heightOfString(f.nota, { width: col }) + 4 : 0);
+          asegurar(altoFoto + Math.max(...fila.map(altoNota)) + 10);
           const y = doc.y;
           let altoFila = 0;
-          for (const [j, f] of b.fotos.slice(i, i + 2).entries()) {
+          for (const [j, f] of fila.entries()) {
             const x = izq + j * (col + 12);
             doc.y = y;
             const alto = imagen(f.ruta, x, col, altoFoto);
             if (f.nota) doc.font('Helvetica').fontSize(8).fillColor(COLOR.muted).text(f.nota, x, y + alto + 2, { width: col });
-            altoFila = Math.max(altoFila, alto + (f.nota ? 14 : 0));
+            doc.font('Helvetica').fontSize(8);
+            altoFila = Math.max(altoFila, alto + altoNota(f));
           }
           doc.y = y + altoFila + 8;
         }

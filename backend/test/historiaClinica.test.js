@@ -647,4 +647,18 @@ describe('Historia clínica: API', () => {
       expect(blanco.status).toBe(200);
     }
   });
+
+  test('PDF y Word: imagen ilegible en disco y notas largas de fotos no rompen', async () => {
+    const h = await crearEvaluacion();
+    const subida = await request(app).post(`/staff/historias/${h.id}/fotos`).set(auth()).attach('archivo', pngReal(), 'f.png');
+    const corrupta = path.join(process.env.PRIVADO_DIR, 'historias-fotos', 'corrupta.png');
+    fs.writeFileSync(corrupta, 'esto no es un png');
+    const larga = 'nota muy larga '.repeat(8);
+    await db.HistoriaClinica.update({ fotos: [{ ...subida.body.fotos[0], nota: larga }, { archivo: 'corrupta.png', nota: larga }, { ...subida.body.fotos[0], nota: larga }] }, { where: { id: h.id } });
+    for (const formato of ['pdf', 'word']) {
+      const res = await request(app).get(`/staff/historias/${h.id}/${formato}`).set(auth()).buffer(true).parse(binario);
+      expect(res.status).toBe(200);
+      expect(res.body.length).toBeGreaterThan(1000);
+    }
+  });
 });

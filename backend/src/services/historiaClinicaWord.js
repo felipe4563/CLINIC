@@ -1,7 +1,7 @@
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
 const {
-  AlignmentType, BorderStyle, Document, Header, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType,
+  AlignmentType, BorderStyle, Document, Header, HeightRule, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType,
 } = require('docx');
 const { rutaLogoEmbebible } = require('./pdf');
 
@@ -77,6 +77,18 @@ function tabla(columnas, filas) {
   });
 }
 
+// Recuadro vacío con borde y una altura real (en twips), sin fila de título.
+function cajaVacia(alto) {
+  const borde = { style: BorderStyle.SINGLE, size: 4, color: 'B0B0B0' };
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [new TableRow({
+      height: { value: alto, rule: HeightRule.ATLEAST },
+      children: [new TableCell({ borders: { top: borde, bottom: borde, left: borde, right: borde }, children: [new Paragraph({ children: [] })] })],
+    })],
+  });
+}
+
 async function generarHistoriaWord(documento, config) {
   const cuerpo = [
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: 'HISTORIA CLÍNICA', bold: true, size: 32 })] }),
@@ -87,8 +99,8 @@ async function generarHistoriaWord(documento, config) {
     if (b.tipo === 'seccion') {
       cuerpo.push(new Paragraph({ spacing: { before: 240, after: 80 }, children: [new TextRun({ text: b.titulo, bold: true, size: 24 })] }));
     } else if (b.tipo === 'grupo') {
-      cuerpo.push(new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: b.titulo, bold: true, size: 20 })] }));
-      if (b.subtitulo) cuerpo.push(new Paragraph({ children: [new TextRun({ text: b.subtitulo, italics: true, size: 16 })] }));
+      cuerpo.push(new Paragraph({ keepNext: true, spacing: { before: 120 }, children: [new TextRun({ text: b.titulo, bold: true, size: 20 })] }));
+      if (b.subtitulo) cuerpo.push(new Paragraph({ keepNext: true, children: [new TextRun({ text: b.subtitulo, italics: true, size: 16 })] }));
     } else if (b.tipo === 'casillas') {
       const runs = [];
       for (const item of b.items) {
@@ -98,7 +110,7 @@ async function generarHistoriaWord(documento, config) {
       }
       cuerpo.push(new Paragraph({ children: runs }));
     } else if (b.tipo === 'etiqueta') {
-      cuerpo.push(new Paragraph({ children: [new TextRun({ text: `${b.texto}:`, bold: true, size: TAM })] }));
+      cuerpo.push(new Paragraph({ keepNext: true, children: [new TextRun({ text: `${b.texto}:`, bold: true, size: TAM })] }));
     } else if (b.tipo === 'campo') {
       cuerpo.push(new Paragraph({
         children: [new TextRun({ text: `${b.etiqueta}: `, bold: true, size: TAM }), new TextRun({ text: b.valor || '______________________________', size: TAM })],
@@ -115,7 +127,7 @@ async function generarHistoriaWord(documento, config) {
       if (p) cuerpo.push(p);
     } else if (b.tipo === 'fotos') {
       if (!b.fotos.length) {
-        cuerpo.push(tabla([' '], [['\n\n\n\n']]));
+        cuerpo.push(cajaVacia(1500));
       } else {
         for (const f of b.fotos) {
           const p = parrafoImagen(f.ruta, 300, 260);
