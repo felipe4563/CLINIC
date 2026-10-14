@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { CATEGORIAS, ubicarTratamiento } from './categorias.ts';
 import { CREDITOS } from './creditos.ts';
 import { faciales } from './contenido/faciales.ts';
@@ -34,7 +35,7 @@ export const DOMINIOS_FUENTES = [
   'medlineplus.gov', 'nih.gov', 'cancer.gov', 'cdc.gov', 'fda.gov', 'mayoclinic.org', 'clevelandclinic.org', 'nhs.uk',
   'aad.org', 'asds.net', 'plasticsurgery.org', 'acog.org', 'who.int', 'paho.org', 'cochranelibrary.com', 'choosept.com',
 ];
-const DOMINIOS_FOTOS = ['unsplash.com', 'pexels.com', 'commons.wikimedia.org'];
+const DOMINIOS_FOTOS = ['unsplash.com', 'pexels.com', 'commons.wikimedia.org', 'flickr.com'];
 const LICENCIAS = /^(Unsplash License|Pexels License|CC0 1\.0|CC BY [234]\.0|CC BY-SA [234]\.0)$/;
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const CARPETA_FOTOS = new URL('../../../public/tratamientos/', import.meta.url);
@@ -123,6 +124,19 @@ test('cada foto registrada existe, pesa ≤ 350 KB y tiene licencia válida', ()
     const archivo = new URL(`${slug}.jpg`, CARPETA_FOTOS);
     assert.ok(existsSync(archivo), `falta public/tratamientos/${slug}.jpg`);
     assert.ok(statSync(archivo).size <= 350 * 1024, `${slug}.jpg pesa más de 350 KB`);
+  }
+});
+
+test('cada tratamiento tiene su propia foto, sin repetir', () => {
+  const sinFoto = slugsDeCategorias().filter((s) => !CREDITOS[s]);
+  assert.deepEqual(sinFoto, [], `sin foto propia: ${sinFoto.join(', ')}`);
+  const vistos = new Map();
+  for (const [slug, c] of Object.entries(CREDITOS)) {
+    const huella = createHash('sha256').update(readFileSync(new URL(`${slug}.jpg`, CARPETA_FOTOS))).digest('hex');
+    for (const clave of [c.url, huella]) {
+      assert.ok(!vistos.has(clave), `${slug} repite la foto de ${vistos.get(clave)}`);
+      vistos.set(clave, slug);
+    }
   }
 });
 

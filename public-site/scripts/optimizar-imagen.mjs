@@ -19,6 +19,7 @@ for (const calidad of [80, 72, 64, 56, 48]) {
   await sharp(entrada)
     .rotate()
     .resize({ width: 1600, height: 1067, fit: 'cover', position: 'attention' })
+    .flatten({ background: '#ffffff' }) // PNG con transparencia: fondo blanco, no negro
     .jpeg({ quality: calidad, mozjpeg: true })
     .toFile(destino);
   const peso = statSync(destino).size;
