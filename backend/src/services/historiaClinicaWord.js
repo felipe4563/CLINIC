@@ -89,6 +89,30 @@ function cajaVacia(alto) {
   });
 }
 
+// Fotos en 2 columnas, sin bordes; con cantidad impar la última celda queda vacía.
+function cuadriculaFotos(fotos) {
+  const sin = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+  const celda = (f) => {
+    const hijos = [];
+    if (f) {
+      const p = parrafoImagen(f.ruta, 300, 260);
+      if (p) hijos.push(p);
+      if (f.nota) hijos.push(new Paragraph({ children: [new TextRun({ text: f.nota, italics: true, size: 16 })] }));
+    }
+    if (!hijos.length) hijos.push(new Paragraph({ children: [] }));
+    return new TableCell({
+      width: { size: 50, type: WidthType.PERCENTAGE },
+      borders: { top: sin, bottom: sin, left: sin, right: sin },
+      children: hijos,
+    });
+  };
+  const filas = [];
+  for (let i = 0; i < fotos.length; i += 2) {
+    filas.push(new TableRow({ cantSplit: true, children: [celda(fotos[i]), celda(fotos[i + 1])] }));
+  }
+  return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: { top: sin, bottom: sin, left: sin, right: sin, insideHorizontal: sin, insideVertical: sin }, rows: filas });
+}
+
 async function generarHistoriaWord(documento, config) {
   const cuerpo = [
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: 'HISTORIA CLÍNICA', bold: true, size: 32 })] }),
@@ -129,11 +153,8 @@ async function generarHistoriaWord(documento, config) {
       if (!b.fotos.length) {
         cuerpo.push(cajaVacia(1500));
       } else {
-        for (const f of b.fotos) {
-          const p = parrafoImagen(f.ruta, 300, 260);
-          if (p) cuerpo.push(p);
-          if (f.nota) cuerpo.push(new Paragraph({ children: [new TextRun({ text: f.nota, italics: true, size: 16 })] }));
-        }
+        cuerpo.push(cuadriculaFotos(b.fotos));
+        cuerpo.push(new Paragraph({ children: [] }));
       }
     } else if (b.tipo === 'consentimiento') {
       cuerpo.push(new Paragraph({ spacing: { before: 160 }, children: [new TextRun({ text: b.titulo, bold: true, size: 20 })] }));

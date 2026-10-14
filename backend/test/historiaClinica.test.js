@@ -59,7 +59,8 @@ describe('Historia clínica: definición y validación', () => {
 
   test('números de la fórmula obstétrica: enteros 0–99, también si llegan como texto', () => {
     expect(validarSeccion('datos_clinicos', { gestas: 2, partos: '1', cesareas: '', abortos: 0 })).toEqual({ gestas: 2, partos: 1, abortos: 0 });
-    for (const malo of ['abc', -1, 100, 1.5, true]) {
+    expect(validarSeccion('datos_clinicos', { gestas: '   ', partos: ' 3 ' })).toEqual({ partos: 3 });
+    for (const malo of ['abc', -1, 100, 1.5, true, '1e1', '0x10', '1.5', '-1', '100', '1 2']) {
       try {
         validarSeccion('datos_clinicos', { gestas: malo });
         throw new Error(`aceptó ${malo}`);
@@ -598,6 +599,30 @@ describe('Historia clínica: API', () => {
       expect((await subir(h.id, exeFalso(), 'a.jpg')).status).toBe(400);
       for (let i = 0; i < 10; i += 1) expect((await subir(h.id, pngFalso(), 'a.png')).status).toBe(200);
       expect((await subir(h.id, pngFalso(), 'a.png')).status).toBe(409);
+    });
+
+    test('subir y cambiar una nota a la vez no pierde ninguna de las dos', async () => {
+      const h = await crearEvaluacion();
+      const primera = (await subir(h.id, jpgFalso(), 'a.jpg', 'inicial')).body.fotos[0].archivo;
+      const [subida, nota] = await Promise.all([
+        subir(h.id, pngFalso(), 'b.png', 'nueva'),
+        request(app).patch(`/staff/historias/${h.id}/fotos/${primera}`).set(auth()).send({ nota: 'cambiada' }),
+      ]);
+      expect(subida.status).toBe(200);
+      expect(nota.status).toBe(200);
+      const final = await db.HistoriaClinica.findByPk(h.id);
+      expect(final.fotos).toHaveLength(2);
+      expect(final.fotos.find((f) => f.archivo === primera).nota).toBe('cambiada');
+      expect(final.fotos.some((f) => f.nota === 'nueva')).toBe(true);
+      for (const f of final.fotos) expect(fs.existsSync(path.join(carpeta, f.archivo))).toBe(true);
+    });
+
+    test('la foto de la subida rechazada por el límite no queda huérfana en disco', async () => {
+      const h = await crearEvaluacion();
+      for (let i = 0; i < 10; i += 1) await subir(h.id, pngFalso(), 'a.png');
+      const antes = fs.readdirSync(carpeta).length;
+      expect((await subir(h.id, pngFalso(), 'a.png')).status).toBe(409);
+      expect(fs.readdirSync(carpeta).length).toBe(antes);
     });
 
     test('no entrega fotos de otra evaluación ni nombres manipulados', async () => {

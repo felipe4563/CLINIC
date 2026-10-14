@@ -208,20 +208,41 @@ function notaDeFoto(valor) {
   return limpia || null;
 }
 
-// La foto se busca en el JSON de ESA evaluación: un nombre de otra historia o
-// manipulado nunca llega al disco.
-async function historiaYFoto(req, res) {
-  const historia = await db.HistoriaClinica.findByPk(req.params.id);
-  if (!historia) {
-    res.status(404).json({ error: 'Evaluación no encontrada' });
-    return {};
+// Las rutas de fotos leen-modifican-escriben el JSON `fotos`: se hace dentro de
+// una transacción con la fila bloqueada para que cambios simultáneos (subir
+// varias, editar una nota, borrar) no se pisen. La foto se busca en el JSON de
+// ESA evaluación: un nombre de otra historia o manipulado nunca llega al disco.
+// `cambiar(historia, foto)` devuelve { status, error } para abortar o nada.
+async function conHistoriaBloqueada(req, res, { archivo = null, cambiar, alFallar = null }) {
+  let borrar = null;
+  let resultado;
+  try {
+    resultado = await db.sequelize.transaction(async (t) => {
+      const historia = await db.HistoriaClinica.findByPk(req.params.id, { lock: t.LOCK.UPDATE, transaction: t });
+      if (!historia) return { status: 404, error: 'Evaluación no encontrada' };
+      let foto = null;
+      if (archivo) {
+        foto = historia.fotos.find((f) => f.archivo === archivo);
+        if (!foto) return { status: 404, error: 'Foto no encontrada' };
+      }
+      const r = cambiar(historia, foto);
+      if (r && r.error) return r;
+      historia.actualizado_por_id = req.usuarioId;
+      await historia.save({ transaction: t });
+      borrar = r && r.borrar ? r.borrar : null;
+      return { id: historia.id };
+    });
+  } catch (err) {
+    if (alFallar) await alFallar();
+    throw err;
   }
-  const foto = historia.fotos.find((f) => f.archivo === req.params.archivo);
-  if (!foto) {
-    res.status(404).json({ error: 'Foto no encontrada' });
-    return {};
+  if (resultado.error) {
+    if (alFallar) await alFallar();
+    res.status(resultado.status).json({ error: resultado.error, ...(resultado.campo ? { campo: resultado.campo } : {}) });
+    return;
   }
-  return { historia, foto };
+  if (borrar) await borrarArchivoPrivado(CARPETA_FOTOS, borrar);
+  res.json(await cargarCompleta(resultado.id));
 }
 
 async function borrarFotosDe(historias) {
@@ -231,52 +252,59 @@ async function borrarFotosDe(historias) {
 }
 
 router.post('/staff/historias/:id/fotos', onlyHistoria, recibirImagen('archivo'), async (req, res) => {
-  const historia = await db.HistoriaClinica.findByPk(req.params.id);
-  if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
+  const existe = await db.HistoriaClinica.findByPk(req.params.id, { attributes: ['id'] });
+  if (!existe) return res.status(404).json({ error: 'Evaluación no encontrada' });
   if (!req.file) return res.status(400).json({ error: 'Adjunta una foto JPG o PNG' });
-  if (historia.fotos.length >= MAX_FOTOS) return res.status(409).json({ error: `Máximo ${MAX_FOTOS} fotos por evaluación` });
   let nota;
   try {
     nota = notaDeFoto(req.body.nota);
   } catch (err) {
     return res.status(400).json({ error: err.message, campo: 'nota' });
   }
+  // El archivo se escribe antes de la transacción; si ésta falla o está llena, se borra.
   const archivo = await guardarArchivoPrivado(CARPETA_FOTOS, req.file.buffer);
-  historia.fotos = [...historia.fotos, { archivo, nota }];
-  historia.actualizado_por_id = req.usuarioId;
-  await historia.save();
-  res.json(await cargarCompleta(historia.id));
+  await conHistoriaBloqueada(req, res, {
+    cambiar: (historia) => {
+      if (historia.fotos.length >= MAX_FOTOS) return { status: 409, error: `Máximo ${MAX_FOTOS} fotos por evaluación` };
+      historia.fotos = [...historia.fotos, { archivo, nota }];
+      return null;
+    },
+    alFallar: () => borrarArchivoPrivado(CARPETA_FOTOS, archivo),
+  });
 });
 
 router.get('/staff/historias/:id/fotos/:archivo', onlyHistoria, async (req, res) => {
-  const { foto } = await historiaYFoto(req, res);
-  if (!foto) return;
+  const historia = await db.HistoriaClinica.findByPk(req.params.id, { attributes: ['id', 'fotos'] });
+  if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
+  const foto = historia.fotos.find((f) => f.archivo === req.params.archivo);
+  if (!foto) return res.status(404).json({ error: 'Foto no encontrada' });
   return enviarArchivoPrivado(res, CARPETA_FOTOS, foto.archivo);
 });
 
 router.patch('/staff/historias/:id/fotos/:archivo', onlyHistoria, async (req, res) => {
-  const { historia, foto } = await historiaYFoto(req, res);
-  if (!foto) return;
   let nota;
   try {
     nota = notaDeFoto(req.body.nota);
   } catch (err) {
     return res.status(400).json({ error: err.message, campo: 'nota' });
   }
-  historia.fotos = historia.fotos.map((f) => (f.archivo === foto.archivo ? { ...f, nota } : f));
-  historia.actualizado_por_id = req.usuarioId;
-  await historia.save();
-  res.json(await cargarCompleta(historia.id));
+  await conHistoriaBloqueada(req, res, {
+    archivo: req.params.archivo,
+    cambiar: (historia, foto) => {
+      historia.fotos = historia.fotos.map((f) => (f.archivo === foto.archivo ? { ...f, nota } : f));
+      return null;
+    },
+  });
 });
 
 router.delete('/staff/historias/:id/fotos/:archivo', onlyHistoria, async (req, res) => {
-  const { historia, foto } = await historiaYFoto(req, res);
-  if (!foto) return;
-  historia.fotos = historia.fotos.filter((f) => f.archivo !== foto.archivo);
-  historia.actualizado_por_id = req.usuarioId;
-  await historia.save();
-  await borrarArchivoPrivado(CARPETA_FOTOS, foto.archivo);
-  res.json(await cargarCompleta(historia.id));
+  await conHistoriaBloqueada(req, res, {
+    archivo: req.params.archivo,
+    cambiar: (historia, foto) => {
+      historia.fotos = historia.fotos.filter((f) => f.archivo !== foto.archivo);
+      return { borrar: foto.archivo };
+    },
+  });
 });
 
 async function documentoDe(historia) {

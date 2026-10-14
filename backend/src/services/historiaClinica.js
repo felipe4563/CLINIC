@@ -37,7 +37,6 @@ function limpiarTexto(clave, valor, max) {
   return limpio || undefined;
 }
 
-// Devuelve solo las claves conocidas, con valores válidos; descarta vacíos.
 function fechaValida(texto) {
   if (typeof texto !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false;
   const [a, m, d] = texto.split('-').map(Number);
@@ -45,6 +44,7 @@ function fechaValida(texto) {
   return f.getUTCFullYear() === a && f.getUTCMonth() === m - 1 && f.getUTCDate() === d;
 }
 
+// Devuelve solo las claves conocidas, con valores válidos; descarta vacíos.
 function validarSeccion(claveSeccion, datos) {
   const campos = CAMPOS_POR_SECCION.get(claveSeccion);
   if (!campos) throw new Error(`Sección desconocida: ${claveSeccion}`);
@@ -64,7 +64,11 @@ function validarSeccion(claveSeccion, datos) {
       if (!campo.opciones.includes(valor)) throw new ErrorValidacion(clave, `${clave} tiene una opción inválida`);
       final = valor;
     } else if (campo.tipo === 'numero') {
-      if (valor === null || valor === undefined || valor === '') continue;
+      if (valor === null || valor === undefined) continue;
+      if (typeof valor === 'string' && valor.trim() === '') continue;
+      if (typeof valor === 'string' && !/^\d{1,2}$/.test(valor.trim())) {
+        throw new ErrorValidacion(clave, `${clave} debe ser un número entero entre 0 y 99`);
+      }
       const n = typeof valor === 'string' ? Number(valor.trim()) : valor;
       if (typeof n !== 'number' || !Number.isInteger(n) || n < 0 || n > 99) {
         throw new ErrorValidacion(clave, `${clave} debe ser un número entero entre 0 y 99`);
@@ -99,7 +103,6 @@ function validarProtocolo(filas) {
   return limpias;
 }
 
-// Alerta para la ficha: si la evaluación más reciente marca Alergias.
 function validarConsentimientos(valor) {
   if (valor === null || valor === undefined) return [];
   if (!Array.isArray(valor)) throw new ErrorValidacion('consentimientos', 'consentimientos debe ser una lista');
@@ -110,6 +113,7 @@ function validarConsentimientos(valor) {
   return [...new Set(valor)];
 }
 
+// Alerta para la ficha: si la evaluación más reciente marca Alergias.
 function alertaAlergias(historia) {
   const datos = historia ? historia.datos_clinicos || {} : {};
   return { alergias: Boolean(datos.alergias), detalle: datos.alergias ? datos.especificar || null : null };
