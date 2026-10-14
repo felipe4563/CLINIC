@@ -15,7 +15,12 @@ async function reducir(archivo: File): Promise<Blob> {
   try {
     bitmap = await createImageBitmap(archivo, { imageOrientation: 'from-image' });
   } catch {
-    throw new Error(`No se pudo leer "${archivo.name}". Usa una foto JPG o PNG.`);
+    try {
+      // Algunos navegadores no admiten las opciones: se reintenta sin ellas.
+      bitmap = await createImageBitmap(archivo);
+    } catch {
+      throw new Error(`No se pudo leer "${archivo.name}". Usa una foto JPG o PNG.`);
+    }
   }
   const escala = Math.min(1, LADO_MAX / Math.max(bitmap.width, bitmap.height));
   const lienzo = document.createElement('canvas');
@@ -109,9 +114,10 @@ export default function FotosHistoria<H>({ historiaId, fotos, onCambio }: { hist
                 placeholder="Nota (ej. frente, antes)"
                 aria-label="Nota de la foto"
                 maxLength={120}
+                disabled={subiendo}
                 className="mt-2 block w-full rounded border border-border px-2 py-1 text-xs"
               />
-              <button type="button" onClick={() => borrar(f.archivo)} className="mt-1 text-xs text-danger hover:underline">Borrar</button>
+              <button type="button" disabled={subiendo} onClick={() => borrar(f.archivo)} className="mt-1 text-xs text-danger hover:underline disabled:opacity-50">Borrar</button>
             </li>
           ))}
         </ul>

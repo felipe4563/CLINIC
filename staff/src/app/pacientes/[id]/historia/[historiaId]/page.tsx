@@ -333,26 +333,29 @@ export default function EditorHistoria() {
             )}
           </div>
 
-          <p className="mb-1 mt-4 text-sm font-semibold">Tratamiento estético realizado</p>
-          <TablaTratamientos pacienteId={params.id} filas={historia.tratamientos.filas} desde={historia.tratamientos.desde} onCambio={recargarTratamientos} />
-
           <p className="mb-1 mt-4 text-sm font-semibold">Fotos</p>
           <FotosHistoria<Historia>
             historiaId={historia.id}
             fotos={historia.fotos}
             onCambio={(h) => setHistoria((actual) => (actual ? { ...actual, fotos: h.fotos, updated_at: h.updated_at, updatedAt: h.updatedAt, ActualizadoPor: h.ActualizadoPor } : h))}
           />
+
+          <p className="mb-1 mt-4 text-sm font-semibold">Tratamiento estético realizado</p>
+          <TablaTratamientos pacienteId={params.id} filas={historia.tratamientos.filas} desde={historia.tratamientos.desde} onCambio={recargarTratamientos} />
         </details>
 
         <details className="rounded-lg border border-border bg-panel p-4">
           <summary className="cursor-pointer text-base font-semibold">6. Consentimiento</summary>
-          <p className="mt-3 text-xs text-muted-foreground">Consentimientos que se imprimen (si no marcas ninguno, sale el general)</p>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {consentimientosDisponibles.length === 1 ? 'Consentimiento que se imprime' : 'Consentimientos que se imprimen (si no marcas ninguno, sale el general)'}
+          </p>
           <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1.5">
             {consentimientosDisponibles.map((c) => (
               <label key={c.clave} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
-                  checked={historia.consentimientos.includes(c.clave)}
+                  checked={consentimientosDisponibles.length === 1 || historia.consentimientos.includes(c.clave)}
+                  disabled={consentimientosDisponibles.length === 1}
                   onChange={(e) =>
                     cambiar('consentimientos', e.target.checked ? [...historia.consentimientos, c.clave] : historia.consentimientos.filter((k) => k !== c.clave))
                   }
