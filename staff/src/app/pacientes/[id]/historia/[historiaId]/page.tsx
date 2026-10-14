@@ -87,7 +87,8 @@ export default function EditorHistoria() {
     const [def, h, pros] = await Promise.all([api.getDefinicionHistoria(), api.getHistoria(params.historiaId), api.getProfesionalesHistoria()]);
     setSecciones(def.secciones);
     setConsentimientosDisponibles(def.consentimientos || []);
-    setHistoria(h);
+    const validas = new Set<string>((def.consentimientos || []).map((c: { clave: string }) => c.clave));
+    setHistoria({ ...h, consentimientos: (h.consentimientos || []).filter((k: string) => validas.has(k)) });
     setProfesionales(pros);
   }, [params.historiaId]);
 
@@ -157,7 +158,13 @@ export default function EditorHistoria() {
       setSucio(false);
       setAviso('Cambios guardados.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar');
+      let mensaje = err instanceof Error ? err.message : 'No se pudo guardar';
+      const campo = (err as { campo?: string }).campo;
+      if (campo) {
+        const etiqueta = secciones.flatMap((sec) => sec.grupos.flatMap((g) => g.campos)).find((c) => c.clave === campo)?.etiqueta;
+        if (etiqueta) mensaje = mensaje.includes(campo) ? mensaje.split(campo).join(`«${etiqueta}»`) : `${etiqueta}: ${mensaje}`;
+      }
+      setError(mensaje);
     } finally {
       setGuardando(false);
     }
@@ -218,6 +225,7 @@ export default function EditorHistoria() {
         <div className="ml-auto flex items-center gap-2">
           {sucio && <span className="text-xs text-stat-amber">Tienes cambios sin guardar</span>}
           {aviso && !sucio && <span className="text-xs text-stat-green">{aviso}</span>}
+          {error && <span role="alert" className="max-w-xs text-xs text-danger">{error}</span>}
           <button onClick={() => descargar('pdf')} disabled={sucio} title={sucio ? 'Guarda primero' : undefined} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">PDF</button>
           <button onClick={() => descargar('word')} disabled={sucio} title={sucio ? 'Guarda primero' : undefined} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">Word</button>
           <button onClick={guardar} disabled={guardando || !sucio} className="rounded-lg bg-accent px-4 py-1.5 text-sm font-medium text-accent-foreground disabled:opacity-60">
@@ -225,7 +233,6 @@ export default function EditorHistoria() {
           </button>
         </div>
       </div>
-      {error && <p className="mb-3 text-sm text-danger">{error}</p>}
 
       <div className="flex flex-col gap-3">
         <details open className="rounded-lg border border-border bg-panel p-4">

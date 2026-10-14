@@ -90,7 +90,13 @@ export default function CampoHistoria({ grupo, valores, onCambio, urlGuias }: { 
                 max={esNumero ? 99 : undefined}
                 step={esNumero ? 1 : undefined}
                 value={valores[c.clave] === undefined || valores[c.clave] === null ? '' : String(valores[c.clave])}
-                onChange={(e) => onCambio(c.clave, esNumero && e.target.value !== '' ? Number(e.target.value) : e.target.value)}
+                onChange={(e) => {
+                  const texto = e.target.value;
+                  if (!esNumero || texto === '') return onCambio(c.clave, texto);
+                  const n = Number(texto);
+                  // Solo enteros de 0 a 99: otro valor se ignora y queda el anterior.
+                  if (Number.isInteger(n) && n >= 0 && n <= 99) onCambio(c.clave, n);
+                }}
                 className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground"
               />
             </label>

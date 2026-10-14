@@ -30,7 +30,9 @@ async function apiFetch(path, options = {}) {
   }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Error ${res.status}`);
+    const err = new Error(body.error || `Error ${res.status}`);
+    if (body.campo) err.campo = body.campo;
+    throw err;
   }
   if (res.status === 204) return null;
   return res.json();
