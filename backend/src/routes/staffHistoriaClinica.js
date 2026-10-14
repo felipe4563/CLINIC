@@ -2,7 +2,8 @@ const express = require('express');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
-const { ErrorValidacion, fechaValida, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos } = require('../services/historiaClinica');
+const { CONSENTIMIENTOS } = require('../config/consentimientos');
+const { ErrorValidacion, fechaValida, validarSeccion, validarProtocolo, validarConsentimientos, alertaAlergias, calcularTratamientos } = require('../services/historiaClinica');
 const { armarDocumento } = require('../services/historiaClinicaDocumento');
 const { enviarHistoriaPdf } = require('../services/historiaClinicaPdf');
 const { generarHistoriaWord } = require('../services/historiaClinicaWord');
@@ -39,7 +40,7 @@ async function cargarCompleta(id) {
 }
 
 router.get('/staff/historia-clinica/definicion', onlyHistoria, (req, res) => {
-  res.json({ secciones: SECCIONES, columnasProtocolo: COLUMNAS_PROTOCOLO });
+  res.json({ secciones: SECCIONES, columnasProtocolo: COLUMNAS_PROTOCOLO, consentimientos: CONSENTIMIENTOS.map(({ clave, titulo }) => ({ clave, titulo })) });
 });
 
 // Especialistas para el compromiso legal: lo necesita quien llena la historia,
@@ -94,6 +95,8 @@ router.post('/staff/pacientes/:id/historias', onlyHistoria, async (req, res) => 
     analisis_estetico: base ? base.analisis_estetico : {},
     diagnostico: base ? base.diagnostico : null,
     protocolo: base ? base.protocolo : [],
+    fotos: [],
+    consentimientos: [],
     procedimiento_autorizado: base ? base.procedimiento_autorizado : null,
     profesional_id: base ? base.profesional_id : null,
     creado_por_id: req.usuarioId,
@@ -119,6 +122,7 @@ router.put('/staff/historias/:id', onlyHistoria, async (req, res) => {
     if (req.body.protocolo !== undefined) {
       historia.protocolo = validarProtocolo(req.body.protocolo);
     }
+    if (req.body.consentimientos !== undefined) historia.consentimientos = validarConsentimientos(req.body.consentimientos);
     if (req.body.motivo_consulta !== undefined) historia.motivo_consulta = textoOpcional(req.body.motivo_consulta, 4000);
     if (req.body.diagnostico !== undefined) historia.diagnostico = textoOpcional(req.body.diagnostico, 4000);
     if (req.body.procedimiento_autorizado !== undefined) {

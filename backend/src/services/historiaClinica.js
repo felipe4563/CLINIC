@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const db = require('../models');
 const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
+const { CONSENTIMIENTOS } = require('../config/consentimientos');
 
 const MAX_TEXTO = 500;
 const MAX_PARRAFO = 4000;
@@ -99,6 +100,16 @@ function validarProtocolo(filas) {
 }
 
 // Alerta para la ficha: si la evaluación más reciente marca Alergias.
+function validarConsentimientos(valor) {
+  if (valor === null || valor === undefined) return [];
+  if (!Array.isArray(valor)) throw new ErrorValidacion('consentimientos', 'consentimientos debe ser una lista');
+  const validas = new Set(CONSENTIMIENTOS.map((c) => c.clave));
+  for (const clave of valor) {
+    if (!validas.has(clave)) throw new ErrorValidacion('consentimientos', `Consentimiento desconocido: ${clave}`);
+  }
+  return [...new Set(valor)];
+}
+
 function alertaAlergias(historia) {
   const datos = historia ? historia.datos_clinicos || {} : {};
   return { alergias: Boolean(datos.alergias), detalle: datos.alergias ? datos.especificar || null : null };
@@ -153,4 +164,4 @@ async function calcularTratamientos(historia) {
   return { desde, hasta, filas: filas.map(({ hora, ...resto }) => resto) };
 }
 
-module.exports = { ErrorValidacion, fechaValida, validarSeccion, validarProtocolo, alertaAlergias, calcularTratamientos, MAX_TEXTO, MAX_PARRAFO };
+module.exports = { ErrorValidacion, fechaValida, validarSeccion, validarProtocolo, validarConsentimientos, alertaAlergias, calcularTratamientos, MAX_TEXTO, MAX_PARRAFO };

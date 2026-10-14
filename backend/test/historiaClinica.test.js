@@ -488,4 +488,35 @@ describe('Historia clínica: API', () => {
     medidor.font('Helvetica').fontSize(9);
     expect(medidor.heightOfString(dibujada[0].texto, { width: dibujada[0].opciones.width })).toBeGreaterThan(20);
   });
+
+  // Crea una evaluación vacía de la paciente (por la API) y la devuelve como modelo.
+  const crearEvaluacion = async (pac = paciente) => {
+    const res = await request(app).post(`/staff/pacientes/${pac.id}/historias`).set(auth()).send({});
+    expect(res.status).toBe(201);
+    return db.HistoriaClinica.findByPk(res.body.id);
+  };
+
+  test('consentimientos: se guardan solo claves válidas, sin repetir', async () => {
+    const h = await crearEvaluacion();
+    const ok = await request(app).put(`/staff/historias/${h.id}`).set(auth()).send({ consentimientos: ['general', 'general'] });
+    expect(ok.status).toBe(200);
+    expect(ok.body.consentimientos).toEqual(['general']);
+    const malo = await request(app).put(`/staff/historias/${h.id}`).set(auth()).send({ consentimientos: ['inventado'] });
+    expect(malo.status).toBe(400);
+    expect(malo.body.campo).toBe('consentimientos');
+  });
+
+  test('la definición incluye los consentimientos disponibles', async () => {
+    const res = await request(app).get('/staff/historia-clinica/definicion').set(auth());
+    expect(res.body.consentimientos).toEqual([{ clave: 'general', titulo: 'Consentimiento general' }]);
+  });
+
+  test('copiar una evaluación no copia fotos ni consentimientos', async () => {
+    const base = await crearEvaluacion();
+    await db.HistoriaClinica.update({ fotos: [{ archivo: 'x.jpg', nota: null }], consentimientos: ['general'] }, { where: { id: base.id } });
+    const res = await request(app).post(`/staff/pacientes/${base.paciente_id}/historias`).set(auth()).send({ copiarDe: base.id });
+    expect(res.status).toBe(201);
+    expect(res.body.fotos).toEqual([]);
+    expect(res.body.consentimientos).toEqual([]);
+  });
 });

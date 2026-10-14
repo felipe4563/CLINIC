@@ -30,6 +30,8 @@ const HistoriaClinica = sequelize.define('HistoriaClinica', {
   analisis_estetico: jsonCampo('analisis_estetico', {}),
   diagnostico: { type: DataTypes.TEXT, allowNull: true },
   protocolo: jsonCampo('protocolo', []),
+  fotos: jsonCampo('fotos', []),
+  consentimientos: jsonCampo('consentimientos', []),
   procedimiento_autorizado: { type: DataTypes.STRING(255), allowNull: true },
   documento_firmado: { type: DataTypes.STRING, allowNull: true },
 }, { tableName: 'historias_clinicas', underscored: true });
