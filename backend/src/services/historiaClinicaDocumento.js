@@ -1,5 +1,8 @@
-const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
+const path = require('path');
+const { SECCIONES, COLUMNAS_PROTOCOLO, DIR_GUIAS } = require('../config/historiaClinica');
+const { CONSENTIMIENTOS } = require('../config/consentimientos');
 const { formatoFecha } = require('./pdf');
+const { rutaArchivo } = require('./archivosPrivados');
 
 // Convierte definición + datos en bloques neutros que dibujan igual el PDF y
 // el Word. `enBlanco` arma el formulario vacío para llenar a mano.
@@ -8,6 +11,12 @@ const SEXO = [['F', 'F'], ['M', 'M']];
 const ESTADO_CIVIL = [['S', 'S'], ['C', 'C'], ['D', 'D'], ['V', 'V']];
 const FILAS_EN_BLANCO = 3;
 const LINEA = '____________________';
+
+// Fecha de emisión del documento en Bolivia (no la de la evaluación).
+function hoyEnBolivia() {
+  const partes = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/La_Paz', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  return formatoFecha(partes);
+}
 
 function edadA(fechaNacimiento, fechaReferencia) {
   if (!fechaNacimiento) return '';
@@ -29,6 +38,7 @@ function casillasDeOpciones(opciones, valor) {
 
 function bloquesDeGrupo(grupo, datos) {
   const bloques = [{ tipo: 'grupo', titulo: grupo.titulo, ...(grupo.subtitulo ? { subtitulo: grupo.subtitulo } : {}) }];
+  if (grupo.imagen) bloques.push({ tipo: 'imagen', archivo: path.join(DIR_GUIAS, grupo.imagen) });
   let casillas = null;
   for (const campo of grupo.campos) {
     if (campo.tipo === 'check') {
@@ -47,6 +57,11 @@ function bloquesDeGrupo(grupo, datos) {
     if (campo.tipo === 'opcion') {
       bloques.push({ tipo: 'etiqueta', texto: campo.etiqueta });
       bloques.push(casillasDeOpciones(campo.opciones.map((op) => [op.clave, op.etiqueta]), datos[campo.clave]));
+    } else if (campo.tipo === 'numero') {
+      const v = datos[campo.clave];
+      bloques.push({ tipo: 'campo', etiqueta: campo.etiqueta, valor: v === undefined || v === null ? '' : String(v) });
+    } else if (campo.tipo === 'fecha') {
+      bloques.push({ tipo: 'campo', etiqueta: campo.etiqueta, valor: datos[campo.clave] ? formatoFecha(datos[campo.clave]) : '' });
     } else {
       bloques.push({ tipo: campo.tipo === 'parrafo' ? 'parrafo' : 'campo', etiqueta: campo.etiqueta, valor: datos[campo.clave] || '' });
     }
@@ -92,27 +107,36 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
     ? vacias(3)
     : (tratamientos.filas || []).map((f) => [formatoFecha(f.fecha), f.procedimiento || '', f.observacion || '']);
 
+  const fotos = enBlanco ? [] : (h.fotos || []).map((f) => ({ ruta: rutaArchivo('historias-fotos', f.archivo), nota: f.nota || '' }));
+  const marcados = enBlanco ? [] : (h.consentimientos || []);
+  const consentimientos = CONSENTIMIENTOS.filter((c) => marcados.includes(c.clave));
+  const aImprimir = consentimientos.length ? consentimientos : CONSENTIMIENTOS.filter((c) => c.clave === 'general');
+  const valores = {
+    paciente: p.nombre_completo || LINEA,
+    ci: carnet(p) || LINEA,
+    especialista: especialista || LINEA,
+    procedimiento: h.procedimiento_autorizado || LINEA,
+    clinica: enBlanco ? LINEA : clinica,
+  };
+  const rellenar = (texto) => texto.replace(/\{(\w+)\}/g, (_, k) => valores[k] ?? LINEA);
+
   bloques.push(
-    { tipo: 'seccion', titulo: '5. Diagnóstico y tratamiento estético' },
-    { tipo: 'parrafo', etiqueta: 'Diagnóstico', valor: h.diagnostico || '' },
+    { tipo: 'seccion', titulo: '5. Diagnóstico' },
+    { tipo: 'parrafo', etiqueta: 'Diagnóstico', valor: h.diagnostico || '', lineas: 6 },
     { tipo: 'grupo', titulo: 'Protocolo estético seleccionado' },
     { tipo: 'tabla', columnas: COLUMNAS_PROTOCOLO.map((c) => c.etiqueta), filas: protocolo },
+    { tipo: 'grupo', titulo: 'Fotos' },
+    { tipo: 'fotos', fotos },
     { tipo: 'grupo', titulo: 'Tratamiento estético realizado' },
     { tipo: 'tabla', columnas: ['Fecha', 'Procedimiento', 'Observación/evaluación'], filas: realizados },
-    { tipo: 'seccion', titulo: '6. Compromiso legal' },
-    {
-      tipo: 'compromiso',
-      texto:
-        `Yo ${p.nombre_completo || LINEA} portador(a) de la C.I ${carnet(p) || LINEA} certifico que la información ` +
-        'consignada en el presente documento es verdadera. Asimismo, autorizo al especialista ' +
-        `${especialista || LINEA} a realizar el siguiente procedimiento ${h.procedimiento_autorizado || LINEA}. ` +
-        'Conozco todos sus efectos y complicaciones, acepto las recomendaciones sugeridas y eximo de toda ' +
-        `responsabilidad a ${enBlanco ? LINEA : clinica} por cualquier alteración que se pueda presentar debido al tratamiento a realizar.`,
-    },
-    { tipo: 'firmas', paciente: p.nombre_completo || '', especialista }
+    { tipo: 'seccion', titulo: '6. Consentimiento' },
+    ...aImprimir.flatMap((c) => [
+      { tipo: 'consentimiento', titulo: c.titulo, texto: rellenar(c.texto) },
+      { tipo: 'firmas', paciente: p.nombre_completo || '', especialista },
+    ])
   );
 
-  return { fecha: h.fecha ? formatoFecha(h.fecha) : '', numero: p.codigo_paciente || '', bloques };
+  return { fecha: h.fecha ? formatoFecha(h.fecha) : '', emitido: hoyEnBolivia(), numero: p.codigo_paciente || '', bloques };
 }
 
 module.exports = { armarDocumento, edadA };

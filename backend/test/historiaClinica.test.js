@@ -379,7 +379,7 @@ describe('Historia clínica: API', () => {
     await h.destroy();
   });
 
-  test('armarDocumento: datos personales, casillas con detalles, opciones y compromiso legal', () => {
+  test('armarDocumento: datos personales, casillas con detalles, opciones y consentimiento', () => {
     const doc = armarDocumento({
       config: { nombre_consultorio: 'Clinic NovagED' },
       paciente: { nombre_completo: 'Ana Pérez', codigo_paciente: 'P-0001', carnet_identidad: '1234567', carnet_complemento: null, carnet_expedido: 'CB', fecha_nacimiento: '1990-05-10', sexo: 'F', telefono: '591' },
@@ -403,11 +403,55 @@ describe('Historia clínica: API', () => {
     // Las opciones llevan solo la etiqueta (sin línea para llenar) encima de sus casillas.
     expect(doc.bloques.filter((b) => b.tipo === 'campo' && ['Sexo', 'Estado civil'].includes(b.etiqueta))).toEqual([]);
     expect(doc.bloques).toEqual(expect.arrayContaining([{ tipo: 'etiqueta', texto: 'Sexo' }, { tipo: 'etiqueta', texto: 'Fototipo' }]));
-    const compromiso = doc.bloques.find((b) => b.tipo === 'compromiso').texto;
+    const compromiso = doc.bloques.find((b) => b.tipo === 'consentimiento').texto;
     expect(compromiso).toContain('Ana Pérez');
     expect(compromiso).toContain('Dra. Noemí');
     expect(compromiso).toContain('Clinic NovagED');
     expect(doc.bloques.filter((b) => b.tipo === 'tabla').map((t) => t.filas)).toEqual([[['Peeling', '4', '']], [['05/10/2026', 'Peeling', 'Bien']]]);
+  });
+
+  test('documento: emitido, grupos nuevos, guías, fotos y consentimientos', () => {
+    const historia = {
+      fecha: '2026-10-01',
+      datos_clinicos: { gestas: 2, fum: '2026-09-15', no_patologicos: 'Vive con su familia' },
+      datos_esteticos: { antecedente_1: 'Toxina 2025' },
+      analisis_estetico: { tipo_facial: 'mesofacial', grasa_muslos: true },
+      protocolo: [],
+      fotos: [{ archivo: 'a.jpg', nota: 'frente' }],
+      consentimientos: ['general'],
+      Profesional: { nombre: 'Dra. X' },
+    };
+    const doc = armarDocumento({ config: { nombre_consultorio: 'Clinic' }, paciente: { nombre_completo: 'Ana' }, historia });
+    expect(doc.emitido).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+    const campo = (etiqueta) => doc.bloques.find((b) => b.tipo === 'campo' && b.etiqueta === etiqueta);
+    expect(campo('Gestas').valor).toBe('2');
+    expect(campo('Fecha de última menstruación (FUM)').valor).toBe('15/09/2026');
+    expect(campo('1.').valor).toBe('Toxina 2025');
+    expect(doc.bloques.filter((b) => b.tipo === 'imagen').map((b) => path.basename(b.archivo))).toEqual(['guia-tipos-faciales.png', 'guia-grasa-corporal.png']);
+    expect(doc.bloques.find((b) => b.tipo === 'parrafo' && b.etiqueta === 'Diagnóstico').lineas).toBe(6);
+    const fotos = doc.bloques.find((b) => b.tipo === 'fotos');
+    expect(fotos.fotos).toEqual([{ ruta: path.join(process.env.PRIVADO_DIR, 'historias-fotos', 'a.jpg'), nota: 'frente' }]);
+    const titulos = doc.bloques.filter((b) => b.tipo === 'seccion').map((b) => b.titulo);
+    expect(titulos).toContain('5. Diagnóstico');
+    expect(titulos).toContain('6. Consentimiento');
+    const consentimiento = doc.bloques.find((b) => b.tipo === 'consentimiento');
+    expect(consentimiento.titulo).toBe('Consentimiento general');
+    expect(consentimiento.texto).toContain('Yo Ana');
+    expect(consentimiento.texto).toContain('Dra. X');
+    expect(consentimiento.texto).not.toMatch(/\{\w+\}/);
+    expect(doc.bloques.some((b) => b.tipo === 'compromiso')).toBe(false);
+  });
+
+  test('documento en blanco: consentimiento general, fotos vacías, emitido presente', () => {
+    const doc = armarDocumento({ config: {}, enBlanco: true });
+    expect(doc.emitido).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+    expect(doc.bloques.find((b) => b.tipo === 'fotos').fotos).toEqual([]);
+    expect(doc.bloques.filter((b) => b.tipo === 'consentimiento').map((b) => b.titulo)).toEqual(['Consentimiento general']);
+  });
+
+  test('sin consentimientos marcados sale el general', () => {
+    const doc = armarDocumento({ config: {}, paciente: {}, historia: { fecha: '2026-10-01', consentimientos: [] } });
+    expect(doc.bloques.filter((b) => b.tipo === 'consentimiento')).toHaveLength(1);
   });
 
   test('armarDocumento en blanco: sin valores y con filas vacías para llenar a mano', () => {
