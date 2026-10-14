@@ -11,7 +11,7 @@ const request = require('supertest');
 const db = require('../src/models');
 const app = require('../src/app');
 const { PERMISOS_POR_DEFECTO } = require('../src/config/permisos');
-const { pngFalso, pdfFalso, exeFalso, jpgFalso } = require('./helpers/archivos');
+const { pngFalso, pdfFalso, exeFalso, jpgFalso, pngReal } = require('./helpers/archivos');
 const { armarDocumento } = require('../src/services/historiaClinicaDocumento');
 
 function binario(res, cb) {
@@ -625,5 +625,26 @@ describe('Historia clínica: API', () => {
       expect(res.status).toBe(204);
       expect(fs.existsSync(path.join(carpeta, otra))).toBe(false);
     });
+  });
+
+  test('PDF y Word se generan con guías y fotos; una foto que falta en disco no rompe', async () => {
+    const h = await crearEvaluacion();
+    const subida = await request(app).post(`/staff/historias/${h.id}/fotos`).set(auth()).attach('archivo', pngReal(), 'f.png');
+    expect(subida.status).toBe(200);
+    // Una foto registrada cuyo archivo ya no existe:
+    await db.HistoriaClinica.update({ fotos: [...subida.body.fotos, { archivo: 'no-existe.png', nota: 'x' }] }, { where: { id: h.id } });
+
+    const pdf = await request(app).get(`/staff/historias/${h.id}/pdf`).set(auth()).buffer(true).parse(binario);
+    expect(pdf.status).toBe(200);
+    expect(pdf.body.subarray(0, 5).toString()).toBe('%PDF-');
+
+    const word = await request(app).get(`/staff/historias/${h.id}/word`).set(auth()).buffer(true).parse(binario);
+    expect(word.status).toBe(200);
+    expect(word.body.subarray(0, 2).toString()).toBe('PK');
+
+    for (const formato of ['pdf', 'docx']) {
+      const blanco = await request(app).get(`/staff/historia-clinica/en-blanco.${formato}`).set(auth()).buffer(true).parse(binario);
+      expect(blanco.status).toBe(200);
+    }
   });
 });

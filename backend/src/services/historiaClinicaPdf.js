@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { crearReportePDF, COLOR } = require('./pdf');
 
 // Dibuja los bloques de armarDocumento con pdfkit. Las casillas se dibujan
@@ -16,8 +17,24 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
   };
 
   doc.font('Helvetica').fontSize(TAM).fillColor(COLOR.ink);
-  doc.text(`Fecha: ${documento.fecha || '____/____/______'}      N° de historia: ${documento.numero || '__________'}`, izq, doc.y);
+  doc.text(`Fecha: ${documento.fecha || '____/____/______'}      Emitido: ${documento.emitido}      N° de historia: ${documento.numero || '__________'}`, izq, doc.y);
   doc.moveDown(0.6);
+
+  // Imagen ajustada al ancho dado sin pasar el alto máximo; si falta o no se
+  // puede leer, se omite (el documento se genera igual).
+  function imagen(ruta, x, anchoMax, altoMax) {
+    if (!ruta || !fs.existsSync(ruta)) return 0;
+    try {
+      const img = doc.openImage(ruta);
+      const escala = Math.min(anchoMax / img.width, altoMax / img.height, 1);
+      const w = img.width * escala;
+      const hImg = img.height * escala;
+      doc.image(img, x, doc.y, { width: w, height: hImg });
+      return hImg;
+    } catch {
+      return 0;
+    }
+  }
 
   function casillas(items) {
     doc.font('Helvetica').fontSize(TAM);
@@ -83,8 +100,8 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
 
   for (const b of documento.bloques) {
     if (b.tipo === 'seccion') {
-      // El compromiso legal y las firmas van juntos en la misma hoja.
-      asegurar(b.titulo.includes('Compromiso') ? 230 : 40);
+      // El consentimiento y las firmas van juntos en la misma hoja.
+      asegurar(b.titulo.includes('Consentimiento') ? 230 : 40);
       doc.moveDown(0.6);
       doc.font('Helvetica-Bold').fontSize(12).fillColor(COLOR.ink).text(b.titulo, izq, doc.y);
       doc.moveDown(0.2);
@@ -103,13 +120,13 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
       doc.font('Helvetica-Bold').fontSize(TAM).fillColor(COLOR.ink).text(`${b.etiqueta}: `, izq, doc.y, { continued: true });
       doc.font('Helvetica').text(b.valor || '______________________________', { width: ancho });
     } else if (b.tipo === 'parrafo') {
-      asegurar(TAM * 3);
+      asegurar(TAM * (b.lineas || 2) + TAM);
       doc.font('Helvetica-Bold').fontSize(TAM).fillColor(COLOR.ink).text(`${b.etiqueta}:`, izq, doc.y);
       if (b.valor) {
         doc.font('Helvetica').text(b.valor, izq, doc.y, { width: ancho });
         doc.moveDown(0.4);
       } else {
-        for (let i = 0; i < 2; i += 1) {
+        for (let i = 0; i < (b.lineas || 2); i += 1) {
           doc.moveDown(0.9);
           doc.moveTo(izq, doc.y).lineTo(der, doc.y).lineWidth(0.5).strokeColor(COLOR.mutedLight).stroke();
         }
@@ -117,7 +134,40 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
       }
     } else if (b.tipo === 'tabla') {
       tabla(b.columnas, b.filas);
-    } else if (b.tipo === 'compromiso') {
+    } else if (b.tipo === 'imagen') {
+      asegurar(170);
+      const alto = imagen(b.archivo, izq, ancho, 170);
+      doc.y += alto + 4;
+      doc.x = izq;
+    } else if (b.tipo === 'fotos') {
+      if (!b.fotos.length) {
+        asegurar(90);
+        const y = doc.y + 2;
+        doc.lineWidth(0.6).strokeColor(COLOR.manhattan).rect(izq, y, ancho, 80).stroke();
+        doc.y = y + 86;
+      } else {
+        const col = (ancho - 12) / 2;
+        const altoFoto = 200;
+        for (let i = 0; i < b.fotos.length; i += 2) {
+          asegurar(altoFoto + 24);
+          const y = doc.y;
+          let altoFila = 0;
+          for (const [j, f] of b.fotos.slice(i, i + 2).entries()) {
+            const x = izq + j * (col + 12);
+            doc.y = y;
+            const alto = imagen(f.ruta, x, col, altoFoto);
+            if (f.nota) doc.font('Helvetica').fontSize(8).fillColor(COLOR.muted).text(f.nota, x, y + alto + 2, { width: col });
+            altoFila = Math.max(altoFila, alto + (f.nota ? 14 : 0));
+          }
+          doc.y = y + altoFila + 8;
+        }
+      }
+      doc.x = izq;
+    } else if (b.tipo === 'consentimiento') {
+      asegurar(200);
+      doc.moveDown(0.4);
+      doc.font('Helvetica-Bold').fontSize(10).fillColor(COLOR.espresso).text(b.titulo, izq, doc.y);
+      doc.moveDown(0.2);
       doc.font('Helvetica').fontSize(TAM).fillColor(COLOR.ink).text(b.texto, izq, doc.y, { width: ancho, align: 'justify' });
     } else if (b.tipo === 'firmas') {
       asegurar(90);

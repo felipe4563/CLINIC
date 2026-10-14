@@ -16,6 +16,25 @@ function dimensionesImagen(ruta) {
   return { ancho: img.width, alto: img.height };
 }
 
+// Párrafo con una imagen ajustada a anchoMax×altoMax (en px de docx); null si
+// falta o no se puede leer.
+function parrafoImagen(ruta, anchoMax, altoMax) {
+  if (!ruta || !fs.existsSync(ruta)) return null;
+  try {
+    const { ancho, alto } = dimensionesImagen(ruta);
+    const escala = Math.min(anchoMax / ancho, altoMax / alto, 1);
+    return new Paragraph({
+      children: [new ImageRun({
+        type: /\.png$/i.test(ruta) ? 'png' : 'jpg',
+        data: fs.readFileSync(ruta),
+        transformation: { width: Math.round(ancho * escala), height: Math.round(alto * escala) },
+      })],
+    });
+  } catch {
+    return null;
+  }
+}
+
 function encabezado(config) {
   const hijos = [];
   const ruta = rutaLogoEmbebible(config.logo_url);
@@ -61,7 +80,7 @@ function tabla(columnas, filas) {
 async function generarHistoriaWord(documento, config) {
   const cuerpo = [
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: 'HISTORIA CLÍNICA', bold: true, size: 32 })] }),
-    new Paragraph({ children: [new TextRun({ text: `Fecha: ${documento.fecha || '____/____/______'}      N° de historia: ${documento.numero || '__________'}`, size: TAM })] }),
+    new Paragraph({ children: [new TextRun({ text: `Fecha: ${documento.fecha || '____/____/______'}      Emitido: ${documento.emitido}      N° de historia: ${documento.numero || '__________'}`, size: TAM })] }),
   ];
 
   for (const b of documento.bloques) {
@@ -86,12 +105,26 @@ async function generarHistoriaWord(documento, config) {
       }));
     } else if (b.tipo === 'parrafo') {
       cuerpo.push(new Paragraph({ children: [new TextRun({ text: `${b.etiqueta}:`, bold: true, size: TAM })] }));
-      const lineas = b.valor ? b.valor.split('\n') : ['_'.repeat(90), '_'.repeat(90)];
+      const lineas = b.valor ? b.valor.split('\n') : Array(b.lineas || 2).fill('_'.repeat(90));
       for (const linea of lineas) cuerpo.push(new Paragraph({ children: [new TextRun({ text: linea, size: TAM })] }));
     } else if (b.tipo === 'tabla') {
       cuerpo.push(tabla(b.columnas, b.filas));
       cuerpo.push(new Paragraph({ children: [] }));
-    } else if (b.tipo === 'compromiso') {
+    } else if (b.tipo === 'imagen') {
+      const p = parrafoImagen(b.archivo, 600, 220);
+      if (p) cuerpo.push(p);
+    } else if (b.tipo === 'fotos') {
+      if (!b.fotos.length) {
+        cuerpo.push(tabla([' '], [['\n\n\n\n']]));
+      } else {
+        for (const f of b.fotos) {
+          const p = parrafoImagen(f.ruta, 300, 260);
+          if (p) cuerpo.push(p);
+          if (f.nota) cuerpo.push(new Paragraph({ children: [new TextRun({ text: f.nota, italics: true, size: 16 })] }));
+        }
+      }
+    } else if (b.tipo === 'consentimiento') {
+      cuerpo.push(new Paragraph({ spacing: { before: 160 }, children: [new TextRun({ text: b.titulo, bold: true, size: 20 })] }));
       cuerpo.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, children: [new TextRun({ text: b.texto, size: TAM })] }));
     } else if (b.tipo === 'firmas') {
       cuerpo.push(new Paragraph({ spacing: { before: 1200 }, children: [] }));
