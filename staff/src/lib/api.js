@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 const TOKEN_KEY = 'novaged_staff_token';
 const USER_KEY = 'novaged_staff_usuario';
 

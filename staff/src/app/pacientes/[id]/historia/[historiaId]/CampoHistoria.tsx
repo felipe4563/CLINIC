@@ -4,16 +4,16 @@ export type Opcion = { clave: string; etiqueta: string };
 export type Campo = {
   clave: string;
   etiqueta: string;
-  tipo: 'check' | 'texto' | 'parrafo' | 'opcion';
+  tipo: 'check' | 'texto' | 'parrafo' | 'opcion' | 'numero' | 'fecha';
   opciones?: Opcion[];
   detalles?: Opcion[];
 };
-export type Grupo = { titulo: string; subtitulo?: string; campos: Campo[] };
-export type Valores = Record<string, string | boolean>;
+export type Grupo = { titulo: string; subtitulo?: string; imagen?: string; campos: Campo[] };
+export type Valores = Record<string, string | boolean | number>;
 
 // Un grupo de la definición: casillas (con sus detalles cuando están marcadas),
 // opciones como botones, y textos.
-export default function CampoHistoria({ grupo, valores, onCambio }: { grupo: Grupo; valores: Valores; onCambio: (clave: string, valor: string | boolean) => void }) {
+export default function CampoHistoria({ grupo, valores, onCambio, urlGuias }: { grupo: Grupo; valores: Valores; onCambio: (clave: string, valor: string | boolean | number) => void; urlGuias: string }) {
   const checks = grupo.campos.filter((c) => c.tipo === 'check');
   const otros = grupo.campos.filter((c) => c.tipo !== 'check');
 
@@ -23,6 +23,10 @@ export default function CampoHistoria({ grupo, valores, onCambio }: { grupo: Gru
         {grupo.titulo}
         {grupo.subtitulo && <span className="ml-1 font-normal text-muted-foreground">{grupo.subtitulo}</span>}
       </legend>
+      {grupo.imagen && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={`${urlGuias}/${grupo.imagen}`} alt={`Guía: ${grupo.titulo}`} className="mb-3 w-full rounded border border-border bg-white object-contain" />
+      )}
 
       {checks.length > 0 && (
         <div className="mb-2 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -72,6 +76,24 @@ export default function CampoHistoria({ grupo, valores, onCambio }: { grupo: Gru
                 ))}
               </div>
             </div>
+          );
+        }
+        if (c.tipo === 'numero' || c.tipo === 'fecha') {
+          const esNumero = c.tipo === 'numero';
+          return (
+            <label key={c.clave} className={`mb-2 text-xs text-muted-foreground ${esNumero ? 'mr-3 inline-block w-28 align-top' : 'block sm:w-64'}`}>
+              {c.etiqueta}
+              <input
+                type={esNumero ? 'number' : 'date'}
+                inputMode={esNumero ? 'numeric' : undefined}
+                min={esNumero ? 0 : undefined}
+                max={esNumero ? 99 : undefined}
+                step={esNumero ? 1 : undefined}
+                value={valores[c.clave] === undefined || valores[c.clave] === null ? '' : String(valores[c.clave])}
+                onChange={(e) => onCambio(c.clave, esNumero && e.target.value !== '' ? Number(e.target.value) : e.target.value)}
+                className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground"
+              />
+            </label>
           );
         }
         const largo = c.tipo === 'parrafo';

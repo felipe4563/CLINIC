@@ -3,7 +3,7 @@
 import { ChangeEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, API_URL } from '@/lib/api';
 import { IconArrowLeft } from '@/components/icons';
 import ArchivoPrivado from '@/app/agenda/ArchivoPrivado';
 import CampoHistoria, { type Grupo, type Valores } from './CampoHistoria';
@@ -23,6 +23,8 @@ type Historia = {
   procedimiento_autorizado: string | null;
   profesional_id: number | null;
   documento_firmado: string | null;
+  fotos: { archivo: string; nota: string | null }[];
+  consentimientos: string[];
   updated_at?: string;
   updatedAt?: string;
   ActualizadoPor?: { nombre: string } | null;
@@ -33,6 +35,8 @@ type Historia = {
   };
   tratamientos: { desde: string; hasta: string | null; filas: FilaTratamiento[] };
 };
+
+const URL_GUIAS = `${API_URL}/assets/historia`;
 
 const ESTADOS_CIVILES = { S: 'Soltera/o', C: 'Casada/o', D: 'Divorciada/o', V: 'Viuda/o' } as const;
 
@@ -64,11 +68,12 @@ const TEXTOS_PERSONALES: [CampoPersonal, string, number][] = [
   ['parentesco_emergencia', 'Parentesco', 60],
 ];
 
-const CAMPOS_GUARDABLES = ['fecha', 'motivo_consulta', 'datos_clinicos', 'datos_esteticos', 'analisis_estetico', 'diagnostico', 'protocolo', 'procedimiento_autorizado', 'profesional_id'] as const;
+const CAMPOS_GUARDABLES = ['fecha', 'motivo_consulta', 'datos_clinicos', 'datos_esteticos', 'analisis_estetico', 'diagnostico', 'protocolo', 'procedimiento_autorizado', 'profesional_id', 'consentimientos'] as const;
 
 export default function EditorHistoria() {
   const params = useParams<{ id: string; historiaId: string }>();
   const [secciones, setSecciones] = useState<Seccion[]>([]);
+  const [consentimientosDisponibles, setConsentimientosDisponibles] = useState<{ clave: string; titulo: string }[]>([]);
   const [historia, setHistoria] = useState<Historia | null>(null);
   const [profesionales, setProfesionales] = useState<{ id: number; nombre: string }[]>([]);
   const [sucio, setSucio] = useState(false);
@@ -81,6 +86,7 @@ export default function EditorHistoria() {
   const cargar = useCallback(async () => {
     const [def, h, pros] = await Promise.all([api.getDefinicionHistoria(), api.getHistoria(params.historiaId), api.getProfesionalesHistoria()]);
     setSecciones(def.secciones);
+    setConsentimientosDisponibles(def.consentimientos || []);
     setHistoria(h);
     setProfesionales(pros);
   }, [params.historiaId]);
@@ -129,7 +135,7 @@ export default function EditorHistoria() {
     setAviso(null);
   }
 
-  function cambiarEnSeccion(seccion: Seccion['clave'], clave: string, valor: string | boolean) {
+  function cambiarEnSeccion(seccion: Seccion['clave'], clave: string, valor: string | boolean | number) {
     setHistoria((h) => (h ? { ...h, [seccion]: { ...h[seccion], [clave]: valor } } : h));
     setSucio(true);
     setAviso(null);
@@ -289,17 +295,17 @@ export default function EditorHistoria() {
             <summary className="cursor-pointer text-base font-semibold">{s.titulo}</summary>
             <div className="mt-3">
               {s.grupos.map((g) => (
-                <CampoHistoria key={g.titulo} grupo={g} valores={historia[s.clave] || {}} onCambio={(clave, valor) => cambiarEnSeccion(s.clave, clave, valor)} />
+                <CampoHistoria key={g.titulo} grupo={g} valores={historia[s.clave] || {}} onCambio={(clave, valor) => cambiarEnSeccion(s.clave, clave, valor)} urlGuias={URL_GUIAS} />
               ))}
             </div>
           </details>
         ))}
 
         <details className="rounded-lg border border-border bg-panel p-4">
-          <summary className="cursor-pointer text-base font-semibold">5. Diagnóstico y tratamiento estético</summary>
+          <summary className="cursor-pointer text-base font-semibold">5. Diagnóstico</summary>
           <label className="mt-3 block text-xs text-muted-foreground">
             Diagnóstico
-            <textarea value={historia.diagnostico ?? ''} onChange={(e) => cambiar('diagnostico', e.target.value)} rows={3} maxLength={4000} className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground" />
+            <textarea value={historia.diagnostico ?? ''} onChange={(e) => cambiar('diagnostico', e.target.value)} rows={6} maxLength={4000} className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground" />
           </label>
 
           <p className="mb-1 mt-4 text-sm font-semibold">Protocolo estético seleccionado</p>
@@ -321,10 +327,28 @@ export default function EditorHistoria() {
 
           <p className="mb-1 mt-4 text-sm font-semibold">Tratamiento estético realizado</p>
           <TablaTratamientos pacienteId={params.id} filas={historia.tratamientos.filas} desde={historia.tratamientos.desde} onCambio={recargarTratamientos} />
+
+          <p className="mb-1 mt-4 text-sm font-semibold">Fotos</p>
         </details>
 
         <details className="rounded-lg border border-border bg-panel p-4">
-          <summary className="cursor-pointer text-base font-semibold">6. Compromiso legal</summary>
+          <summary className="cursor-pointer text-base font-semibold">6. Consentimiento</summary>
+          <p className="mt-3 text-xs text-muted-foreground">Consentimientos que se imprimen (si no marcas ninguno, sale el general)</p>
+          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1.5">
+            {consentimientosDisponibles.map((c) => (
+              <label key={c.clave} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={historia.consentimientos.includes(c.clave)}
+                  onChange={(e) =>
+                    cambiar('consentimientos', e.target.checked ? [...historia.consentimientos, c.clave] : historia.consentimientos.filter((k) => k !== c.clave))
+                  }
+                  className="h-4 w-4 accent-[var(--accent)]"
+                />
+                {c.titulo}
+              </label>
+            ))}
+          </div>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="text-xs text-muted-foreground">
               Especialista
