@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import MagneticButton from './MagneticButton';
 
-const DIRECCION_FALLBACK = 'Edificio Vedra planta baja, calle Lanza No 670 entre Chuquisaca y Av. Salamanca, Cochabamba, Bolivia';
-const TELEFONO_FALLBACK = '+591 65359810';
+const DIRECCION_FALLBACK = 'Edificio Vedra planta baja, calle Lanza N.º 670 entre Chuquisaca y Av. Salamanca, Cochabamba, Bolivia';
+export const TELEFONO_FALLBACK = '+591 65359810';
 const EMAIL_FALLBACK = 'info@novaged.com';
 
 type ConfiguracionPublica = {

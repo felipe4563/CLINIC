@@ -1,6 +1,6 @@
 import type { Categoria, Enlace } from './tipos';
 
-const RESPALDO_MEDICO = 'Parte del enfoque integral de ClinicNovagED, con seguimiento médico especializado.';
+const RESPALDO_MEDICO = 'Parte del enfoque integral de Clinic NovagED, con seguimiento médico especializado.';
 
 export const CATEGORIAS: Categoria[] = [
   {

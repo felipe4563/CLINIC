@@ -105,18 +105,26 @@ export default function Tratamientos() {
                                 Ver tratamiento <span aria-hidden="true">→</span>
                               </Link>
                             )}
+                            {g.columnas?.some((col) => col.items.some((it) => it.slug)) && (
+                              <p className="mt-4 text-xs text-tan">Toca un tratamiento para ver su información</p>
+                            )}
                             {g.columnas && (
-                              <div className="mt-4 grid gap-6 sm:grid-cols-2">
+                              <div className={`mt-4 grid gap-6 ${g.columnas.some((col) => col.items.some((it) => it.slug)) ? '' : 'sm:grid-cols-2'}`}>
                                 {g.columnas.map((col) => (
                                   <div key={col.titulo}>
                                     <p className="text-xs tracking-widest uppercase text-muted">{col.titulo}</p>
-                                    <ul className="mt-2 space-y-1 text-sm text-ink">
+                                    <ul className={`mt-2 text-sm text-ink ${col.items.some((it) => it.slug) ? 'border-t border-manhattan/40' : 'space-y-1'}`}>
                                       {col.items.map((it) => (
-                                        <li key={it.nombre}>
+                                        <li key={it.nombre} className={it.slug ? 'border-b border-manhattan/40' : undefined}>
                                           {it.slug ? (
-                                            <Link href={`/tratamientos/${it.slug}`} className="group inline-flex items-baseline gap-1 hover:text-tan">
-                                              ✦ {it.nombre}
-                                              <span aria-hidden="true" className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">→</span>
+                                            <Link
+                                              href={`/tratamientos/${it.slug}`}
+                                              className="group flex items-center justify-between gap-3 py-3 transition-colors hover:text-tan"
+                                            >
+                                              <span>✦ {it.nombre}</span>
+                                              <span className="shrink-0 text-[11px] uppercase tracking-widest text-tan transition-transform group-hover:translate-x-0.5">
+                                                Ver más <span aria-hidden="true">→</span>
+                                              </span>
                                             </Link>
                                           ) : (
                                             <>✦ {it.nombre}</>

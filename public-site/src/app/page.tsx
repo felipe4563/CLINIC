@@ -3,6 +3,7 @@ import { BookingProvider, useBooking } from '@/lib/bookingContext';
 import BookingModal from '@/components/booking/BookingModal';
 import Nav from '@/components/Nav';
 import FloatingCta from '@/components/FloatingCta';
+import WhatsappFlotante from '@/components/WhatsappFlotante';
 import Footer from '@/components/Footer';
 import Hero from '@/components/Hero';
 import EsenciaMarca from '@/components/EsenciaMarca';
@@ -28,6 +29,7 @@ function HomeContent() {
       <Reveal><Contacto onReservar={open} /></Reveal>
       <Footer />
       <FloatingCta onClick={open} />
+      <WhatsappFlotante />
       <BookingModal />
     </main>
   );

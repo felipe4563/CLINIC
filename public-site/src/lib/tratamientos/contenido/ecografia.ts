@@ -150,7 +150,7 @@ export const ecografia: Tratamiento[] = [
     antes: [
       'El centro te dirá si necesitas alguna preparación; muchas veces no hace falta.',
       'Te pueden pedir quitarte joyas o piercings de la zona a examinar.',
-      'Quizá debas descubrir la zona del bulto; puedes pedir que haya una persona acompañante o chaperón.',
+      'Quizá debas descubrir la zona del bulto; puedes pedir que haya una persona acompañante.',
     ],
     despues: [
       'Un profesional mueve una sonda sobre la piel, con gel, y las imágenes se ven en la pantalla.',

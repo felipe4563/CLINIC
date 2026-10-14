@@ -38,7 +38,7 @@ export default function Nosotros() {
           </h2>
 
           <blockquote className="mt-6 font-serif italic text-xl md:text-2xl leading-snug text-espresso">
-            &ldquo;En ClinicNovagED tu salud es nuestra prioridad.&rdquo;
+            &ldquo;En Clinic NovagED tu salud es nuestra prioridad.&rdquo;
           </blockquote>
 
           <div className="mt-6 space-y-4 text-sm leading-relaxed text-espresso">
@@ -58,7 +58,7 @@ export default function Nosotros() {
               acordes a cada paciente, superando tus expectativas.
             </p>
             <p>
-              ClinicNovagED tiene un enfoque integral donde cada paciente es
+              Clinic NovagED tiene un enfoque integral donde cada paciente es
               único, integrando servicios de ginecología, ecografía y
               fisioterapia, con compromiso y profesionalismo.
             </p>

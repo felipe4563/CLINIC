@@ -13,7 +13,7 @@ export default function EsenciaMarca() {
           Renovación y evolución <em className="italic text-tan">constante</em>
         </h2>
         <p className="mx-auto mt-6 max-w-xl text-tan">
-          Novaged nace para ofrecer una nueva etapa en el cuidado estético — donde
+          NovagED nace para ofrecer una nueva etapa en el cuidado estético — donde
           la innovación médica se une a una visión artística del bienestar
           integral.
         </p>
