@@ -610,8 +610,9 @@ describe('Staff (sistema interno)', () => {
       const crearProf = await request(app)
         .post('/staff/profesionales')
         .set('Authorization', `Bearer ${token}`)
-        .send({ nombre: 'Dr. Nuevo' });
+        .send({ nombre: 'Dr. Nuevo', registro_profesional: 'MP-1' });
       expect(crearProf.status).toBe(201);
+      expect(crearProf.body.registro_profesional).toBe('MP-1');
 
       const vincular = await request(app)
         .post(`/staff/profesionales/${crearProf.body.id}/servicios`)

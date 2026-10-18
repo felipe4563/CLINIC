@@ -32,7 +32,7 @@ async function cargarCompleta(id) {
   return db.HistoriaClinica.findByPk(id, {
     include: [
       { model: db.Paciente },
-      { model: db.Profesional, attributes: ['id', 'nombre'] },
+      { model: db.Profesional, attributes: ['id', 'nombre', 'especialidad', 'registro_profesional'] },
       { model: db.Usuario, as: 'CreadoPor', attributes: ['id', 'nombre'] },
       { model: db.Usuario, as: 'ActualizadoPor', attributes: ['id', 'nombre'] },
     ],

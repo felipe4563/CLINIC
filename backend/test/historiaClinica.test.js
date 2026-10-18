@@ -404,10 +404,10 @@ describe('Historia clínica: API', () => {
     // Las opciones llevan solo la etiqueta (sin línea para llenar) encima de sus casillas.
     expect(doc.bloques.filter((b) => b.tipo === 'campo' && ['Sexo', 'Estado civil'].includes(b.etiqueta))).toEqual([]);
     expect(doc.bloques).toEqual(expect.arrayContaining([{ tipo: 'etiqueta', texto: 'Sexo' }, { tipo: 'etiqueta', texto: 'Fototipo' }]));
-    const compromiso = doc.bloques.find((b) => b.tipo === 'consentimiento').texto;
-    expect(compromiso).toContain('Ana Pérez');
-    expect(compromiso).toContain('Dra. Noemí');
-    expect(compromiso).toContain('Clinic NovagED');
+    const campoConsentimiento = (etiqueta) => doc.bloques.slice(doc.bloques.findIndex((b) => b.tipo === 'consentimiento')).filter((b) => b.tipo === 'campo' && b.etiqueta === etiqueta).map((b) => b.valor);
+    expect(campoConsentimiento('Nombre completo')).toEqual(['Dra. Noemí', 'Ana Pérez']);
+    expect(campoConsentimiento('Clínica/Consultorio')).toEqual(['Clinic NovagED']);
+    expect(campoConsentimiento('Documento de identidad')).toEqual(['1234567 CB']);
     expect(doc.bloques.filter((b) => b.tipo === 'tabla').map((t) => t.filas)).toEqual([[['Peeling', '4', '']], [['05/10/2026', 'Peeling', 'Bien']]]);
   });
 
@@ -436,10 +436,8 @@ describe('Historia clínica: API', () => {
     expect(titulos).toContain('5. Diagnóstico');
     expect(titulos).toContain('6. Consentimiento');
     const consentimiento = doc.bloques.find((b) => b.tipo === 'consentimiento');
-    expect(consentimiento.titulo).toBe('Consentimiento general');
-    expect(consentimiento.texto).toContain('Yo Ana');
-    expect(consentimiento.texto).toContain('Dra. X');
-    expect(consentimiento.texto).not.toMatch(/\{\w+\}/);
+    expect(consentimiento.titulo).toBe('Consentimiento informado general – Medicina estética');
+    expect(doc.bloques.filter((b) => b.tipo === 'texto').every((b) => !/\{\w+\}/.test(b.texto))).toBe(true);
     expect(doc.bloques.some((b) => b.tipo === 'compromiso')).toBe(false);
   });
 
@@ -447,7 +445,51 @@ describe('Historia clínica: API', () => {
     const doc = armarDocumento({ config: {}, enBlanco: true });
     expect(doc.emitido).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
     expect(doc.bloques.find((b) => b.tipo === 'fotos').fotos).toEqual([]);
-    expect(doc.bloques.filter((b) => b.tipo === 'consentimiento').map((b) => b.titulo)).toEqual(['Consentimiento general']);
+    expect(doc.bloques.filter((b) => b.tipo === 'consentimiento').map((b) => b.titulo)).toEqual(['Consentimiento informado general – Medicina estética']);
+  });
+
+  test('consentimiento de la doctora: 15 apartados, datos del sistema, fotos a mano y tres firmas', () => {
+    const doc = armarDocumento({
+      config: { nombre_consultorio: 'ClinicNovagED', direccion: 'Calle Lanza N.º 670', ciudad: 'Cochabamba ', telefono: '65359810', email: 'info@novaged.com' },
+      paciente: { nombre_completo: 'Ana Pérez', carnet_identidad: '1234567', carnet_expedido: 'CB', fecha_nacimiento: '1990-05-10', telefono: '70000000' },
+      historia: {
+        fecha: '2026-10-01', motivo_consulta: 'Manchas en la cara', procedimiento_autorizado: 'Peeling médico',
+        Profesional: { nombre: 'Dra. Noemí', especialidad: 'Medicina estética', registro_profesional: 'MP-123' },
+      },
+    });
+    const cons = doc.bloques.slice(doc.bloques.findIndex((b) => b.tipo === 'consentimiento'));
+    const apartados = cons.filter((b) => b.tipo === 'grupo').map((b) => b.titulo);
+    expect(apartados).toHaveLength(15);
+    expect(apartados[0]).toBe('1. Identificación del establecimiento');
+    expect(apartados[14]).toBe('15. Revocación del consentimiento');
+    const valor = (etiqueta) => cons.find((b) => b.tipo === 'campo' && b.etiqueta === etiqueta).valor;
+    expect(valor('Dirección')).toBe('Calle Lanza N.º 670, Cochabamba');
+    expect(valor('Teléfono y correo electrónico')).toBe('65359810 · info@novaged.com');
+    expect(valor('Registro profesional')).toBe('MP-123');
+    expect(valor('Especialidad')).toBe('Medicina estética');
+    expect(valor('Fecha de nacimiento')).toBe('10/05/1990');
+    expect(valor('Teléfono')).toBe('70000000');
+    expect(valor('Firma y sello')).toBe('');
+    const textos = cons.filter((b) => b.tipo === 'texto').map((b) => b.texto);
+    expect(textos).toContain('Solicito valoración médica y tratamiento de medicina estética para la siguiente condición: Manchas en la cara.');
+    expect(textos).toContain('Procedimiento indicado: Peeling médico.');
+    expect(textos.join(' ')).not.toMatch(/eximo/);
+    expect(cons.find((b) => b.tipo === 'casillas').items).toEqual([
+      { etiqueta: 'Sí', marcado: false, detalles: [] }, { etiqueta: 'No', marcado: false, detalles: [] },
+    ]);
+    expect(cons.find((b) => b.tipo === 'firmas').firmantes).toEqual([
+      { titulo: 'Firma del paciente', lineas: ['Ana Pérez', 'C.I.: 1234567 CB'] },
+      { titulo: 'Firma y sello del médico', lineas: ['Dra. Noemí'] },
+      { titulo: 'Testigo (si corresponde)', lineas: ['Nombre:', 'C.I.:'] },
+    ]);
+  });
+
+  test('consentimiento en blanco: líneas para llenar a mano, sin datos de la clínica', () => {
+    const doc = armarDocumento({ config: { nombre_consultorio: 'ClinicNovagED', telefono: '1' }, enBlanco: true });
+    const cons = doc.bloques.slice(doc.bloques.findIndex((b) => b.tipo === 'consentimiento'));
+    expect(cons.filter((b) => b.tipo === 'campo').every((b) => b.valor === '')).toBe(true);
+    expect(cons.filter((b) => b.tipo === 'texto').map((b) => b.texto)).toContain('Procedimiento indicado: ____________________.');
+    expect(cons.find((b) => b.tipo === 'firmas').firmantes.map((x) => x.lineas)).toEqual([['C.I.:'], [], ['Nombre:', 'C.I.:']]);
   });
 
   test('sin consentimientos marcados sale el general', () => {
@@ -553,7 +595,7 @@ describe('Historia clínica: API', () => {
 
   test('la definición incluye los consentimientos disponibles', async () => {
     const res = await request(app).get('/staff/historia-clinica/definicion').set(auth());
-    expect(res.body.consentimientos).toEqual([{ clave: 'general', titulo: 'Consentimiento general' }]);
+    expect(res.body.consentimientos).toEqual([{ clave: 'general', titulo: 'Consentimiento informado general – Medicina estética' }]);
   });
 
   test('copiar una evaluación no copia fotos ni consentimientos', async () => {

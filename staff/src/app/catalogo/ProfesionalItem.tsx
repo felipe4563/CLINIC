@@ -8,6 +8,7 @@ export type Profesional = {
   id: number;
   nombre: string;
   especialidad: string | null;
+  registro_profesional?: string | null;
   foto_url: string | null;
   activo: boolean;
   Servicios?: Servicio[];
@@ -30,6 +31,7 @@ export default function ProfesionalItem({
   const [expandido, setExpandido] = useState(false);
   const [nombre, setNombre] = useState(profesional.nombre);
   const [especialidad, setEspecialidad] = useState(profesional.especialidad || '');
+  const [registro, setRegistro] = useState(profesional.registro_profesional || '');
   const [fotoUrl, setFotoUrl] = useState(profesional.foto_url || '');
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
@@ -50,6 +52,7 @@ export default function ProfesionalItem({
   function empezarEdicion() {
     setNombre(profesional.nombre);
     setEspecialidad(profesional.especialidad || '');
+    setRegistro(profesional.registro_profesional || '');
     setFotoUrl(profesional.foto_url || '');
     setError('');
     setEditando(true);
@@ -62,6 +65,7 @@ export default function ProfesionalItem({
       await api.actualizarProfesional(profesional.id, {
         nombre,
         especialidad: especialidad || null,
+        registro_profesional: registro || null,
         foto_url: fotoUrl || null,
       });
       setEditando(false);
@@ -111,6 +115,12 @@ export default function ProfesionalItem({
             value={especialidad}
             onChange={(e) => setEspecialidad(e.target.value)}
             placeholder="Especialidad"
+            className="rounded border border-border px-2 py-1.5"
+          />
+          <input
+            placeholder="Registro profesional (sale en el consentimiento)"
+            value={registro}
+            onChange={(e) => setRegistro(e.target.value)}
             className="rounded border border-border px-2 py-1.5"
           />
           <input

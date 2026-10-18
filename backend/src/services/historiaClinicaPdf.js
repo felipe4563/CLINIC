@@ -5,6 +5,7 @@ const { crearReportePDF, COLOR } = require('./pdf');
 // como rectángulos: las fuentes estándar de PDF (Helvetica) no tienen ☐/☒.
 const TAM = 9;
 const CAJA = 8;
+const ALTO_FIRMAS = 140;
 
 function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
   const doc = crearReportePDF(res, config, { titulo: 'Historia clínica', nombreArchivo });
@@ -104,17 +105,24 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
     if (b.tipo === 'imagen') return 174;
     if (b.tipo === 'fotos') return b.fotos.length ? 224 : 90;
     if (b.tipo === 'parrafo' && !b.valor) return TAM * (b.lineas || 2) + TAM;
+    if (b.tipo === 'texto' || b.tipo === 'campo') return 2 * TAM + 6;
     return 0;
   };
 
   for (const [idx, b] of documento.bloques.entries()) {
     if (b.tipo === 'seccion') {
-      // El consentimiento y las firmas van juntos en la misma hoja.
-      asegurar(b.titulo.includes('Consentimiento') ? 230 : 40);
+      // El consentimiento va en hojas propias: se imprime y firma aparte.
+      if (b.titulo.includes('Consentimiento')) doc.addPage();
+      else asegurar(40);
       doc.moveDown(0.6);
       doc.font('Helvetica-Bold').fontSize(12).fillColor(COLOR.ink).text(b.titulo, izq, doc.y);
       doc.moveDown(0.2);
     } else if (b.tipo === 'grupo') {
+      if (b.juntoAFirmas) {
+        doc.font('Helvetica').fontSize(TAM);
+        const textos = documento.bloques.slice(idx + 1).filter((x) => x.tipo === 'texto' && x.juntoAFirmas);
+        asegurar(30 + textos.reduce((t, x) => t + doc.heightOfString(x.texto, { width: ancho }) + 4, 0) + ALTO_FIRMAS);
+      }
       asegurar(30 + altoSiguiente(documento.bloques[idx + 1]));
       doc.moveDown(0.3);
       doc.font('Helvetica-Bold').fontSize(10).fillColor(COLOR.espresso).text(b.titulo, izq, doc.y);
@@ -177,22 +185,34 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
       }
       doc.x = izq;
     } else if (b.tipo === 'consentimiento') {
-      asegurar(200);
+      asegurar(60);
       doc.moveDown(0.4);
-      doc.font('Helvetica-Bold').fontSize(10).fillColor(COLOR.espresso).text(b.titulo, izq, doc.y);
+      doc.font('Helvetica-Bold').fontSize(11).fillColor(COLOR.espresso).text(b.titulo.toUpperCase(), izq, doc.y, { width: ancho, align: 'center' });
       doc.moveDown(0.2);
-      doc.font('Helvetica').fontSize(TAM).fillColor(COLOR.ink).text(b.texto, izq, doc.y, { width: ancho, align: 'justify' });
+    } else if (b.tipo === 'texto') {
+      doc.font('Helvetica').fontSize(TAM);
+      asegurar(Math.min(doc.heightOfString(b.texto, { width: ancho }), 60) + 4);
+      doc.fillColor(COLOR.ink).text(b.texto, izq, doc.y, { width: ancho, align: 'justify' });
+      doc.moveDown(0.2);
     } else if (b.tipo === 'firmas') {
-      asegurar(90);
+      // Una columna por firmante (línea, título y datos debajo); fecha y hora a mano.
+      asegurar(ALTO_FIRMAS);
       doc.moveDown(4);
       const y = doc.y;
-      const mitad = ancho / 2;
-      for (const [i, titulo] of ['Firma del paciente', 'Firma del especialista'].entries()) {
-        const x = izq + i * mitad;
-        doc.moveTo(x, y).lineTo(x + mitad - 40, y).lineWidth(0.7).strokeColor(COLOR.ink).stroke();
-        doc.font('Helvetica').fontSize(TAM).text(titulo, x, y + 4, { width: mitad - 40 });
-        doc.text('C.I.', x, doc.y, { width: mitad - 40 });
+      const col = ancho / b.firmantes.length;
+      let abajo = y;
+      for (const [i, f] of b.firmantes.entries()) {
+        const x = izq + i * col;
+        const w = col - 24;
+        doc.moveTo(x, y).lineTo(x + w, y).lineWidth(0.7).strokeColor(COLOR.ink).stroke();
+        doc.font('Helvetica-Bold').fontSize(TAM).fillColor(COLOR.ink).text(f.titulo, x, y + 4, { width: w });
+        doc.font('Helvetica');
+        for (const linea of f.lineas) doc.text(linea, x, doc.y, { width: w });
+        abajo = Math.max(abajo, doc.y);
       }
+      doc.y = abajo + 18;
+      doc.font('Helvetica').fontSize(TAM).text('Fecha: ____/____/______      Hora: ________', izq, doc.y);
+      doc.moveDown(0.6);
     }
   }
 

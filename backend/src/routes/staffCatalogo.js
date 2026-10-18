@@ -85,9 +85,9 @@ router.get('/staff/profesionales', onlyAdmin, async (req, res) => {
 });
 
 router.post('/staff/profesionales', onlyAdmin, async (req, res) => {
-  const { nombre, especialidad, foto_url, activo } = req.body;
+  const { nombre, especialidad, registro_profesional, foto_url, activo } = req.body;
   if (!nombre) return res.status(400).json({ error: 'nombre es requerido' });
-  const profesional = await db.Profesional.create({ nombre, especialidad, foto_url, activo });
+  const profesional = await db.Profesional.create({ nombre, especialidad, registro_profesional, foto_url, activo });
   res.status(201).json(profesional);
 });
 
@@ -95,9 +95,10 @@ router.patch('/staff/profesionales/:id', onlyAdmin, async (req, res) => {
   const profesional = await db.Profesional.findByPk(req.params.id);
   if (!profesional) return res.status(404).json({ error: 'Profesional no encontrado' });
 
-  const { nombre, especialidad, foto_url, activo } = req.body;
+  const { nombre, especialidad, registro_profesional, foto_url, activo } = req.body;
   if (nombre !== undefined) profesional.nombre = nombre;
   if (especialidad !== undefined) profesional.especialidad = especialidad;
+  if (registro_profesional !== undefined) profesional.registro_profesional = registro_profesional;
   if (foto_url !== undefined) profesional.foto_url = foto_url;
   if (activo !== undefined) profesional.activo = activo;
 

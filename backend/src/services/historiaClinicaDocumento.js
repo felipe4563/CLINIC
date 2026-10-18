@@ -72,7 +72,6 @@ function bloquesDeGrupo(grupo, datos) {
 function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamientos = { filas: [] }, enBlanco = false }) {
   const p = enBlanco ? {} : paciente;
   const h = enBlanco ? {} : historia;
-  const clinica = config.nombre_consultorio || 'la clínica';
   const especialista = h.Profesional ? h.Profesional.nombre : '';
 
   const bloques = [
@@ -111,14 +110,39 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
   const marcados = enBlanco ? [] : (h.consentimientos || []);
   const consentimientos = CONSENTIMIENTOS.filter((c) => marcados.includes(c.clave));
   const aImprimir = consentimientos.length ? consentimientos : CONSENTIMIENTOS.filter((c) => c.clave === 'general');
+  const conf = enBlanco ? {} : config;
+  const prof = h.Profesional || {};
   const valores = {
-    paciente: p.nombre_completo || LINEA,
-    ci: carnet(p) || LINEA,
-    especialista: especialista || LINEA,
-    procedimiento: h.procedimiento_autorizado || LINEA,
-    clinica: enBlanco ? LINEA : clinica,
+    clinica: conf.nombre_consultorio || '',
+    direccion_clinica: [conf.direccion, conf.ciudad].map((x) => (x || '').trim()).filter(Boolean).join(', '),
+    contacto_clinica: [conf.telefono, conf.email].filter(Boolean).join(' · '),
+    especialista,
+    registro: prof.registro_profesional || '',
+    especialidad: prof.especialidad || '',
+    paciente: p.nombre_completo || '',
+    ci: carnet(p),
+    fecha_nacimiento: p.fecha_nacimiento ? formatoFecha(p.fecha_nacimiento) : '',
+    telefono: p.telefono || '',
+    motivo: h.motivo_consulta || '',
+    procedimiento: h.procedimiento_autorizado || '',
   };
-  const rellenar = (texto) => texto.replace(/\{(\w+)\}/g, (_, k) => valores[k] ?? LINEA);
+  // `vacio`: qué poner si no hay dato (una línea en el texto; nada en un campo, que ya dibuja su línea).
+  const rellenar = (texto, vacio) => texto.replace(/\{(\w+)\}/g, (_, k) => valores[k] || vacio).trim();
+  const bloquesConsentimiento = (cons) => [
+    { tipo: 'consentimiento', titulo: cons.titulo },
+    ...cons.apartados.flatMap((a, i) => [
+      // El último apartado va en la misma hoja que las firmas.
+      { tipo: 'grupo', titulo: `${i + 1}. ${a.titulo}`, ...(i === cons.apartados.length - 1 ? { juntoAFirmas: true } : {}) },
+      ...(a.campos || []).map(([etiqueta, valor]) => ({ tipo: 'campo', etiqueta, valor: rellenar(valor, '') })),
+      ...(a.parrafos || []).map((t) => ({ tipo: 'texto', texto: rellenar(t, LINEA), ...(i === cons.apartados.length - 1 ? { juntoAFirmas: true } : {}) })),
+      ...(a.casillas ? [{ tipo: 'casillas', items: a.casillas.map((etiqueta) => ({ etiqueta, marcado: false, detalles: [] })) }] : []),
+    ]),
+    {
+      tipo: 'firmas',
+      // Sin dato queda la etiqueta ("C.I.:") para llenar a mano; una línea vacía se omite.
+      firmantes: cons.firmas.map((f) => ({ titulo: f.titulo, lineas: f.lineas.map((l) => rellenar(l, '')).filter(Boolean) })),
+    },
+  ];
 
   bloques.push(
     { tipo: 'seccion', titulo: '5. Diagnóstico' },
@@ -130,10 +154,7 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
     { tipo: 'grupo', titulo: 'Tratamiento estético realizado' },
     { tipo: 'tabla', columnas: ['Fecha', 'Procedimiento', 'Observación/evaluación'], filas: realizados },
     { tipo: 'seccion', titulo: '6. Consentimiento' },
-    ...aImprimir.flatMap((c) => [
-      { tipo: 'consentimiento', titulo: c.titulo, texto: rellenar(c.texto) },
-      { tipo: 'firmas', paciente: p.nombre_completo || '', especialista },
-    ])
+    ...aImprimir.flatMap(bloquesConsentimiento)
   );
 
   return { fecha: h.fecha ? formatoFecha(h.fecha) : '', emitido: hoyEnBolivia(), numero: p.codigo_paciente || '', bloques };

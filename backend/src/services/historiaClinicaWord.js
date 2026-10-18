@@ -77,6 +77,28 @@ function tabla(columnas, filas) {
   });
 }
 
+// Una columna por firmante: línea (borde del título, con margen para que no se unan), título y datos debajo.
+function firmas(firmantes) {
+  const sin = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+  const linea = { style: BorderStyle.SINGLE, size: 6, color: '000000' };
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: { top: sin, bottom: sin, left: sin, right: sin, insideHorizontal: sin, insideVertical: sin },
+    rows: [new TableRow({
+      cantSplit: true,
+      children: firmantes.map((fi) => new TableCell({
+        width: { size: Math.floor(100 / firmantes.length), type: WidthType.PERCENTAGE },
+        margins: { left: 200, right: 200 },
+        borders: { top: sin, bottom: sin, left: sin, right: sin },
+        children: [
+          new Paragraph({ border: { top: linea }, children: [new TextRun({ text: fi.titulo, bold: true, size: TAM })] }),
+          ...fi.lineas.map((l) => new Paragraph({ children: [new TextRun({ text: l, size: TAM })] })),
+        ],
+      })),
+    })],
+  });
+}
+
 // Recuadro vacío con borde y una altura real (en twips), sin fila de título.
 function cajaVacia(alto) {
   const borde = { style: BorderStyle.SINGLE, size: 4, color: 'B0B0B0' };
@@ -121,7 +143,8 @@ async function generarHistoriaWord(documento, config) {
 
   for (const b of documento.bloques) {
     if (b.tipo === 'seccion') {
-      cuerpo.push(new Paragraph({ spacing: { before: 240, after: 80 }, children: [new TextRun({ text: b.titulo, bold: true, size: 24 })] }));
+      // El consentimiento va en hojas propias: se imprime y firma aparte.
+      cuerpo.push(new Paragraph({ pageBreakBefore: b.titulo.includes('Consentimiento'), spacing: { before: 240, after: 80 }, children: [new TextRun({ text: b.titulo, bold: true, size: 24 })] }));
     } else if (b.tipo === 'grupo') {
       cuerpo.push(new Paragraph({ keepNext: true, spacing: { before: 120 }, children: [new TextRun({ text: b.titulo, bold: true, size: 20 })] }));
       if (b.subtitulo) cuerpo.push(new Paragraph({ keepNext: true, children: [new TextRun({ text: b.subtitulo, italics: true, size: 16 })] }));
@@ -157,11 +180,14 @@ async function generarHistoriaWord(documento, config) {
         cuerpo.push(new Paragraph({ children: [] }));
       }
     } else if (b.tipo === 'consentimiento') {
-      cuerpo.push(new Paragraph({ spacing: { before: 160 }, children: [new TextRun({ text: b.titulo, bold: true, size: 20 })] }));
-      cuerpo.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, children: [new TextRun({ text: b.texto, size: TAM })] }));
+      cuerpo.push(new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 200, after: 80 }, children: [new TextRun({ text: b.titulo.toUpperCase(), bold: true, size: 22 })] }));
+    } else if (b.tipo === 'texto') {
+      // keepNext encadena el último apartado con las firmas (misma hoja).
+      cuerpo.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, keepNext: Boolean(b.juntoAFirmas), keepLines: true, children: [new TextRun({ text: b.texto, size: TAM })] }));
     } else if (b.tipo === 'firmas') {
-      cuerpo.push(new Paragraph({ spacing: { before: 1200 }, children: [] }));
-      cuerpo.push(tabla(['Firma del paciente', 'Firma del especialista'], [['C.I.', 'C.I.']]));
+      cuerpo.push(new Paragraph({ keepNext: true, spacing: { before: 1200 }, children: [] }));
+      cuerpo.push(firmas(b.firmantes));
+      cuerpo.push(new Paragraph({ spacing: { before: 240 }, children: [new TextRun({ text: 'Fecha: ____/____/______      Hora: ________', size: TAM })] }));
     }
   }
 

@@ -7,7 +7,7 @@ import ProfesionalItem, { type Profesional } from './ProfesionalItem';
 import { IconCatalog, IconUserCog } from '@/components/icons';
 
 const VACIO_SERVICIO = { nombre: '', descripcion: '', duracion: '30', precio: '' };
-const VACIO_PROFESIONAL = { nombre: '', especialidad: '', fotoUrl: '' };
+const VACIO_PROFESIONAL = { nombre: '', especialidad: '', registro: '', fotoUrl: '' };
 
 type ProductoMinimo = { id: number; nombre: string };
 
@@ -87,6 +87,7 @@ export default function CatalogoPage() {
       await api.crearProfesional({
         nombre: nuevoProfesional.nombre,
         especialidad: nuevoProfesional.especialidad || null,
+        registro_profesional: nuevoProfesional.registro || null,
         foto_url: nuevoProfesional.fotoUrl || null,
       });
       setNuevoProfesional(VACIO_PROFESIONAL);
@@ -229,6 +230,12 @@ export default function CatalogoPage() {
                 value={nuevoProfesional.especialidad}
                 onChange={(e) => setNuevoProfesional({ ...nuevoProfesional, especialidad: e.target.value })}
                 className="rounded border border-border px-2 py-1.5"
+              />
+              <input
+                placeholder="Registro profesional (sale en el consentimiento)"
+                value={nuevoProfesional.registro}
+                onChange={(e) => setNuevoProfesional({ ...nuevoProfesional, registro: e.target.value })}
+                className="rounded border border-border px-2 py-1.5 sm:col-span-2"
               />
               <input
                 placeholder="URL de foto (opcional)"
