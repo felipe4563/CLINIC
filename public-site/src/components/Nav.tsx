@@ -1,98 +1,114 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import MagneticButton from './MagneticButton';
 
+const ENLACES = [
+  { href: '/#especialidades', texto: 'Especialidades' },
+  { href: '/#destacados', texto: 'Tratamientos' },
+  { href: '/#doctora', texto: 'La doctora' },
+  { href: '/#preguntas', texto: 'Preguntas' },
+  { href: '/#contacto', texto: 'Contacto' },
+];
+
+// Menú fijo: transparente sobre la portada y una cápsula de vidrio al bajar.
+// `solido` lo deja siempre como cápsula (páginas de tratamiento).
 export default function Nav({ onReservar, solido = false }: { onReservar: () => void; solido?: boolean }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const [bajo, setBajo] = useState(false);
 
   useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 40);
+    function alBajar() {
+      setBajo(window.scrollY > 40);
     }
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    alBajar();
+    window.addEventListener('scroll', alBajar, { passive: true });
+    return () => window.removeEventListener('scroll', alBajar);
   }, []);
 
-  const solid = solido || scrolled || menuOpen;
+  useEffect(() => {
+    if (!menuAbierto) return;
+    function alTeclear(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMenuAbierto(false);
+    }
+    window.addEventListener('keydown', alTeclear);
+    return () => window.removeEventListener('keydown', alTeclear);
+  }, [menuAbierto]);
+
+  const capsula = solido || bajo || menuAbierto;
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-colors duration-500 ${
-        solid ? 'bg-cream/90 backdrop-blur-sm' : 'bg-transparent'
-      }`}
-    >
-      <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-5">
-        <Link href="/#top" className="flex items-center">
-          <Image
-            src={solid ? '/novaged-assets/horizontal_dark-YqD6kOfW.png' : '/novaged-assets/horizontal_light-D14IcGKW.png'}
-            alt="Clinic NovagED"
-            width={220}
-            height={66}
-            className="h-12 w-auto md:h-14"
-            priority
-          />
+    <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 md:px-6 md:pt-4">
+      <div
+        className={`mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full py-2 pl-5 pr-2 transition-all duration-500 md:pl-7 ${
+          capsula ? 'vidrio shadow-[0_20px_50px_-30px_rgba(45,36,30,0.45)]' : 'border border-transparent'
+        }`}
+      >
+        <Link href="/#inicio" className="flex shrink-0 items-center gap-2.5 text-espresso" aria-label="Clinic NovagED, inicio">
+          <Image src="/novaged-assets/icon-Bvf3Rv87.png" alt="" width={24} height={34} className="h-9 w-auto" priority />
+          <span className="font-serif text-[26px] leading-none md:text-[28px]">
+            Clinic <em className="italic">NovagED</em>
+          </span>
         </Link>
-        <nav
-          className={`hidden md:flex items-center gap-10 text-[10px] tracking-[0.22em] uppercase transition-colors duration-500 ${
-            solid ? 'text-ink' : 'text-cream/90'
-          }`}
-        >
-          <Link href="/#tratamientos" className="hover:opacity-70">Tratamientos</Link>
-          <Link href="/#nosotros" className="hover:opacity-70">Nosotros</Link>
-          <Link href="/#ubicacion" className="hover:opacity-70">Ubicación</Link>
+
+        <nav aria-label="Principal" className="hidden items-center gap-1 lg:flex">
+          {ENLACES.map((e) => (
+            <Link key={e.href} href={e.href} className="rounded-full px-4 py-2 text-[15px] text-ink transition-colors hover:bg-white/60 hover:text-espresso">
+              {e.texto}
+            </Link>
+          ))}
         </nav>
-        <MagneticButton>
+
+        <div className="flex items-center gap-2">
+          <MagneticButton>
+            <button
+              type="button"
+              onClick={onReservar}
+              className="hidden min-h-12 items-center gap-2 rounded-full bg-espresso px-6 text-[15px] text-cream transition-colors hover:bg-espresso-900 sm:inline-flex"
+            >
+              Reservar cita
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </button>
+          </MagneticButton>
           <button
-            onClick={onReservar}
-            className={`hidden md:inline-flex rounded-full text-[10px] tracking-[0.2em] uppercase px-7 py-[11px] transition-colors duration-500 ${
-              solid
-                ? 'bg-espresso text-cream hover:bg-tan'
-                : 'border border-cream/40 text-cream hover:border-cream/80'
-            }`}
+            type="button"
+            onClick={() => setMenuAbierto((v) => !v)}
+            className="flex h-12 w-12 items-center justify-center rounded-full text-espresso transition-colors hover:bg-white/60 lg:hidden"
+            aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={menuAbierto}
+            aria-controls="menu-movil"
           >
-            Reservar Consulta
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+              {menuAbierto ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 8h16M4 16h16" />}
+            </svg>
           </button>
-        </MagneticButton>
-        <button
-          onClick={() => setMenuOpen((v) => !v)}
-          className={`md:hidden p-2 transition-colors duration-500 ${solid ? 'text-ink' : 'text-cream'}`}
-          aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
-          aria-expanded={menuOpen}
-        >
-          {menuOpen ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-          )}
-        </button>
+        </div>
       </div>
-      {menuOpen && (
-        <div className="md:hidden absolute left-0 right-0 w-full bg-cream border-t border-tan/30 px-6 py-4 flex flex-col items-start gap-4 text-xs tracking-widest uppercase text-ink">
-          <Link href="/#tratamientos" onClick={() => setMenuOpen(false)}>
-            Tratamientos
-          </Link>
-          <Link href="/#nosotros" onClick={() => setMenuOpen(false)}>
-            Nosotros
-          </Link>
-          <Link href="/#ubicacion" onClick={() => setMenuOpen(false)}>
-            Ubicación
-          </Link>
+
+      {menuAbierto && (
+        <div id="menu-movil" className="vidrio mx-auto mt-2 max-w-7xl rounded-[32px] p-6 shadow-[0_30px_60px_-30px_rgba(45,36,30,0.5)] lg:hidden">
+          <nav aria-label="Menú" className="flex flex-col">
+            {ENLACES.map((e) => (
+              <Link
+                key={e.href}
+                href={e.href}
+                onClick={() => setMenuAbierto(false)}
+                className="border-b border-manhattan/40 py-4 font-serif text-3xl font-light text-espresso"
+              >
+                {e.texto}
+              </Link>
+            ))}
+          </nav>
           <button
+            type="button"
             onClick={() => {
-              setMenuOpen(false);
+              setMenuAbierto(false);
               onReservar();
             }}
-            className="w-full rounded-full bg-espresso text-cream text-xs tracking-widest uppercase px-6 py-3 hover:bg-tan transition-colors"
+            className="mt-6 min-h-12 w-full rounded-full bg-espresso px-6 text-[15px] text-cream transition-colors hover:bg-espresso-900"
           >
-            Reservar Consulta
+            Reservar cita
           </button>
         </div>
       )}

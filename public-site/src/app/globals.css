@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Valores extraidos directamente del CSS compilado de clinicnovaged.com */
+  /* Paleta de la doctora (manual de marca de Clinic NovagED) */
   --color-cream: #F3EEEC;    /* su "nude": fondo claro principal */
   --color-espresso: #5F4534; /* su "chocolate": titulares y botones solidos oscuros */
   --color-tan: #73593F;      /* su "route" oscurecido ~15% para cumplir contraste AA 4.5:1 sobre cream (el original, #876A4A, da 4.35:1) */
@@ -12,8 +12,12 @@
   --color-pearl: #F5F5F3;         /* variante casi-blanca para chips/iconos sobre fondo claro */
   --color-espresso-900: #2D241E;  /* marron muy oscuro para secciones full-bleed */
   --color-espresso-950: #1A1109;  /* el mas oscuro de la familia espresso, casi negro */
-  --font-serif: "Bodoni Moda", "Bodoni Moda Fallback", Georgia, serif;
-  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@theme inline {
+  /* Cormorant (titulares editoriales) + Jost (texto), cargadas con next/font en layout.tsx */
+  --font-serif: var(--font-cormorant), Georgia, serif;
+  --font-sans: var(--font-jost), "Helvetica Neue", Arial, sans-serif;
 }
 
 a, button {
@@ -21,6 +25,8 @@ a, button {
 }
 
 html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px; /* el menú fijo no tapa el título de la sección */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* Edge legacy */
 }
@@ -33,9 +39,57 @@ a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+[role="tab"]:focus-visible {
   outline: 2px solid var(--color-tan);
-  outline-offset: 2px;
+  outline-offset: 3px;
+}
+
+/* Vidrio esmerilado para el menú, la reserva rápida y las tarjetas flotantes */
+.vidrio {
+  background: rgb(255 255 255 / 0.55);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgb(255 255 255 / 0.75);
+}
+
+/* Grano suave encima de los fondos de color, como papel */
+.grano {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+}
+
+/* Manchas de color que flotan lento detrás de la portada */
+.aura {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+  animation: aura-flota 18s ease-in-out infinite;
+}
+
+@keyframes aura-flota {
+  50% { transform: translate(30px, -30px) scale(1.08); }
+}
+
+/* Cinta de tratamientos que se desliza sola */
+.cinta {
+  display: flex;
+  width: max-content;
+  animation: cinta-desliza 45s linear infinite;
+}
+
+@keyframes cinta-desliza {
+  to { transform: translateX(-50%); }
+}
+
+.arco {
+  border-radius: 9999px 9999px 0 0;
+  overflow: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -7,7 +7,7 @@ export default function BotonReservar({ nombreServicio, className = '' }: { nomb
     <button
       type="button"
       onClick={() => open(nombreServicio)}
-      className={`rounded-full bg-espresso px-7 py-3 text-xs uppercase tracking-[0.2em] text-cream transition-colors hover:bg-tan ${className}`}
+      className={`min-h-12 rounded-full bg-espresso px-7 text-[15px] text-cream transition-colors hover:bg-espresso-900 ${className}`}
     >
       Reservar este tratamiento
     </button>

@@ -1,25 +1,37 @@
-import type { Metadata } from "next";
-import { Bodoni_Moda } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Cormorant, Jost } from "next/font/google";
 import "./globals.css";
 
-const bodoni = Bodoni_Moda({
-  variable: "--font-bodoni",
+const cormorant = Cormorant({
+  variable: "--font-cormorant",
   subsets: ["latin"],
+  weight: ["300", "400", "500"],
   style: ["normal", "italic"],
 });
 
+const jost = Jost({
+  variable: "--font-jost",
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+});
+
 export const metadata: Metadata = {
-  title: "Clinic NovagED — Salud, Belleza, Armonía",
-  description: "Arquitectura facial y medicina estética avanzada en Cochabamba, Bolivia.",
+  title: "Clinic NovagED — Medicina estética en Cochabamba",
+  description:
+    "Medicina estética, ginecología, ecografía, fisioterapia y enfermería con la Dra. Maria Noemi Ponce Caisiri. Reserva en línea y paga con QR. Calle Lanza N.º 670, Cochabamba.",
   icons: {
     icon: "/novaged-assets/icon-Bvf3Rv87.png",
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#F3EEEC",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className={`${bodoni.variable} font-sans bg-cream text-ink antialiased`}>
+      <body className={`${cormorant.variable} ${jost.variable} font-sans bg-cream text-ink antialiased`}>
         {children}
       </body>
     </html>

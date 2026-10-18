@@ -1,121 +1,84 @@
 'use client';
-
-import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { datosContacto, enlaceWhatsapp, useConfiguracion } from '@/lib/useDatosClinica';
 import MagneticButton from './MagneticButton';
-
-const DIRECCION_FALLBACK = 'Edificio Vedra planta baja, calle Lanza N.º 670 entre Chuquisaca y Av. Salamanca, Cochabamba, Bolivia';
-export const TELEFONO_FALLBACK = '+591 65359810';
-const EMAIL_FALLBACK = 'info@novaged.com';
-
-type ConfiguracionPublica = {
-  direccion?: string | null;
-  ciudad?: string | null;
-  pais?: string | null;
-  telefono?: string | null;
-  email?: string | null;
-};
+import Reveal from './Reveal';
 
 export default function Contacto({ onReservar }: { onReservar: () => void }) {
-  const [config, setConfig] = useState<ConfiguracionPublica | null>(null);
-
-  useEffect(() => {
-    api
-      .getConfiguracionPublica()
-      .then(setConfig)
-      .catch(() => setConfig(null));
-  }, []);
-
-  const direccion =
-    config?.direccion
-      ? [config.direccion, config.ciudad, config.pais].filter(Boolean).join(', ')
-      : DIRECCION_FALLBACK;
-  const telefono = config?.telefono || TELEFONO_FALLBACK;
-  const email = config?.email || EMAIL_FALLBACK;
-  const mapsQuery = encodeURIComponent(direccion);
+  const config = useConfiguracion();
+  const c = datosContacto(config);
+  const mapa = encodeURIComponent(c.completa);
 
   return (
-    <section id="ubicacion" className="bg-espresso-950 text-cream">
-      <div className="px-6 py-28 text-center">
-        <p className="text-xs tracking-widest uppercase text-manhattan">Dé el primer paso</p>
-        <h2 className="mt-6 font-serif text-5xl md:text-7xl xl:text-[80px] font-bold not-italic">
-          INICIE SU
-          <br />
-          <em className="italic font-normal text-manhattan">transformación</em>
-        </h2>
-        <p className="mx-auto mt-6 max-w-md text-manhattan/[0.72]">
-          Agende una evaluación personalizada y descubra el tratamiento ideal
-          para resaltar su belleza natural.
-        </p>
-        <MagneticButton>
-          <button
-            onClick={onReservar}
-            className="mt-10 rounded-full border border-manhattan text-manhattan px-10 py-4 text-xs tracking-widest uppercase hover:bg-manhattan/10 transition-colors"
-          >
-            Agenda tu cita
-          </button>
-        </MagneticButton>
-      </div>
-
-      <div className="border-t border-manhattan/20 px-6 py-20">
-        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-2">
-          <div>
-            <h3 className="font-serif text-3xl md:text-4xl uppercase tracking-[0.04em] text-manhattan">Consultorio</h3>
-
-            <div className="mt-8 flex gap-3 text-sm text-cream/90">
-              <svg className="mt-0.5 h-4 w-4 shrink-0 text-tan" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 21s-7-6.5-7-11.5a7 7 0 1 1 14 0C19 14.5 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-              <div className="space-y-2">
-                <p>{direccion}</p>
+    <section id="contacto" className="px-4 pb-24 sm:px-8 md:pb-32">
+      <Reveal className="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] bg-espresso px-6 py-14 text-neutral-cream sm:px-12 md:rounded-[48px] md:py-20 lg:px-16">
+        <div className="aura -bottom-64 -right-32 h-[520px] w-[520px] bg-tan opacity-70" />
+        <div className="relative grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="flex flex-col gap-7">
+            <h2 className="font-serif text-[clamp(52px,7vw,112px)] font-light leading-[0.88] text-cream">
+              Te <em className="italic text-manhattan">esperamos</em>
+            </h2>
+            <p className="max-w-md">{c.completa}</p>
+            <dl className="grid gap-5 text-[15px] sm:grid-cols-2">
+              <div>
+                <dt className="text-[11px] uppercase tracking-[0.2em] text-manhattan">WhatsApp y teléfono</dt>
+                <dd className="mt-1">
+                  <a href={`tel:${c.telefono.replace(/\s+/g, '')}`} className="hover:text-cream hover:underline">{c.telefono}</a>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Correo</dt>
+                <dd className="mt-1">
+                  <a href={`mailto:${c.email}`} className="break-all hover:text-cream hover:underline">{c.email}</a>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Lunes a viernes</dt>
+                <dd className="mt-1">09:00–13:00 · 14:00–20:00</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Sábado</dt>
+                <dd className="mt-1">09:00–16:00</dd>
+              </div>
+            </dl>
+            <div className="flex flex-wrap gap-3">
+              <MagneticButton>
+                <button type="button" onClick={onReservar} className="min-h-12 rounded-full bg-cream px-7 text-[15px] text-espresso transition-colors hover:bg-white">
+                  Reservar cita
+                </button>
+              </MagneticButton>
+              {c.whatsapp && (
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`}
+                  href={enlaceWhatsapp(c.whatsapp)}
                   target="_blank"
-                  rel="noreferrer"
-                  className="inline-block text-xs tracking-widest uppercase text-tan hover:opacity-70 transition-opacity"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-12 items-center rounded-full border border-manhattan px-7 text-[15px] text-cream transition-colors hover:bg-white/10"
                 >
-                  Abrir en Google Maps
+                  Escribir por WhatsApp
                 </a>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-3 text-sm text-cream/90">
-              <div className="flex items-center gap-3">
-                <svg className="h-4 w-4 shrink-0 text-tan" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <a href={`tel:${telefono.replace(/\s+/g, '')}`} className="hover:text-tan transition-colors">{telefono}</a>
-              </div>
-              <div className="flex items-center gap-3">
-                <svg className="h-4 w-4 shrink-0 text-tan" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
-                <a href={`mailto:${email}`} className="hover:text-tan transition-colors">{email}</a>
-              </div>
-            </div>
-
-            <div className="mt-6 border-t border-manhattan/20 pt-6 text-sm text-cream/90">
-              <p className="text-xs tracking-widest uppercase text-tan">Horarios de atención</p>
-              <p className="mt-2">Lunes a viernes 09:00 - 13:00</p>
-              <p>14:00 - 20:00</p>
-              <p>Sábado 09:00 - 16:00</p>
+              )}
             </div>
           </div>
-
           <div>
-            <div className="aspect-[4/3] w-full overflow-hidden rounded-sm border border-manhattan/20">
+            <div className="relative aspect-[4/3.4] overflow-hidden rounded-t-full rounded-b-[28px] border border-manhattan/40 bg-espresso-900">
               <iframe
-                title="Ubicación Clinic NovagED"
-                src={`https://www.google.com/maps?q=${mapsQuery}&output=embed`}
-                className="h-full w-full border-0 grayscale-[85%] sepia-[18%] contrast-[1.05] brightness-[0.97] saturate-[1.1]"
+                title="Ubicación de Clinic NovagED en Google Maps"
+                src={`https://www.google.com/maps?q=${mapa}&output=embed`}
+                className="absolute inset-0 h-full w-full border-0 grayscale-[85%] sepia-[18%] contrast-[1.05]"
                 loading="lazy"
               />
             </div>
             <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${mapsQuery}`}
+              href={`https://www.google.com/maps/dir/?api=1&destination=${mapa}`}
               target="_blank"
-              rel="noreferrer"
-              className="mt-4 block text-center text-xs tracking-widest uppercase text-tan hover:opacity-70 transition-opacity"
+              rel="noopener noreferrer"
+              className="mt-4 flex min-h-11 items-center justify-center gap-2 text-sm text-manhattan hover:text-cream"
             >
-              Ver ruta en Google Maps
+              Cómo llegar con Google Maps
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </a>
           </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }

@@ -2,6 +2,7 @@ export interface Servicio {
   id: number;
   nombre: string;
   precio: number | string;
+  duracion_min?: number;
 }
 
 export interface Profesional {

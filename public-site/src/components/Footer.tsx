@@ -1,43 +1,55 @@
-import Image from 'next/image';
+'use client';
 import Link from 'next/link';
+import { datosContacto, useConfiguracion } from '@/lib/useDatosClinica';
+
+const ESPECIALIDADES = ['Medicina estética', 'Ginecología y obstetricia', 'Ecografía', 'Fisioterapia', 'Enfermería'];
 
 export default function Footer() {
+  const c = datosContacto(useConfiguracion());
   return (
-    <footer className="bg-cream border-t border-manhattan/30 px-6 py-16">
-      <div className="mx-auto max-w-7xl grid gap-10 md:grid-cols-3">
-        <div>
-          <Image
-            src="/novaged-assets/horizontal_dark-YqD6kOfW.png"
-            alt="Clinic NovagED"
-            width={180}
-            height={54}
-            className="h-10 w-auto mb-4"
-          />
-          <p className="text-sm text-espresso max-w-xs">
-            Un espacio profesional y confiable donde la ciencia y la estética se
-            encuentran para revelar tu mejor versión.
+    <footer className="rounded-t-[40px] bg-espresso-900 px-4 pb-8 pt-16 text-neutral-cream sm:px-8 md:rounded-t-[56px] md:pt-20">
+      <div className="mx-auto flex max-w-7xl flex-col gap-12">
+        <div className="grid gap-10 text-[15px] sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+          <p className="font-serif text-3xl font-light leading-tight text-cream">
+            Salud, belleza y <em className="italic text-manhattan">armonía</em>.
           </p>
-          <div className="flex gap-4 mt-6 text-espresso/60">
-            {/* PLACEHOLDER: replace with real Instagram/TikTok links */}
-            <a href="#" aria-label="Instagram" className="hover:text-manhattan transition-colors">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.2" cy="6.8" r="1"/></svg>
-            </a>
-            <a href="#" aria-label="TikTok" className="hover:text-manhattan transition-colors">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2h-3v13.2a2.7 2.7 0 1 1-2.2-2.66v-3.05a5.75 5.75 0 1 0 5.2 5.71V8.8a7.6 7.6 0 0 0 4.3 1.33V7.1a4.6 4.6 0 0 1-4.3-4.4z"/></svg>
-            </a>
+          <div>
+            <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-manhattan">Especialidades</p>
+            <ul className="space-y-1.5">
+              {ESPECIALIDADES.map((e) => (
+                <li key={e}>
+                  <Link href="/#especialidades" className="hover:text-cream hover:underline">{e}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-manhattan">Clínica</p>
+            <ul className="space-y-1.5">
+              <li><Link href="/#doctora" className="hover:text-cream hover:underline">La doctora</Link></li>
+              <li><Link href="/#visita" className="hover:text-cream hover:underline">Tu primera visita</Link></li>
+              <li><Link href="/#preguntas" className="hover:text-cream hover:underline">Preguntas frecuentes</Link></li>
+              <li><Link href="/#contacto" className="hover:text-cream hover:underline">Cómo llegar</Link></li>
+            </ul>
+          </div>
+          <div>
+            <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-manhattan">Contacto</p>
+            <ul className="space-y-1.5">
+              <li><a href={`tel:${c.telefono.replace(/\s+/g, '')}`} className="hover:text-cream hover:underline">{c.telefono}</a></li>
+              <li><a href={`mailto:${c.email}`} className="break-all hover:text-cream hover:underline">{c.email}</a></li>
+              <li>{c.direccion}</li>
+              <li>{c.ciudad}, {c.pais}</li>
+            </ul>
           </div>
         </div>
-        <div>
-          <p className="text-xs tracking-widest uppercase text-tan mb-4">Navegación</p>
-          <ul className="space-y-2 text-sm text-espresso">
-            <li><Link href="/#tratamientos" className="hover:text-manhattan transition-colors">Tratamientos</Link></li>
-            <li><Link href="/#nosotros" className="hover:text-manhattan transition-colors">Nosotros</Link></li>
-            <li><Link href="/#ubicacion" className="hover:text-manhattan transition-colors">Ubicación</Link></li>
-          </ul>
-        </div>
-        <div className="text-sm text-espresso md:text-right">
-          <p>© 2026 Clinic NovagED. Todos los derechos reservados.</p>
-          <p className="mt-1 text-xs font-bold uppercase tracking-widest text-manhattan">Cochabamba · Bolivia</p>
+
+        <p aria-hidden="true" className="font-serif text-[clamp(60px,13vw,210px)] font-light leading-[0.82] tracking-[-0.03em] text-cream">
+          Clinic <em className="italic text-manhattan">NovagED</em>
+        </p>
+
+        <div className="flex flex-wrap justify-between gap-4 border-t border-manhattan/30 pt-6 text-xs text-manhattan">
+          <span>© {new Date().getFullYear()} Clinic NovagED · Cochabamba, Bolivia</span>
+          <span className="max-w-2xl">Fotos de tratamientos: Wikimedia Commons y Flickr, con su autor y licencia en la página de cada tratamiento.</span>
         </div>
       </div>
     </footer>
