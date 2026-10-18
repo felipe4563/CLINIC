@@ -3,6 +3,8 @@ const sequelize = require('../config/database');
 
 const Producto = sequelize.define('Producto', {
   nombre: { type: DataTypes.STRING, allowNull: false },
+  // Código del proveedor (factura), opcional.
+  codigo: { type: DataTypes.STRING, allowNull: true },
   unidad: { type: DataTypes.STRING, allowNull: false, defaultValue: 'unidad' },
   stock: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   stock_minimo: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },

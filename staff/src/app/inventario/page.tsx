@@ -5,29 +5,23 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { validarImagen } from '@/lib/validarImagen';
 import ProductoItem, { type Producto } from './ProductoItem';
-import ActivoItem, { type Activo } from './ActivoItem';
+import InventarioPorLugar from './InventarioPorLugar';
 import PanelEtiquetas, { type Etiqueta } from './PanelEtiquetas';
 import { IconSettings } from '@/components/icons';
 import { Buscador, Chip, Resultado, Selector, SinResultados, panelFiltros } from './BarraFiltros';
 import {
-  ESTADO_ACTIVO_LABEL,
-  FILTRO_ACTIVOS_VACIO,
   FILTRO_PRODUCTOS_VACIO,
   escribirFiltro,
-  filtrarActivos,
   filtrarProductos,
   hayFiltros,
   leerFiltro,
   serviciosDeProductos,
   stockBajo,
-  valoresDistintos,
   venceEnTreintaDias,
-  type FiltroActivos,
   type FiltroProductos,
 } from './filtros';
 
 const VACIO_PRODUCTO = { nombre: '', marcaId: '', categoriaId: '', stock: '0', precio_venta: '' };
-const VACIO_ACTIVO = { nombre: '', categoria: '', marca: '', ubicacion: '' };
 
 export default function InventarioPage() {
   return (
@@ -41,25 +35,23 @@ function Inventario() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tab: 'productos' | 'activos' = searchParams.get('tab') === 'activos' ? 'activos' : 'productos';
+  // Por lugar (planillas de la doctora) es la vista principal; los productos van aparte.
+  const tab: 'lugares' | 'productos' = searchParams.get('tab') === 'productos' ? 'productos' : 'lugares';
   const filtroProductos = useMemo(() => leerFiltro<FiltroProductos>(searchParams, 'p_', FILTRO_PRODUCTOS_VACIO), [searchParams]);
-  const filtroActivos = useMemo(() => leerFiltro<FiltroActivos>(searchParams, 'a_', FILTRO_ACTIVOS_VACIO), [searchParams]);
 
   // Los filtros viven en la URL: al recargar o compartir el enlace se mantienen.
-  function actualizarURL(cambios: { tab?: 'productos' | 'activos'; productos?: FiltroProductos; activos?: FiltroActivos }) {
+  function actualizarURL(cambios: { tab?: 'lugares' | 'productos'; productos?: FiltroProductos }) {
     const params = new URLSearchParams(searchParams.toString());
     if (cambios.tab) {
-      if (cambios.tab === 'activos') params.set('tab', 'activos');
+      if (cambios.tab === 'productos') params.set('tab', 'productos');
       else params.delete('tab');
     }
     if (cambios.productos) escribirFiltro(params, 'p_', cambios.productos, FILTRO_PRODUCTOS_VACIO);
-    if (cambios.activos) escribirFiltro(params, 'a_', cambios.activos, FILTRO_ACTIVOS_VACIO);
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
-  const setTab = (t: 'productos' | 'activos') => actualizarURL({ tab: t });
+  const setTab = (t: 'lugares' | 'productos') => actualizarURL({ tab: t });
   const setFP = (cambio: Partial<FiltroProductos>) => actualizarURL({ productos: { ...filtroProductos, ...cambio } });
-  const setFA = (cambio: Partial<FiltroActivos>) => actualizarURL({ activos: { ...filtroActivos, ...cambio } });
 
   const [productos, setProductos] = useState<Producto[]>([]);
   const [marcas, setMarcas] = useState<Etiqueta[]>([]);
@@ -69,26 +61,18 @@ function Inventario() {
   const [imagenProducto, setImagenProducto] = useState<File | null>(null);
   const [guardandoProducto, setGuardandoProducto] = useState(false);
 
-  const [activos, setActivos] = useState<Activo[]>([]);
-  const [formActivoAbierto, setFormActivoAbierto] = useState(false);
-  const [nuevoActivo, setNuevoActivo] = useState(VACIO_ACTIVO);
-  const [imagenActivo, setImagenActivo] = useState<File | null>(null);
-  const [guardandoActivo, setGuardandoActivo] = useState(false);
-
   const [error, setError] = useState<string | null>(null);
   const [panelEtiquetasAbierto, setPanelEtiquetasAbierto] = useState(false);
   const cerrarPanelEtiquetas = useCallback(() => setPanelEtiquetasAbierto(false), []);
 
   const cargar = useCallback(async () => {
     try {
-      const [p, a, m, c] = await Promise.all([
+      const [p, m, c] = await Promise.all([
         api.getProductos(),
-        api.getActivos(),
         api.getMarcas(),
         api.getCategoriasProducto(),
       ]);
       setProductos(p);
-      setActivos(a);
       setMarcas(m);
       setCategorias(c);
     } catch (err) {
@@ -140,61 +124,16 @@ function Inventario() {
     }
   }
 
-  async function crearActivo(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    if (imagenActivo) {
-      const errorImagen = validarImagen(imagenActivo);
-      if (errorImagen) {
-        setError(errorImagen);
-        return;
-      }
-    }
-
-    setGuardandoActivo(true);
-    try {
-      const creado = await api.crearActivo({
-        nombre: nuevoActivo.nombre,
-        categoria: nuevoActivo.categoria || null,
-        marca: nuevoActivo.marca || null,
-        ubicacion: nuevoActivo.ubicacion || null,
-      });
-      setNuevoActivo(VACIO_ACTIVO);
-      setImagenActivo(null);
-      setFormActivoAbierto(false);
-
-      if (imagenActivo) {
-        try {
-          await api.subirImagenActivo(creado.id, imagenActivo);
-        } catch {
-          setError('El equipo se creó, pero la imagen no se pudo subir. Puedes agregarla editando el equipo.');
-        }
-      }
-      cargar();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear el equipo');
-    } finally {
-      setGuardandoActivo(false);
-    }
-  }
-
   const productosVencenPronto = productos.filter(venceEnTreintaDias).length;
   const productosStockBajo = productos.filter(stockBajo).length;
-  const activosOperativos = activos.filter((a) => a.estado === 'operativo').length;
 
   const productosVisibles = useMemo(() => filtrarProductos(productos, filtroProductos), [productos, filtroProductos]);
-  const activosVisibles = useMemo(() => filtrarActivos(activos, filtroActivos), [activos, filtroActivos]);
   const serviciosUsados = useMemo(() => serviciosDeProductos(productos), [productos]);
   // Cuántos productos usan cada marca y categoría (para el panel de gestión).
   const usoMarca = useMemo(() => contarPor(productos, (p) => p.Marca?.id), [productos]);
   const usoCategoria = useMemo(() => contarPor(productos, (p) => p.CategoriaProducto?.id), [productos]);
-  const categoriasActivo = useMemo(() => valoresDistintos(activos, 'categoria'), [activos]);
-  const ubicacionesActivo = useMemo(() => valoresDistintos(activos, 'ubicacion'), [activos]);
   const hayFiltroProductos = hayFiltros(filtroProductos, FILTRO_PRODUCTOS_VACIO);
-  const hayFiltroActivos = hayFiltros(filtroActivos, FILTRO_ACTIVOS_VACIO);
   const limpiarProductos = () => actualizarURL({ productos: { ...FILTRO_PRODUCTOS_VACIO, orden: filtroProductos.orden } });
-  const limpiarActivos = () => actualizarURL({ activos: { ...FILTRO_ACTIVOS_VACIO, orden: filtroActivos.orden } });
 
   return (
     <div>
@@ -221,24 +160,21 @@ function Inventario() {
               {productosVencenPronto} por vencer
             </button>
           )}
-          <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
-            {activosOperativos} {activosOperativos === 1 ? 'equipo operativo' : 'equipos operativos'}
-          </span>
         </div>
       </div>
 
       <div className="mb-4 flex gap-1 border-b border-border">
         <button
+          onClick={() => setTab('lugares')}
+          className={`px-3 py-2 text-sm font-medium ${tab === 'lugares' ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
+        >
+          Por lugar
+        </button>
+        <button
           onClick={() => setTab('productos')}
           className={`px-3 py-2 text-sm font-medium ${tab === 'productos' ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
         >
           Productos
-        </button>
-        <button
-          onClick={() => setTab('activos')}
-          className={`px-3 py-2 text-sm font-medium ${tab === 'activos' ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
-        >
-          Equipamiento
         </button>
       </div>
 
@@ -451,128 +387,7 @@ function Inventario() {
         </div>
       )}
 
-      {tab === 'activos' && (
-        <div>
-          <div className="mb-3 flex justify-end">
-            <button
-              onClick={() => setFormActivoAbierto((v) => !v)}
-              className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft"
-            >
-              {formActivoAbierto ? 'Cancelar' : '+ Nuevo equipo'}
-            </button>
-          </div>
-
-          {formActivoAbierto && (
-            <form
-              onSubmit={crearActivo}
-              className="mb-4 grid grid-cols-1 gap-2 rounded-lg border border-border bg-panel p-3 text-sm sm:grid-cols-2 lg:grid-cols-4"
-            >
-              <input
-                placeholder="Nombre"
-                required
-                value={nuevoActivo.nombre}
-                onChange={(e) => setNuevoActivo({ ...nuevoActivo, nombre: e.target.value })}
-                className="rounded border border-border px-2.5 py-1.5"
-              />
-              <input
-                placeholder="Categoría (ej. Equipo médico)"
-                value={nuevoActivo.categoria}
-                onChange={(e) => setNuevoActivo({ ...nuevoActivo, categoria: e.target.value })}
-                className="rounded border border-border px-2.5 py-1.5"
-              />
-              <input
-                placeholder="Marca"
-                value={nuevoActivo.marca}
-                onChange={(e) => setNuevoActivo({ ...nuevoActivo, marca: e.target.value })}
-                className="rounded border border-border px-2.5 py-1.5"
-              />
-              <input
-                placeholder="Ubicación"
-                value={nuevoActivo.ubicacion}
-                onChange={(e) => setNuevoActivo({ ...nuevoActivo, ubicacion: e.target.value })}
-                className="rounded border border-border px-2.5 py-1.5"
-              />
-              <label className="flex items-center gap-2 rounded border border-border px-2.5 py-1.5 text-xs text-muted-foreground">
-                <span className="shrink-0">Imagen (opcional)</span>
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  onChange={(e) => setImagenActivo(e.target.files?.[0] || null)}
-                  className="min-w-0 flex-1 text-xs"
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={guardandoActivo}
-                className="rounded bg-accent px-4 py-1.5 font-medium text-accent-foreground disabled:opacity-60 sm:col-span-2 lg:col-span-4"
-              >
-                {guardandoActivo ? 'Creando…' : 'Crear equipo'}
-              </button>
-            </form>
-          )}
-
-          {activos.length > 0 && (
-            <div className={panelFiltros}>
-              <Buscador
-                valor={filtroActivos.q}
-                onCambiar={(q) => setFA({ q })}
-                placeholder="Nombre, marca, modelo o n.º de serie…"
-              />
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                <Selector
-                  etiqueta="Categoría"
-                  valor={filtroActivos.categoria}
-                  onCambiar={(categoria) => setFA({ categoria })}
-                  todos="Todas"
-                  opciones={categoriasActivo.map((c) => ({ valor: c, texto: c }))}
-                />
-                <Selector
-                  etiqueta="Ubicación"
-                  valor={filtroActivos.ubicacion}
-                  onCambiar={(ubicacion) => setFA({ ubicacion })}
-                  todos="Todas"
-                  opciones={ubicacionesActivo.map((u) => ({ valor: u, texto: u }))}
-                />
-                <Selector
-                  etiqueta="Estado"
-                  valor={filtroActivos.estado}
-                  onCambiar={(estado) => setFA({ estado: estado as FiltroActivos['estado'] })}
-                  todos="Todos"
-                  opciones={(Object.keys(ESTADO_ACTIVO_LABEL) as (keyof typeof ESTADO_ACTIVO_LABEL)[]).map((e) => ({
-                    valor: e,
-                    texto: `${ESTADO_ACTIVO_LABEL[e]} (${activos.filter((a) => a.estado === e).length})`,
-                  }))}
-                />
-                <Selector
-                  etiqueta="Ordenar por"
-                  valor={filtroActivos.orden}
-                  onCambiar={(orden) => setFA({ orden: orden as FiltroActivos['orden'] })}
-                  opciones={[
-                    { valor: 'nombre', texto: 'Nombre (A–Z)' },
-                    { valor: 'valor', texto: 'Valor (mayor primero)' },
-                    { valor: 'ubicacion', texto: 'Ubicación' },
-                  ]}
-                />
-              </div>
-              <Resultado
-                mostrando={activosVisibles.length}
-                total={activos.length}
-                sustantivo="equipos"
-                hayFiltros={hayFiltroActivos}
-                onLimpiar={limpiarActivos}
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {activosVisibles.map((a) => (
-              <ActivoItem key={a.id} activo={a} onChange={cargar} />
-            ))}
-            {activos.length === 0 && <p className="text-sm text-muted-foreground">No hay equipos registrados todavía.</p>}
-          </div>
-          {activos.length > 0 && activosVisibles.length === 0 && <SinResultados onLimpiar={limpiarActivos} />}
-        </div>
-      )}
+      {tab === 'lugares' && <InventarioPorLugar />}
     </div>
   );
 }

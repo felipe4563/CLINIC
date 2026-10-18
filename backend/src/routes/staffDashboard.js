@@ -100,8 +100,9 @@ router.get('/staff/dashboard', requirePermiso('dashboard'), async (req, res) => 
           include: [{ model: db.Producto, attributes: [], where: { activo: true } }],
         })
       : 0,
-    puedeVerInventario ? db.ActivoClinica.count({ where: { estado: 'operativo' } }) : 0,
-    puedeVerInventario ? db.ActivoClinica.count({ where: { estado: 'mantenimiento' } }) : 0,
+    // Inventario por lugar: lo que está en buen estado y lo que está en mantenimiento.
+    puedeVerInventario ? db.InventarioItem.count({ where: { estado: 'bueno' } }) : 0,
+    puedeVerInventario ? db.InventarioItem.count({ where: { estado: 'mantenimiento' } }) : 0,
     puedeVerPacientes ? db.Paciente.count() : 0,
     db.Pago.findAll({
       attributes: [[db.sequelize.col('Cita.fecha'), 'fecha'], [db.sequelize.fn('SUM', db.sequelize.col('Pago.monto')), 'total']],

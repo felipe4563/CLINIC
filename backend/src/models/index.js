@@ -32,6 +32,8 @@ const PaqueteSesiones = require('./paqueteSesiones');
 const TarjetaFidelizacion = require('./tarjetaFidelizacion');
 const CartillaSellos = require('./cartillaSellos');
 const HistoriaClinica = require('./historiaClinica');
+const InventarioLugar = require('./inventarioLugar');
+const InventarioItem = require('./inventarioItem');
 
 Rol.hasMany(Usuario, { foreignKey: 'rol_id' });
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id' });
@@ -165,8 +167,13 @@ HistoriaClinica.belongsTo(Profesional, { foreignKey: { name: 'profesional_id', a
 HistoriaClinica.belongsTo(Usuario, { foreignKey: { name: 'creado_por_id', allowNull: true }, as: 'CreadoPor' });
 HistoriaClinica.belongsTo(Usuario, { foreignKey: { name: 'actualizado_por_id', allowNull: true }, as: 'ActualizadoPor' });
 
+InventarioItem.belongsTo(InventarioLugar, { foreignKey: { name: 'lugar_id', allowNull: false }, onDelete: 'CASCADE' });
+InventarioLugar.hasMany(InventarioItem, { foreignKey: 'lugar_id', onDelete: 'CASCADE' });
+
 module.exports = {
   sequelize,
+  InventarioLugar,
+  InventarioItem,
   Paciente,
   OtpCode,
   Rol,

@@ -215,6 +215,15 @@ export const api = {
   desvincularProducto: (servicioId, productoId) =>
     apiFetch(`/staff/servicios/${servicioId}/productos/${productoId}`, { method: 'DELETE' }),
 
+  // Inventario por lugar (planillas de la clínica).
+  getInventarioLugares: () => apiFetch('/staff/inventario/lugares'),
+  crearInventarioLugar: (nombre) => apiFetch('/staff/inventario/lugares', { method: 'POST', body: JSON.stringify({ nombre }) }),
+  renombrarInventarioLugar: (id, nombre) => apiFetch(`/staff/inventario/lugares/${id}`, { method: 'PATCH', body: JSON.stringify({ nombre }) }),
+  borrarInventarioLugar: (id) => apiFetch(`/staff/inventario/lugares/${id}`, { method: 'DELETE' }),
+  crearInventarioItem: (datos) => apiFetch('/staff/inventario/items', { method: 'POST', body: JSON.stringify(datos) }),
+  actualizarInventarioItem: (id, datos) => apiFetch(`/staff/inventario/items/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
+  borrarInventarioItem: (id) => apiFetch(`/staff/inventario/items/${id}`, { method: 'DELETE' }),
+  descargarInventarioExcel: (lugarId) => descargarPDF(`/staff/inventario/excel${lugarId ? `?lugar_id=${lugarId}` : ''}`),
   getActivos: (q) => apiFetch(`/staff/activos${q ? `?q=${encodeURIComponent(q)}` : ''}`),
   crearActivo: (datos) => apiFetch('/staff/activos', { method: 'POST', body: JSON.stringify(datos) }),
   actualizarActivo: (id, datos) => apiFetch(`/staff/activos/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),

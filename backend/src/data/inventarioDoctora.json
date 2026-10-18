@@ -1,0 +1,1150 @@
+[
+  {
+    "nombre": "Consultorio 1",
+    "items": []
+  },
+  {
+    "nombre": "Consultorio 2",
+    "items": [
+      {
+        "tipo": "equipamiento",
+        "nombre": "Camilla armable + funda",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Almohada + funda",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Sabanilla desechable",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Mueble de melamina café con ruedas",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Taburete café de plástico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Silla giratoria",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Sillas estáticas color guindo",
+        "cantidad": 2
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Escritorio de madera + vidrio",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Gavetero de madera con 3 cajones",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Tarima de madera",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Espejo giratorio rosa",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Recipiente de dulces",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Calendario 2026",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Toalla grande verde",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Sabanilla roja",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Bata turquesa de tela",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Ambientador eléctrico automático",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Basurero negro de residuos comunes",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Basurero rojo de desechos infecciosos",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Cable extensor de una sola entrada",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Cable extensor de dos entradas",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Carrito blanco metálico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Carrito de melamina blanco con dorado",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Estante rojo con negro de 3 repisas",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Cámara de seguridad",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Cabina LED con su conector + lentes",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Dermapen",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Termómetro digital",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Alta frecuencia con 4 cabezales",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Electroporador con cable USB",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Dermoabradores portátiles",
+        "cantidad": 2
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Paleta ultrasónica",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Equipo de radiofrecuencia con ultracavitación marca TEM con enchufe y adaptador naranja",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Lupa LED portátil",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Masajeador facial LED",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Winchas con sckras",
+        "cantidad": 4
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Winchas afelpadas",
+        "cantidad": 2
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Antifaz fucsia térmico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Organizadores de plástico",
+        "cantidad": 5
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Mini gavetero de plástico de 3 cajones",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Caja para desecho de émbolos",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Caja para desecho de punzocortantes",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Caja para desecho de jeringas con aguja",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Recipientes de plástico rectangulares",
+        "cantidad": 6
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Lentes protectores de plástico",
+        "cantidad": 2
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Cortador de pastillas de plástico",
+        "cantidad": 2
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Cable USB negro",
+        "cantidad": 2
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Corta uñas",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Bandeja cobrizo con forma de riñón",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Atomizadores de plástico",
+        "cantidad": 3
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Taper de discos de algodón",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Botella ecogel de 250ml",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Recipientes de vidrio",
+        "cantidad": 4
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Succionadores",
+        "cantidad": 2
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Brochas faciales (3 en forma de abanico)",
+        "cantidad": 4
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Paleta de plástico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Recipiente pequeño de vidrio para peeling",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Estuche de plástico con extractores/sacacomedones",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Radio portátil",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Cargador negro",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Humidificador portátil",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Espejo con luz LED",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Difusor eléctrico de enchufe",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Humidificador pequeño portátil",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipos",
+        "nombre": "Frasco vinagre",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Paquete de toallitas húmedas abierto",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Paquete de discos de algodón abierto",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Esponjas faciales",
+        "cantidad": 4
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Caja de guantes de nitrilo negros xs abierto",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Caja con un barbijo desechable",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Barbijos negros KN95",
+        "cantidad": 2
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Bolsa con gorros quirúrgicos desechables",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Bolsa de compresas de gasas 10x10 de 5 unidades abierta",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Bolsas de compresas de gasas 10x10 de 5 unidades cada una cerradas",
+        "cantidad": 5
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Limas de uñas",
+        "cantidad": 2
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Rollo de papel toalla",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Rollo de papel higiénico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Atomizador de alcohol",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Atomizador de clorex 2%",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Atomizador de hipoclorito de sodio",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Paquete de pañuelos desechables abierto",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Bolsa de bicarbonato de sodio en polvo",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Esponja de maquillaje",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Cinta de papel masking",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Masking pequeño",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Aromatizante de frutos rojos con palillos",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Rollo de papel film",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Cámara de seguridad",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Frasco",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Pares de cubrezapatos desechables",
+        "cantidad": 2
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Pastillas comprimidas de toallitas faciales desechables",
+        "cantidad": 2
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Pastillas comprimidas de mascarillas faciales",
+        "cantidad": 9
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Ambientador sapolio",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Envases de plástico de muestra",
+        "cantidad": 3
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Caja de curitas abierta",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Protector solar ISDIN en polvo",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Cámara de seguridad",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Frasco",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Alcohol en gel",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Ác. salicílico 5% con mandélico 10% x 10ml",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Ác. tricloroacético 20% x 10ml",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Crema derma recover Beauty para pospeeling 15g",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Crema para manos de ácido hialurónico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Sérum cicaplast B5",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Crema esencial equilibrante de muestra (con niacinamida, ceramidas, ác. láctico urea)",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Bálsamo de vaselina roja",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Probadores bella piel (syndet exfoliante gránulos de bamboo, leche limpiadora, sérum liposomado, champú facial, syndet con alfabisabolol, loción medical mav)",
+        "cantidad": 6
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Hidratante de contorno de ojos Bioaqua",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Ác. salicílico 30ml lidherma",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Ác. glicólico 30ml lidherma",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Crema renovage lidherma 30g",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Lágrimas artificiales 20ml",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Sérum Anti manchas Neutrogena",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Protector solar spray 150 g lidherma",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Loción refrescante zo-é",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Loción antibacterial zo-é",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Mousse de avena 250g lidherma",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Exfoliante Acne proofing 100g Neutrogena",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Peeling enzimático 100g lidherma",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Exfoliante facial 140 ml uni-K+",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Syndet clorex 60 ml bella piel",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Espuma de limpieza 160ml zo-é",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Gel limpiador vit C 200 ml Ponds",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Agua micelar vit C 300 ml Ponds",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Purigel 200 ml Dr. Grandel",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Crema aclarante mundo magistral",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Crema nutritiva mundo magistral",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Bote pequeño de toallitas húmedas",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Pomada bepantol baby",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Sérum vitamina C 30 ml Garnier",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Sérum exfoliante peeling solution 30 ml the ordinary",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Óleo corporal de almendras 100ml farmax",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Enjuague bucal 50 ml clorex",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Bálsamo protector solar medical mav 10 g bella piel",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Emulsión 504 10g bella piel",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Protector 215 piel grasa bella piel abierto",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Protector 212 piel sensible bella piel abierto",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Protector 785 prot de seda piel grasa bella piel cerrado",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Protector 785 con color claro piel seca cerrado",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Protector 220 emulsión con color piel sensible",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Emulsión hidratante medical mav piel grasa bella piel abierto",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Crema 505 piel seca bella piel abierto",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Emulsión hidratante piel mixta 504 bella piel cerrado",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Syndet propóleo piel acneica bella piel cerrado",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Jabón exfoliante piel seca sensible bella piel cerrado",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Syndet alfabisabolol piel sensible bella piel cerrado",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Leche de limpieza piel sensible bella piel cerrada",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Gel térmico quemador de grasa zo-é cerrado",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Gel criogénico reafirmante zo-é abierto",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Gel hidratante ADN lidherma",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Aceite de rosas zo-é",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Crema dove corporal 75 ml",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Mascarilla facial/corporal de chocolate 150ml zo-é",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Mascarilla secativa 250g zo-é",
+        "cantidad": 1
+      },
+      {
+        "tipo": "activos",
+        "nombre": "Mascarilla antiage 250g zo-é",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Vela de plástico LED",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Adorno oso de rosas de goma eva",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Adorno de luna con estrella colgante LED",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Farol LED de plástico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Cuadros decorativos (zorro, lechuza y venado)",
+        "cantidad": 3
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Guirnalda artificial colgante",
+        "cantidad": 1
+      }
+    ]
+  },
+  {
+    "nombre": "Baño consultorio 2",
+    "items": [
+      {
+        "tipo": "equipamiento",
+        "nombre": "Basurero verde",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Rollo de papel higiénico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Dispensador de jabón líquido",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Toalla para desempolvar blanca",
+        "cantidad": 1
+      }
+    ]
+  },
+  {
+    "nombre": "Recepción",
+    "items": []
+  },
+  {
+    "nombre": "Sala",
+    "items": [
+      {
+        "tipo": "equipamiento",
+        "nombre": "Sillón de espera",
+        "cantidad": null
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Mesita redonda de vidrio",
+        "cantidad": null
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Recipiente blanco de dulces",
+        "cantidad": null
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Basurero negro de residuos comunes + bolsa",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Mueble de melamina de 3 compartimentos con ruedas",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Refrigerador exhibidor de 5 compartimentos",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Dispensador automático de desinfectante de manos con termómetro digital",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Cartel v-tech",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Silla estática negra",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Calendario perpetuo de madera con argollas metálicas y tarjetas intercambiables",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Reloj analógico circular mundo magistral",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Conector del timbre",
+        "cantidad": null
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Pantalla de cámaras",
+        "cantidad": null
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Alexa",
+        "cantidad": null
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Botellón de agua",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Botellas de agua",
+        "cantidad": 36
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Jugos de durazno del sol",
+        "cantidad": 5
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Jugos de manzana del sol",
+        "cantidad": 6
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Jugos de manzana ades",
+        "cantidad": 9
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Coca-Cola de 300 ml",
+        "cantidad": 7
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Fanta de 300ml",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Rollo de papel higiénico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Arreglo de rosas artificial",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Acrílico plano de mesa con diseño marino",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Oso de rosas de goma eva",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Figura de loro blanco",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Rosa encapsulada",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Pino mediano con nieve artificial",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Figura de elefante pequeño",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Pequeñas macetas con flores artificiales",
+        "cantidad": 2
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Pequeño florero rojo circular",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Lámpara de luna con estrella LED",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Decorativo de cerezas con esferas brillantes en cuenco",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Decorativo de madera con diseño de libros y taza",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Plantas de pasto artificial",
+        "cantidad": 2
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Imagen 2d de gatos de madera",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Figura de elefante mediano",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Figura de dragón mediano",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Floreros de cerámica blancos",
+        "cantidad": 2
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Floreros de vidrio",
+        "cantidad": 2
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Ramos de rosas artificiales",
+        "cantidad": 2
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Planta verde artificial pequeña",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Guirnalda de tréboles LED",
+        "cantidad": 1
+      },
+      {
+        "tipo": "decorativos",
+        "nombre": "Esfera de ciudad con nieve brillante",
+        "cantidad": 1
+      }
+    ]
+  },
+  {
+    "nombre": "Baño pacientes",
+    "items": [
+      {
+        "tipo": "equipamiento",
+        "nombre": "Basurero blanco con pedal",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Portatoallero",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Cepillo sanitario + su base",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Par de guantes de goma amarillos",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Trapos de limpieza (naranja y rojo)",
+        "cantidad": 2
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Recipiente mediano metálico negro",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Botella de lustramuebles para madera ola",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Botella limpia todo antibacterial sapolio",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Botella de lavandina",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Atomizador amarillo",
+        "cantidad": 1
+      },
+      {
+        "tipo": "equipamiento",
+        "nombre": "Dispensador plástico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Rollo de papel higiénico",
+        "cantidad": 1
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Jabón líquido",
+        "cantidad": null
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Toallitas femeninas diarias",
+        "cantidad": 5
+      },
+      {
+        "tipo": "insumos",
+        "nombre": "Toallas sanitarias femeninas",
+        "cantidad": 2
+      }
+    ]
+  }
+]

@@ -350,17 +350,17 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-4">
           {data?.activos && (
             <div className="rounded-xl border border-border bg-panel p-5">
-              <h2 className="mb-3 text-sm font-semibold">Equipamiento</h2>
+              <h2 className="mb-3 text-sm font-semibold">Inventario</h2>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Operativos</span>
+                <span className="text-muted-foreground">En buen estado</span>
                 <span className="font-medium text-stat-green">{data.activos.operativos}</span>
               </div>
               <div className="mt-2 flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">En mantenimiento</span>
                 <span className="font-medium text-stat-amber">{data.activos.mantenimiento}</span>
               </div>
-              <Link href="/inventario?tab=activos" className="mt-3 inline-block text-sm text-accent hover:underline">
-                Ver equipamiento →
+              <Link href="/inventario" className="mt-3 inline-block text-sm text-accent hover:underline">
+                Ver inventario →
               </Link>
             </div>
           )}

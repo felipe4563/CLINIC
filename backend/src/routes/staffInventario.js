@@ -163,12 +163,13 @@ router.get('/staff/productos', onlyInventario, async (req, res) => {
 });
 
 router.post('/staff/productos', onlyInventario, async (req, res) => {
-  const { nombre, marcaId, categoriaId, unidad, stock, stock_minimo, precio_venta, precio_costo } = req.body;
+  const { nombre, codigo, marcaId, categoriaId, unidad, stock, stock_minimo, precio_venta, precio_costo } = req.body;
   if (!nombre || precio_venta === undefined) {
     return res.status(400).json({ error: 'nombre y precio_venta son requeridos' });
   }
   const producto = await db.Producto.create({
     nombre,
+    codigo: codigo || null,
     marca_id: marcaId || null,
     categoria_id: categoriaId || null,
     unidad: unidad || 'unidad',
@@ -189,7 +190,7 @@ router.patch('/staff/productos/:id', onlyInventario, async (req, res) => {
   if (marcaId !== undefined) producto.marca_id = marcaId || null;
   if (categoriaId !== undefined) producto.categoria_id = categoriaId || null;
 
-  const campos = ['nombre', 'unidad', 'stock', 'stock_minimo', 'precio_venta', 'precio_costo', 'activo'];
+  const campos = ['nombre', 'codigo', 'unidad', 'stock', 'stock_minimo', 'precio_venta', 'precio_costo', 'activo'];
   campos.forEach((campo) => {
     if (resto[campo] !== undefined) producto[campo] = resto[campo];
   });

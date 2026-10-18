@@ -10,6 +10,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 export type Producto = {
   id: number;
   nombre: string;
+  codigo?: string | null;
   Marca: Etiqueta | null;
   CategoriaProducto: Etiqueta | null;
   unidad: string;
@@ -241,6 +242,7 @@ export default function ProductoItem({
               <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent">Bs {producto.precio_venta}</span>
             </div>
             <p className="mt-0.5 text-xs text-muted-foreground">
+              {producto.codigo ? `Cód. ${producto.codigo} · ` : ''}
               {producto.Marca ? `${producto.Marca.nombre} · ` : ''}
               {producto.CategoriaProducto?.nombre || 'Sin categoría'}
             </p>
