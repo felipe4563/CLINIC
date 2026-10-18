@@ -25,11 +25,6 @@ const ACOG_ECOGRAFIA = {
   titulo: 'Ultrasound Exams',
   url: 'https://www.acog.org/womens-health/faqs/ultrasound-exams',
 };
-const PMC_BULTOS = {
-  sitio: 'PubMed Central',
-  titulo: 'A bump: what to do next? Ultrasound imaging of superficial soft-tissue palpable lesions',
-  url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7441113/',
-};
 const NHS_MUSCULOESQUELETICA = {
   sitio: 'Newcastle Hospitals NHS Foundation Trust',
   titulo: 'Ultrasound musculoskeletal scan',
@@ -132,51 +127,6 @@ export const ecografia: Tratamiento[] = [
       },
     ],
     fuentes: [MEDLINE_TRANSVAGINAL, MEDLINE_PELVICA, ACOG_ECOGRAFIA, NHS_ECOGRAFIA],
-  },
-  {
-    slug: 'ecografia-partes-blandas',
-    nombre: 'Ecografía de partes blandas',
-    resumen: 'Estudio con ondas de sonido para examinar bultos o inflamaciones bajo la piel, sin radiación; suele ser el primer estudio de imagen.',
-    queEs: [
-      'La ecografía de partes blandas examina con ondas de sonido las capas superficiales del cuerpo: la zona bajo la piel, el tejido graso y los músculos. Se usa sobre todo cuando notas un bulto o una inflamación.',
-      'Es el primer estudio de imagen que suele usarse ante un bulto palpable. Su fiabilidad depende de que la haga un profesional entrenado y de un examen completo; cuando los hallazgos no son claros, pueden hacerse otros estudios.',
-    ],
-    beneficios: [
-      'Confirma si realmente hay una lesión en la zona y descarta otras causas.',
-      'Describe su ubicación, tamaño, forma y si es sólida o contiene líquido.',
-      'Ayuda a distinguir lesiones probablemente benignas de otras que necesitan más estudio.',
-      'Puede guiar la toma de una muestra con aguja y servir para el seguimiento de una lesión.',
-    ],
-    antes: [
-      'El centro te dirá si necesitas alguna preparación; muchas veces no hace falta.',
-      'Te pueden pedir quitarte joyas o piercings de la zona a examinar.',
-      'Quizá debas descubrir la zona del bulto; puedes pedir que haya una persona acompañante.',
-    ],
-    despues: [
-      'Un profesional mueve una sonda sobre la piel, con gel, y las imágenes se ven en la pantalla.',
-      'Según el NHS, los resultados pueden darse en la misma cita o tardar unas semanas, y llegan al médico que pidió el estudio.',
-      'Las lesiones claramente benignas pueden no necesitar más estudios; las poco claras pueden requerir seguimiento con ecografía, resonancia o una muestra para análisis.',
-    ],
-    contraindicaciones: [
-      'Es un estudio con ondas de sonido, sin radiación, y el NHS lo considera seguro.',
-      'Si la zona está dolorida, la sonda puede resultar incómoda: avísale al personal.',
-      'Si los hallazgos no son concluyentes o hay sospecha de algo grave, se necesitan más estudios; la ecografía no siempre alcanza para aclararlo.',
-    ],
-    preguntas: [
-      {
-        pregunta: '¿Para qué sirve una ecografía de un bulto?',
-        respuesta: 'Confirma que hay una lesión, describe su tamaño, ubicación y si es sólida o con líquido, y ayuda a distinguir lesiones probablemente benignas de otras que requieren más estudios.',
-      },
-      {
-        pregunta: '¿Una ecografía puede descartar todo?',
-        respuesta: 'No siempre. Las lesiones benignas y malignas pueden tener rasgos parecidos y la fiabilidad depende del examen y del profesional, por lo que algunos casos necesitan resonancia, punción o biopsia.',
-      },
-      {
-        pregunta: '¿Es dolorosa?',
-        respuesta: 'Según el NHS, las sondas externas rara vez causan dolor, aunque pueden molestar sobre zonas sensibles. Puedes pedir detener el estudio cuando quieras.',
-      },
-    ],
-    fuentes: [PMC_BULTOS, NHS_ECOGRAFIA],
   },
   {
     slug: 'ecografia-musculoesqueletica',

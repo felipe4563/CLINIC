@@ -69,59 +69,6 @@ export const rejuvenecimiento: Tratamiento[] = [
     fuentes: [CAHA_DECADA, CAHA_REVISION],
   },
   {
-    slug: 'acido-polilactico',
-    nombre: 'Ácido poliláctico',
-    resumen: 'Bioestimulador de colágeno que se aplica en varias sesiones y mejora el volumen y la calidad de la piel de forma gradual.',
-    queEs: [
-      'El ácido poliláctico (PLLA) es un polímero sintético, biodegradable y biocompatible. No actúa como un relleno que da volumen de inmediato: sus partículas provocan en el cuerpo una reacción inflamatoria controlada que activa a las células de la piel para producir colágeno propio, por eso el resultado aparece de forma gradual.',
-      'En Estados Unidos, la FDA aprobó una de sus presentaciones, Sculptra, para corregir líneas finas y arrugas en la zona de las mejillas en personas con sistema inmunitario sano; el estudio que respaldó esa aprobación usó hasta cuatro sesiones y reporta resultados que pueden mantenerse hasta 24 meses. Una revisión sistemática de ensayos aleatorizados encontró mejoras en el grosor de la piel y en la pérdida de volumen facial, pero calificó la calidad de la evidencia como baja, con ensayos pequeños y protocolos distintos entre sí.',
-    ],
-    beneficios: [
-      'Mejora el grosor y la calidad de la piel de forma gradual.',
-      'Repone volumen facial de manera progresiva, sin cambios bruscos.',
-      'En ensayos incluidos en una revisión, el efecto se mantuvo al menos 25 meses en algunos estudios.',
-      'Es un procedimiento con inyecciones, sin cirugía.',
-    ],
-    antes: [
-      'Ten una consulta de valoración: la doctora definirá si este tratamiento es adecuado y cuántas sesiones necesitarías.',
-      'Cuéntale tu historial de salud, tus alergias (incluida la alergia a anestésicos como la lidocaína) y los medicamentos que tomas.',
-      'Pregunta qué producto se usará y qué resultado es realista en tu caso.',
-    ],
-    despues: [
-      'Es común tener hematomas, hinchazón, dolor o sensibilidad en la zona tratada.',
-      'Avisa a la doctora si notas bultos o nódulos: son el efecto adverso más característico del ácido poliláctico y, según las revisiones, dependen en buena parte de la técnica de aplicación y de los cuidados posteriores.',
-      'Sigue las indicaciones de cuidado que te dé la doctora y acude a los controles que te indique.',
-    ],
-    contraindicaciones: [
-      'Alergia a alguno de los componentes del producto, alergias graves o antecedente de anafilaxia.',
-      'Tendencia a formar cicatrices elevadas (queloides o cicatrices hipertróficas).',
-      'Alergia a la lidocaína o a anestésicos similares, si el producto se prepara con lidocaína.',
-      'La doctora valorará tu caso si estás embarazada, das de lactar o tienes enfermedades o tratamientos que afecten tu respuesta inmunitaria.',
-    ],
-    preguntas: [
-      {
-        pregunta: '¿Cuándo se ve el resultado?',
-        respuesta: 'De forma gradual, porque depende de que tu cuerpo vaya produciendo colágeno nuevo. Por eso suele hacerse en varias sesiones, y la doctora te indicará cuántas y cada cuánto.',
-      },
-      {
-        pregunta: '¿Cuántas sesiones se necesitan?',
-        respuesta: 'En los ensayos revisados, la mayoría de los protocolos usó entre 1 y 4 sesiones, separadas por unas 3 a 4 semanas. En tu caso lo definirá la doctora tras valorarte.',
-      },
-      {
-        pregunta: '¿Cuánto dura?',
-        respuesta: 'La FDA indica que los resultados pueden mantenerse hasta 24 meses en el estudio que respaldó la aprobación, y una revisión reporta beneficios de al menos 25 meses en algunos ensayos. No es un resultado permanente, y varía entre personas.',
-      },
-      {
-        pregunta: '¿Qué riesgos tiene?',
-        respuesta: 'Los efectos adversos descritos son mayormente leves a moderados: hematomas, hinchazón, sensibilidad y nódulos. En algún estudio se reportaron nódulos más importantes en el lugar de la inyección. Por eso es clave que lo aplique un profesional con experiencia.',
-      },
-    ],
-    fuentes: [
-      { sitio: 'FDA', titulo: 'Sculptra - P030050/S039', url: 'https://www.fda.gov/medical-devices/recently-approved-devices/sculptra-p030050s039' },
-      PLLA_REVISION,
-    ],
-  },
-  {
     slug: 'hilos-tensores',
     nombre: 'Hilos tensores',
     resumen: 'Hilos finos que se colocan bajo la piel para dar soporte y reposicionar el tejido del rostro sin cirugía; el efecto puede no mantenerse a largo plazo.',

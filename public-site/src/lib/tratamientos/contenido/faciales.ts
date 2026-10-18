@@ -367,9 +367,10 @@ export const faciales: Tratamiento[] = [
   },
   {
     slug: 'dmae-silicio-organico',
-    nombre: 'DMAE + silicio orgánico',
-    resumen: 'Combinación de DMAE y silicio orgánico buscada para dar firmeza a la piel. Cada componente tiene datos limitados y la combinación casi no se ha estudiado.',
+    nombre: 'DMAE + silicio orgánico con microneedling',
+    resumen: 'Combinación de DMAE y silicio orgánico, aplicada con microneedling, buscada para dar firmeza a la piel. Cada componente tiene datos limitados.',
     queEs: [
+      'En la clínica, esta combinación se aplica en una sesión de microneedling: la doctora te explicará cómo se hace y qué esperar en tu caso.',
       'El DMAE (dimetilaminoetanol) es una sustancia relacionada con la colina que se ha estudiado para dar firmeza a la piel. El silicio orgánico es una fuente de silicio que se asocia a la salud de la piel. En estética se usan juntos con la idea de mejorar la firmeza y el aspecto del rostro.',
       'La evidencia es limitada. En DMAE, el estudio más sólido es de un gel aplicado sobre la piel durante 16 semanas, con mejoras en líneas de la frente y arrugas alrededor de los ojos. Del silicio orgánico, lo publicado muestra que puede llegar a las capas de la piel en pruebas de laboratorio, pero no demuestra que firme la piel. Las fuentes consultadas no incluyen estudios clínicos amplios que evalúen la combinación inyectada. Por eso es importante la valoración médica y mantener expectativas realistas.',
     ],

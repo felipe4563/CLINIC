@@ -20,16 +20,6 @@ const MINIREVISION_PARPADO = {
   titulo: 'Modern blepharoplasty: From bench to bedside',
   url: 'https://pubmed.ncbi.nlm.nih.gov/36969996/',
 };
-const AAD_LUNARES = {
-  sitio: 'American Academy of Dermatology',
-  titulo: 'Moles: Diagnosis and treatment',
-  url: 'https://www.aad.org/public/diseases/a-z/moles-treatment',
-};
-const AAD_ABCDE = {
-  sitio: 'American Academy of Dermatology',
-  titulo: 'What to look for: ABCDEs of melanoma',
-  url: 'https://www.aad.org/public/diseases/skin-cancer/find/at-risk/abcdes',
-};
 
 export const plasma: Tratamiento[] = [
   {
@@ -82,112 +72,6 @@ export const plasma: Tratamiento[] = [
       },
     ],
     fuentes: [PLASMA_PARPADO_PILOTO, PLASMA_PERIORBITAL, MINIREVISION_PARPADO, PLASMA_PEN_TIKTOK],
-  },
-  {
-    slug: 'lifting-facial-sin-cirugia',
-    nombre: 'Lifting facial sin cirugía',
-    resumen: 'Aplicación de plasma (plasma pen) para tensar la piel del rostro sin cirugía; la evidencia disponible es limitada y se centra en la zona de los ojos.',
-    queEs: [
-      'El lifting facial sin cirugía con plasma busca tensar la piel y mejorar su flacidez aplicando pequeños puntos de energía de plasma sobre la superficie, sin cortes. El procedimiento se conoce como exéresis con plasma y a los equipos comerciales también se les llama plasma pen o fibroblast pen.',
-      'La evidencia es limitada: los estudios consultados se centran en los párpados y en la zona alrededor de los ojos, son pequeños. En el ensayo con 56 mujeres, tres sesiones separadas por un mes lograron una mejoría significativa de la flacidez de la zona sin efectos adversos permanentes. Para otras zonas del rostro las fuentes consultadas no aportan datos. Este tratamiento no reemplaza a un lifting quirúrgico.',
-    ],
-    beneficios: [
-      'No requiere incisiones ni suturas.',
-      'En los estudios consultados mejoró la flacidez del párpado y de la zona de los ojos.',
-      'En esos estudios no se reportaron efectos adversos graves ni permanentes.',
-      'Puede ser una opción en casos seleccionados, según la valoración médica.',
-    ],
-    antes: [
-      'Ten una consulta de valoración: la doctora evaluará tu piel y qué zonas se pueden tratar.',
-      'Habla de tus expectativas: no es equivalente a una cirugía.',
-      'Cuéntale tu historial de salud, alergias y medicamentos.',
-      'Pregunta con qué equipo se realizará: muchos dispositivos que se venden comercialmente no están regulados por la FDA.',
-    ],
-    despues: [
-      'Sigue las indicaciones de cuidado que te dé la doctora para la zona tratada.',
-      'Los estudios describen varias sesiones separadas por semanas; la doctora definirá cuántas necesitas.',
-      'Avisa si notas dolor, cambios de color de la piel o signos de infección.',
-      'Se describen riesgos de cambios de pigmentación, cicatrices y quemaduras mecánicas con estos dispositivos.',
-    ],
-    contraindicaciones: [
-      'Si buscas un resultado permanente o equivalente a un lifting quirúrgico: las revisiones señalan que la cirugía sigue siendo la primera opción para eso.',
-      'La doctora valorará si el riesgo de cambios de pigmentación, cicatrices o quemaduras es aceptable en tu caso.',
-      'Conviene evitar los dispositivos de procedencia incierta o no regulados.',
-    ],
-    preguntas: [
-      {
-        pregunta: '¿Reemplaza a un lifting quirúrgico?',
-        respuesta: 'No. Es una opción menos invasiva, con evidencia limitada, y no reemplaza a un lifting quirúrgico.',
-      },
-      {
-        pregunta: '¿Qué zonas del rostro se pueden tratar?',
-        respuesta: 'Los estudios consultados se centran en los párpados y la zona de los ojos. La doctora valorará en consulta qué zonas pueden tratarse en tu caso.',
-      },
-      {
-        pregunta: '¿Cuántas sesiones se necesitan?',
-        respuesta: 'En el ensayo consultado se aplicaron tres sesiones separadas por un mes. En tu caso lo definirá la doctora.',
-      },
-      {
-        pregunta: '¿Qué tan sólida es la evidencia?',
-        respuesta: 'Limitada: son estudios pequeños y los autores piden investigaciones más amplias.',
-      },
-    ],
-    fuentes: [PLASMA_PERIORBITAL, PLASMA_PARPADO_PILOTO, MINIREVISION_PARPADO, PLASMA_PEN_TIKTOK],
-  },
-  {
-    slug: 'eliminacion-de-lunares',
-    nombre: 'Eliminación de lunares',
-    resumen: 'Retiro de lunares con plasma (plasma pen) tras una evaluación médica; un lunar que cambia debe revisarse antes de retirarlo.',
-    queEs: [
-      'La eliminación de lunares con plasma consiste en retirar, con un equipo de plasma (plasma pen), un lunar que molesta o que no te gusta por estética. Antes de retirar cualquier lunar, un médico debe determinar si es benigno: la Academia Americana de Dermatología advierte que un lunar que crece, pica o cambia de cualquier manera podría ser un cáncer de piel.',
-      'Cuando la AAD describe cómo se retira un lunar, la extirpación o el afeitado quirúrgico, el tejido retirado se examina al microscopio. Un método que destruye la lesión, como el plasma, no deja tejido para analizar: por eso, si el lunar es sospechoso o hay cualquier duda, lo adecuado es una biopsia o una evaluación dermatológica en lugar de destruirlo, y la doctora lo decidirá contigo. En las fuentes consultadas no hay datos clínicos sobre el uso del plasma pen específicamente para retirar lunares. Los dispositivos de plasma de uso comercial, además, a menudo no están regulados por la FDA y se asocian a riesgo de cambios de pigmentación, cicatrices y quemaduras. Ningún método de retiro está libre de riesgo.',
-    ],
-    beneficios: [
-      'Permite retirar un lunar que molesta o que no te gusta por estética, siempre con evaluación médica previa.',
-      'Si el lunar roza con la ropa o se irrita, retirarlo puede aliviar esa molestia.',
-      'Retirarlo con un profesional reduce los riesgos de infección y cicatrices frente a los métodos caseros.',
-    ],
-    antes: [
-      'Antes de retirar un lunar, la doctora debe evaluarlo. Consulta primero, sin retirarlo por tu cuenta, si ha cambiado de tamaño, forma o color, si pica, sangra o se ve distinto a tus otros lunares.',
-      'Los signos que se vigilan se resumen en la regla ABCDE de la AAD: asimetría, borde irregular, color con varios tonos, diámetro mayor a unos 6 mm y evolución o cambio.',
-      'No intentes quitar un lunar en casa: puede causar infecciones, cicatrices y retrasar el diagnóstico de un cáncer de piel.',
-      'Cuéntale a la doctora tu historial de salud, tus medicamentos y si has tenido cicatrices anormales.',
-    ],
-    despues: [
-      'Sigue las indicaciones de cuidado que te dé la doctora sobre la limpieza de la zona.',
-      'Vigila la zona: avisa si hay enrojecimiento que aumenta, dolor, secreción o sangrado.',
-      'Revisa tu piel con regularidad y consulta a un dermatólogo ante cualquier lunar nuevo, distinto o que cambie.',
-      'Con los dispositivos de plasma se describen riesgos de cambios de pigmentación, cicatrices y quemaduras mecánicas.',
-    ],
-    contraindicaciones: [
-      'Un lunar que cambia (crece, pica, sangra o cambia de color o forma), que cumple las señales del ABCDE o sobre el que hay cualquier duda debe ser evaluado por un médico, y es posible que necesite biopsia en lugar de ser destruido: si se destruye, no queda tejido para examinar al microscopio.',
-      'No es adecuado quitarlo por tu cuenta ni con productos caseros: la FDA no ha aprobado productos de uso doméstico para retirar lunares.',
-      'La doctora valorará si el riesgo de cicatrices o cambios de pigmentación es aceptable en tu caso.',
-    ],
-    preguntas: [
-      {
-        pregunta: '¿Cualquier lunar se puede retirar?',
-        respuesta: 'No automáticamente. Primero un médico debe evaluarlo. Si el lunar ha cambiado, tiene señales de alarma o hay dudas, debe evaluarse como posible cáncer de piel, con biopsia si corresponde, y no destruirse sin analizarlo, porque entonces no queda tejido para estudiar.',
-      },
-      {
-        pregunta: '¿Qué señales debo vigilar en un lunar?',
-        respuesta: 'La AAD resume las señales de alarma en la regla ABCDE: asimetría, borde irregular, varios colores, diámetro mayor a unos 6 mm (aunque algunos son menores) y evolución, es decir, cambio de tamaño, forma o color.',
-      },
-      {
-        pregunta: '¿Puedo quitarme un lunar en casa?',
-        respuesta: 'No. La AAD advierte que los métodos caseros pueden causar lesiones, infecciones, cicatrices, sangrado y retrasar el diagnóstico de un cáncer de piel.',
-      },
-      {
-        pregunta: '¿Deja cicatriz?',
-        respuesta: 'Todo método de retiro conlleva algún riesgo de cicatriz o de cambio en el color de la piel; la AAD advierte contra quien promete "cero cicatrices". La doctora te explicará qué esperar en tu caso.',
-      },
-    ],
-    fuentes: [
-      { sitio: 'American Academy of Dermatology', titulo: '5 reasons to see a dermatologist for mole, skin tag removal', url: 'https://www.aad.org/public/diseases/a-z/mole-skin-tag-removal' },
-      AAD_LUNARES,
-      AAD_ABCDE,
-      PLASMA_PEN_TIKTOK,
-    ],
   },
   {
     slug: 'eliminacion-de-acrocordones',

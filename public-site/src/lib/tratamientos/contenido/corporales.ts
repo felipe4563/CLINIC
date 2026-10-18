@@ -305,7 +305,7 @@ export const corporales: Tratamiento[] = [
   },
   {
     slug: 'drenaje-linfatico',
-    nombre: 'Drenaje linfático',
+    nombre: 'Drenaje linfático manual',
     resumen: 'Masaje suave que ayuda a mover líquido hacia los ganglios. Su uso mejor respaldado es el linfedema; los efectos estéticos están menos probados.',
     queEs: [
       'El drenaje linfático es un masaje muy suave, con presiones ligeras y movimientos dirigidos, que busca desplazar el líquido acumulado en un tejido hinchado hacia los ganglios linfáticos. Según Cleveland Clinic, se usa sobre todo para reducir el linfedema, por ejemplo después de una cirugía de mama en la que se extirpan ganglios.',

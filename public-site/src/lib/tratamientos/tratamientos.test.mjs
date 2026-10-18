@@ -16,18 +16,20 @@ import { enfermeria } from './contenido/enfermeria.ts';
 
 const TODOS = [...faciales, ...armonizacion, ...rejuvenecimiento, ...corporales, ...plasma, ...ginecologia, ...ecografia, ...fisioterapia, ...enfermeria];
 
-// Nombres exactos de la tabla `servicios`: el botón de reservar busca por nombre.
+// Nombres exactos de la tabla `servicios` en producción, después de la migración
+// 20261018000000-servicios-ortografia (pedido de la doctora): el botón de reservar busca por nombre.
 const NOMBRES_SERVICIOS = [
   'Microneedling', 'PRP facial', 'PDRN / PN', 'Exosomas', 'Peelings médicos', 'Ácido hialurónico (hidratación facial)',
-  'Cóctel de vitaminas', 'DMAE + silicio orgánico', 'Cóctel de aminoácidos', 'Ácido hialurónico (Fillers)',
-  'Toxina botulínica (Botox)', 'Perfilado de nariz', 'Relleno / perfilado de labios', 'Mentoplastia', 'Marcación mandibular',
-  'Levantamiento de pómulos', 'Hidroxiapatita de calcio', 'Ácido poliláctico', 'Hilos tensores', 'Bioestimuladores de colágeno',
-  'Adipoestructuración', 'Lipólisis química', 'Enzimas recombinantes', 'Enzimas lipolíticas', 'Ondas rusas', 'Radiofrecuencia',
-  'Drenaje linfático', 'Masajes reductores', 'Blefaroplastia sin cirugía', 'Lifting facial sin cirugía', 'Eliminación de lunares',
-  'Eliminación de acrocordones', 'Eliminación de verrugas', 'Consulta ginecológica', 'Obstetricia', 'Planificación familiar',
-  'Control prenatal', 'Papanicolau', 'Colposcopía', 'Ecografía abdominal', 'Ecografía ginecológica', 'Ecografía de partes blandas',
-  'Ecografía musculoesquelética', 'Terapia manual', 'Masajes relajantes', 'Masajes descontracturantes', 'Rehabilitación',
-  'Aparatología', 'Curaciones', 'Control de presión arterial', 'Control de peso y talla', 'Glicemia capilar', 'Sueros', 'Inyectables',
+  'Cóctel de vitaminas', 'DMAE + silicio orgánico con microneedling', 'Cóctel de aminoácidos',
+  'Ácido hialurónico (Fillers)', 'Toxina botulínica (Botox)', 'Perfilado de nariz', 'Relleno / perfilado de labios',
+  'Mentoplastia', 'Marcación mandibular', 'Levantamiento de pómulos', 'Hidroxiapatita de calcio', 'Hilos tensores',
+  'Bioestimuladores de colágeno', 'Adipoestructuración', 'Lipólisis química', 'Enzimas recombinantes',
+  'Enzimas lipolíticas', 'Ondas rusas', 'Radiofrecuencia', 'Drenaje linfático manual', 'Masajes reductores',
+  'Blefaroplastia sin cirugía', 'Eliminación de acrocordones', 'Eliminación de verrugas', 'Consulta ginecológica',
+  'Obstetricia', 'Planificación familiar', 'Control prenatal', 'Papanicolau', 'Colposcopía', 'Ecografía abdominal',
+  'Ecografía ginecológica', 'Ecografía musculoesquelética', 'Masajes relajantes', 'Masajes descontracturantes',
+  'Rehabilitación', 'Aparatología', 'Curaciones', 'Control de signos vitales', 'Glicemia capilar', 'Sueros',
+  'Inyectables',
 ];
 
 // Fuentes médicas permitidas (spec, "Fuentes y reglas de redacción"). Se acepta el dominio y sus subdominios.
@@ -52,10 +54,10 @@ function slugsDeCategorias() {
   );
 }
 
-test('las categorías tienen 54 slugs únicos y válidos', () => {
+test('las categorías tienen 48 slugs únicos y válidos', () => {
   const slugs = slugsDeCategorias();
-  assert.equal(slugs.length, 54);
-  assert.equal(new Set(slugs).size, 54);
+  assert.equal(slugs.length, 48);
+  assert.equal(new Set(slugs).size, 48);
   for (const s of slugs) assert.match(s, SLUG);
 });
 
@@ -140,11 +142,11 @@ test('cada tratamiento tiene su propia foto, sin repetir', () => {
   }
 });
 
-test('están los 54 tratamientos', () => {
+test('están los 48 tratamientos', () => {
   const escritos = new Set(TODOS.map((t) => t.slug));
   const faltan = slugsDeCategorias().filter((s) => !escritos.has(s));
   assert.deepEqual(faltan, [], `sin contenido: ${faltan.join(', ')}`);
-  assert.equal(TODOS.length, 54);
+  assert.equal(TODOS.length, 48);
 });
 
 const textosDe = (t) => [

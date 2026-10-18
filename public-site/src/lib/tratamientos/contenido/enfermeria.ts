@@ -10,6 +10,11 @@ const NHS_HERIDAS = {
   titulo: 'Cuts and grazes',
   url: 'https://www.nhs.uk/conditions/cuts-and-grazes/',
 };
+const MEDLINE_SIGNOS_VITALES = {
+  sitio: 'MedlinePlus',
+  titulo: 'Signos vitales',
+  url: 'https://medlineplus.gov/spanish/ency/article/002341.htm',
+};
 const MEDLINE_PRESION_PRUEBA = {
   sitio: 'MedlinePlus',
   titulo: 'Measuring Blood Pressure',
@@ -24,16 +29,6 @@ const NHS_PRESION = {
   sitio: 'NHS',
   titulo: 'High blood pressure (hypertension)',
   url: 'https://www.nhs.uk/conditions/high-blood-pressure-hypertension/',
-};
-const MEDLINE_IMC = {
-  sitio: 'MedlinePlus',
-  titulo: 'Body mass index',
-  url: 'https://medlineplus.gov/ency/article/007196.htm',
-};
-const CDC_IMC = {
-  sitio: 'CDC',
-  titulo: 'About Body Mass Index (BMI)',
-  url: 'https://www.cdc.gov/bmi/about/index.html',
 };
 const MEDLINE_GLUCOSA = {
   sitio: 'MedlinePlus',
@@ -119,15 +114,18 @@ export const enfermeria: Tratamiento[] = [
     fuentes: [MEDLINE_HERIDAS, NHS_HERIDAS],
   },
   {
-    slug: 'control-presion-arterial',
-    nombre: 'Control de presión arterial',
-    resumen: 'Medición rápida con un brazalete para conocer tu presión; la doctora interpreta los valores y decide si hace falta repetirla.',
+    slug: 'control-signos-vitales',
+    nombre: 'Control de signos vitales',
+    resumen: 'Medición de tu presión arterial, pulso, respiración y temperatura; la doctora interpreta los valores y decide si hace falta repetirlos.',
     queEs: [
-      'El control de presión arterial mide la fuerza con la que la sangre empuja las paredes de las arterias. Se hace con un brazalete en la parte superior del brazo que se infla y se desinfla lentamente. Se registran dos números: la presión sistólica (el primero, más alto) y la diastólica (el segundo).',
+      'Los signos vitales son las mediciones básicas del funcionamiento del cuerpo. MedlinePlus menciona cuatro: el ritmo cardíaco (pulso), la frecuencia respiratoria, la temperatura y la presión arterial. Sus valores normales cambian con la edad, el sexo, el peso, la capacidad para ejercitarse y la salud general.',
+      'La presión arterial se mide con un brazalete en la parte superior del brazo que se infla y se desinfla lentamente. Se registran dos números: la presión sistólica (el primero, más alto) y la diastólica (el segundo).',
       'Un solo valor no basta para diagnosticar: según MedlinePlus, el diagnóstico de presión alta suele requerir dos o más lecturas altas en días diferentes. La doctora interpreta los resultados y decide cada cuánto controlarte.',
     ],
     beneficios: [
-      'Es una prueba rápida: dura aproximadamente un minuto (MedlinePlus).',
+      'Da una visión rápida de tu estado general en una sola visita.',
+      'Para un adulto sano en reposo, MedlinePlus da como referencia: pulso de 60 a 100 latidos por minuto, 12 a 18 respiraciones por minuto, temperatura de 36,5 °C a 37,3 °C y presión entre 90/60 y 120/80 mm Hg.',
+      'La medición de la presión dura aproximadamente un minuto (MedlinePlus).',
       'Permite detectar presión alta, que habitualmente no causa síntomas (NHS).',
       'Si un valor sale alto, el NHS señala que pueden pedirte medirla en casa durante unos días, repetirla en consulta o usar un monitor portátil durante 24 horas para confirmarlo.',
     ],
@@ -151,7 +149,11 @@ export const enfermeria: Tratamiento[] = [
     ],
     preguntas: [
       {
-        pregunta: '¿Un valor alto significa que tengo hipertensión?',
+        pregunta: '¿Qué valores son normales?',
+        respuesta: 'MedlinePlus da como referencia para un adulto sano en reposo un pulso de 60 a 100 latidos por minuto, 12 a 18 respiraciones por minuto, una temperatura de 36,5 °C a 37,3 °C y una presión entre 90/60 y 120/80 mm Hg. La doctora interpreta tus valores según tu edad y tu salud.',
+      },
+      {
+        pregunta: '¿Un valor alto de presión significa que tengo hipertensión?',
         respuesta: 'No necesariamente. MedlinePlus indica que el diagnóstico suele requerir dos o más lecturas altas en días diferentes. La doctora decidirá si hay que repetirla o seguirla en casa.',
       },
       {
@@ -163,51 +165,7 @@ export const enfermeria: Tratamiento[] = [
         respuesta: 'Según MedlinePlus, solo se siente una ligera molestia cuando el brazalete llega a su máximo de inflado.',
       },
     ],
-    fuentes: [MEDLINE_PRESION_PRUEBA, MEDLINE_PRESION_ENCICLOPEDIA, NHS_PRESION],
-  },
-  {
-    slug: 'control-peso-talla',
-    nombre: 'Control de peso y talla',
-    resumen: 'Medición de tu peso y tu estatura para calcular el índice de masa corporal (IMC) y seguir cambios en el tiempo.',
-    queEs: [
-      'El control de peso y talla consiste en medir cuánto pesas y cuánto mides. Con esos dos datos se calcula el índice de masa corporal (IMC): el peso en kilogramos dividido entre la estatura en metros al cuadrado.',
-      'El IMC es una herramienta de tamizaje rápida y sencilla, pero no mide directamente la grasa corporal ni sirve como diagnóstico por sí sola, según los CDC. Se interpreta junto con tu historia de salud, el examen físico y, si hace falta, análisis de laboratorio.',
-    ],
-    beneficios: [
-      'Es una forma rápida y de bajo costo de orientar si tu peso es adecuado para tu estatura (CDC).',
-      'Seguir tu IMC en el tiempo permite notar si has ganado o perdido peso (CDC).',
-      'Aporta datos para que la doctora valore, junto con otros factores, tu riesgo de enfermedades crónicas (CDC).',
-      'En adultos, a veces se complementa con la medida de la cintura (MedlinePlus).',
-    ],
-    antes: [
-      'Si ya tienes mediciones anteriores, llévalas: ver cómo cambian con el tiempo es parte de la valoración (CDC).',
-      'Comenta si eres una persona muy musculosa, si tienes 65 años o más o si el control es para un niño o adolescente: el IMC puede interpretarse distinto en estos casos.',
-    ],
-    despues: [
-      'La doctora interpreta el resultado junto con tu historia de salud, tu examen físico y tus análisis (CDC).',
-      'El IMC no es un diagnóstico por sí solo. En adultos, el personal también puede usar la medida de la cintura o la relación cintura-cadera (MedlinePlus).',
-      'Si la doctora lo indica, se repite la medición en el tiempo para seguir la tendencia.',
-    ],
-    contraindicaciones: [
-      'En niños y adolescentes no se usa la calculadora de adultos: los CDC interpretan el IMC como un percentil según sexo y edad (de 2 a 19 años), y MedlinePlus indica no usar su tabla en niños.',
-      'En personas muy musculosas el IMC puede salir alto sin que haya exceso de grasa, porque el músculo pesa más que la grasa (MedlinePlus).',
-      'En personas de 65 años o más, los valores saludables pueden ser distintos, según MedlinePlus.',
-    ],
-    preguntas: [
-      {
-        pregunta: '¿Qué es el IMC?',
-        respuesta: 'Es un número que resulta de dividir tu peso en kilogramos entre tu estatura en metros al cuadrado. Los CDC lo describen como una herramienta de tamizaje, no como un diagnóstico.',
-      },
-      {
-        pregunta: '¿Un IMC alto significa que tengo una enfermedad?',
-        respuesta: 'No por sí solo. MedlinePlus explica que no predice el riesgo de salud por sí mismo y los CDC indican que se interpreta junto con otros datos clínicos. La doctora te explicará qué significa en tu caso.',
-      },
-      {
-        pregunta: '¿Sirve para niños?',
-        respuesta: 'Se interpreta de otra forma. Los CDC lo ubican como percentil para el sexo y la edad en niños y adolescentes de 2 a 19 años, y MedlinePlus indica preguntar al médico del niño cuál es el peso adecuado para su edad.',
-      },
-    ],
-    fuentes: [MEDLINE_IMC, CDC_IMC],
+    fuentes: [MEDLINE_SIGNOS_VITALES, MEDLINE_PRESION_PRUEBA, MEDLINE_PRESION_ENCICLOPEDIA, NHS_PRESION],
   },
   {
     slug: 'glicemia-capilar',

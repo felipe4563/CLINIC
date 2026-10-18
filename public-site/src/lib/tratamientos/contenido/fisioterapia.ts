@@ -1,10 +1,5 @@
 import type { Tratamiento } from '../tipos';
 
-const CHOOSEPT_DOLOR = {
-  sitio: 'APTA (ChoosePT)',
-  titulo: 'Physical Therapy Guide to Pain',
-  url: 'https://www.choosept.com/guide/physical-therapy-guide-pain',
-};
 const CHOOSEPT_VISITA = {
   sitio: 'APTA (ChoosePT)',
   titulo: 'Preparing for Your Visit with a Physical Therapist',
@@ -53,52 +48,6 @@ const PRECAUCIONES_MASAJE = [
 ];
 
 export const fisioterapia: Tratamiento[] = [
-  {
-    slug: 'terapia-manual',
-    nombre: 'Terapia manual',
-    resumen: 'Técnicas con las manos del fisioterapeuta para movilizar articulaciones y músculos, casi siempre dentro de un plan con ejercicio.',
-    queEs: [
-      'La terapia manual es la parte de la fisioterapia en la que el fisioterapeuta usa sus manos para movilizar o manipular articulaciones y músculos. La guía de la APTA (asociación estadounidense de fisioterapia) explica que suele combinarse con otras actividades para aumentar el movimiento.',
-      'No se aplica sola ni de forma automática: el NHS la presenta como una de las herramientas de la fisioterapia, junto con el ejercicio y los consejos para manejar los síntomas. Qué técnicas usar lo decide el fisioterapeuta después de evaluarte.',
-    ],
-    beneficios: [
-      'Según la guía de la APTA, la terapia manual ha demostrado reducir el dolor.',
-      'Ayuda a mejorar el movimiento de la zona afectada, según el NHS.',
-      'Se integra en un plan hecho a tu medida, que puede incluir ejercicios, educación sobre tu problema y un programa para hacer en casa.',
-      'El fisioterapeuta revisa cómo respondes y ajusta el tratamiento a lo largo de la atención.',
-    ],
-    antes: [
-      'Anota tus síntomas, desde cuándo los tienes y qué los mejora o empeora (movimientos, posiciones, momento del día, reposo).',
-      'Lleva la lista de medicamentos que tomas, incluidos vitaminas y suplementos, y tus antecedentes, aunque parezcan no estar relacionados.',
-      'Si tienes estudios o informes de otros profesionales, llévalos.',
-      'Pregunta en la clínica si debes vestir algo en particular; evita la ropa que no se estira, porque es posible que hagas movimientos durante la sesión.',
-    ],
-    despues: [
-      'Es posible que te enseñen ejercicios para hacer en casa entre sesiones; el NHS insiste en hacerlos con regularidad para apoyar la recuperación.',
-      'El fisioterapeuta te indicará cuántas sesiones podrías necesitar y volverá a valorar tu progreso a lo largo de la atención.',
-      'Si algo te molesta o te preocupa después de una sesión, coméntalo en la siguiente cita o antes, para que el tratamiento se ajuste.',
-    ],
-    contraindicaciones: [
-      'Antes de aplicar técnicas, el fisioterapeuta debería hacerte un examen y preguntarte por tu salud, tus medicamentos y tus antecedentes; con esa información decide qué técnicas son adecuadas para ti.',
-      'Si no sabes qué causa tu dolor, conviene empezar por la valoración: la APTA señala que los estudios de imagen pueden ayudar a descartar otras condiciones.',
-      'Cuéntale al fisioterapeuta cómo respondes durante y después del tratamiento: la APTA indica que revisa tu respuesta y ajusta el plan.',
-    ],
-    preguntas: [
-      {
-        pregunta: '¿La terapia manual es lo mismo que un masaje?',
-        respuesta: 'Puede incluir masaje, pero no se limita a eso: el NHS la describe como el uso de las manos para masajear y mejorar el movimiento, y la APTA habla de movilizar o manipular articulaciones y músculos. Qué técnica se usa depende de tu evaluación.',
-      },
-      {
-        pregunta: '¿Qué pasa en la primera consulta?',
-        respuesta: 'El fisioterapeuta te pregunta por tu salud y tus síntomas, te examina (puede usar las manos para revisar el movimiento de articulaciones y tejidos) y, junto contigo, define objetivos y un plan de tratamiento.',
-      },
-      {
-        pregunta: '¿Tendré que hacer ejercicios en casa?',
-        respuesta: 'Lo más probable. Tanto el NHS como la APTA mencionan programas de ejercicios para hacer en casa como parte del plan.',
-      },
-    ],
-    fuentes: [CHOOSEPT_DOLOR, NHS_FISIOTERAPIA, CHOOSEPT_VISITA],
-  },
   {
     slug: 'masajes-relajantes',
     nombre: 'Masajes relajantes',

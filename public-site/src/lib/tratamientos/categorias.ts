@@ -29,7 +29,7 @@ export const CATEGORIAS: Categoria[] = [
               { nombre: 'Peelings médicos', slug: 'peelings-medicos' },
               { nombre: 'Ácido hialurónico', slug: 'acido-hialuronico-hidratacion' },
               { nombre: 'Cóctel de vitaminas', slug: 'coctel-de-vitaminas' },
-              { nombre: 'DMAE + silicio orgánico', slug: 'dmae-silicio-organico' },
+              { nombre: 'DMAE + silicio orgánico con microneedling', slug: 'dmae-silicio-organico' },
               { nombre: 'Cóctel de aminoácidos', slug: 'coctel-de-aminoacidos' },
             ],
           },
@@ -62,7 +62,6 @@ export const CATEGORIAS: Categoria[] = [
             titulo: 'Tratamiento con bioestimuladores de colágeno',
             items: [
               { nombre: 'Hidroxiapatita de calcio', slug: 'hidroxiapatita-de-calcio' },
-              { nombre: 'Ácido poliláctico', slug: 'acido-polilactico' },
               { nombre: 'Hilos tensores', slug: 'hilos-tensores' },
               { nombre: 'Bioestimuladores de colágeno', slug: 'bioestimuladores-de-colageno' },
               { nombre: 'Adipoestructuración', slug: 'adipoestructuracion' },
@@ -82,7 +81,7 @@ export const CATEGORIAS: Categoria[] = [
               { nombre: 'Enzimas lipolíticas', slug: 'enzimas-lipoliticas' },
               { nombre: 'Ondas rusas', slug: 'ondas-rusas' },
               { nombre: 'Radiofrecuencia', slug: 'radiofrecuencia' },
-              { nombre: 'Drenaje linfático', slug: 'drenaje-linfatico' },
+              { nombre: 'Drenaje linfático manual', slug: 'drenaje-linfatico' },
               { nombre: 'Masajes reductores', slug: 'masajes-reductores' },
             ],
           },
@@ -96,8 +95,6 @@ export const CATEGORIAS: Categoria[] = [
             titulo: 'Indicados para',
             items: [
               { nombre: 'Blefaroplastia sin cirugía', slug: 'blefaroplastia-sin-cirugia' },
-              { nombre: 'Lifting facial sin cirugía', slug: 'lifting-facial-sin-cirugia' },
-              { nombre: 'Eliminación de lunares', slug: 'eliminacion-de-lunares' },
               { nombre: 'Eliminación de acrocordones', slug: 'eliminacion-de-acrocordones' },
               { nombre: 'Eliminación de verrugas', slug: 'eliminacion-de-verrugas' },
             ],
@@ -132,7 +129,6 @@ export const CATEGORIAS: Categoria[] = [
     grupos: [
       { titulo: 'Ecografía abdominal', slug: 'ecografia-abdominal', descripcion: 'Evaluación de órganos y estructuras abdominales mediante ultrasonido.' },
       { titulo: 'Ecografía ginecológica', slug: 'ecografia-ginecologica', descripcion: 'Diagnóstico de estructuras pélvicas y reproductivas femeninas.' },
-      { titulo: 'Ecografía de partes blandas', slug: 'ecografia-partes-blandas', descripcion: 'Valoración de tejidos blandos superficiales y ganglios.' },
       { titulo: 'Ecografía musculoesquelética', slug: 'ecografia-musculoesqueletica', descripcion: 'Diagnóstico de tendones, músculos, ligamentos y articulaciones.' },
     ],
   },
@@ -144,7 +140,6 @@ export const CATEGORIAS: Categoria[] = [
     icono: 'movimiento',
     respaldo: RESPALDO_MEDICO,
     grupos: [
-      { titulo: 'Terapia manual', slug: 'terapia-manual', descripcion: 'Técnicas manuales especializadas para alivio del dolor y recuperación funcional.' },
       { titulo: 'Masajes relajantes', slug: 'masajes-relajantes', descripcion: 'Sesiones orientadas a reducir tensión muscular y promover bienestar general.' },
       { titulo: 'Masajes descontracturantes', slug: 'masajes-descontracturantes', descripcion: 'Trabajo profundo sobre contracturas y tensiones musculares acumuladas.' },
       { titulo: 'Rehabilitación', slug: 'rehabilitacion', descripcion: 'Protocolos personalizados para recuperación funcional post-lesión o cirugía.' },
@@ -160,8 +155,7 @@ export const CATEGORIAS: Categoria[] = [
     respaldo: RESPALDO_MEDICO,
     grupos: [
       { titulo: 'Curaciones', slug: 'curaciones', descripcion: 'Tratamiento y seguimiento de heridas y lesiones cutáneas.' },
-      { titulo: 'Control de presión arterial', slug: 'control-presion-arterial', descripcion: 'Medición y registro de valores de tensión arterial.' },
-      { titulo: 'Control de peso y talla', slug: 'control-peso-talla', descripcion: 'Evaluación antropométrica básica.' },
+      { titulo: 'Control de signos vitales', slug: 'control-signos-vitales', descripcion: 'Medición y registro de presión arterial, pulso, respiración y temperatura.' },
       { titulo: 'Glicemia capilar', slug: 'glicemia-capilar', descripcion: 'Medición de glucosa en sangre capilar con glucómetro calibrado.' },
       { titulo: 'Sueros', slug: 'sueros', descripcion: 'Administración de soluciones intravenosas según prescripción médica.' },
       { titulo: 'Inyectables', slug: 'inyectables', descripcion: 'Aplicación de medicamentos por vía intramuscular o endovenosa.' },
