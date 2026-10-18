@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
-const { SECCIONES, COLUMNAS_PROTOCOLO } = require('../config/historiaClinica');
+const { SECCIONES, COLUMNAS_PROTOCOLO, ETAPAS_FOTO, etapaDeFoto } = require('../config/historiaClinica');
 const { CONSENTIMIENTOS } = require('../config/consentimientos');
 const { ErrorValidacion, fechaValida, validarSeccion, validarProtocolo, validarConsentimientos, alertaAlergias, calcularTratamientos } = require('../services/historiaClinica');
 const { armarDocumento } = require('../services/historiaClinicaDocumento');
@@ -197,7 +197,7 @@ router.delete('/staff/historias/:id/documento-firmado', onlyHistoria, async (req
   res.json(await cargarCompleta(historia.id));
 });
 
-const MAX_FOTOS = 10;
+const MAX_FOTOS = 10; // por etapa (iconografía y seguimiento)
 const CARPETA_FOTOS = 'historias-fotos';
 
 function notaDeFoto(valor) {
@@ -261,12 +261,16 @@ router.post('/staff/historias/:id/fotos', onlyHistoria, recibirImagen('archivo')
   } catch (err) {
     return res.status(400).json({ error: err.message, campo: 'nota' });
   }
+  const etapa = req.body.etapa || 'inicial';
+  if (!ETAPAS_FOTO.includes(etapa)) return res.status(400).json({ error: 'Etapa de foto inválida', campo: 'etapa' });
   // El archivo se escribe antes de la transacción; si ésta falla o está llena, se borra.
   const archivo = await guardarArchivoPrivado(CARPETA_FOTOS, req.file.buffer);
   await conHistoriaBloqueada(req, res, {
     cambiar: (historia) => {
-      if (historia.fotos.length >= MAX_FOTOS) return { status: 409, error: `Máximo ${MAX_FOTOS} fotos por evaluación` };
-      historia.fotos = [...historia.fotos, { archivo, nota }];
+      if (historia.fotos.filter((f) => etapaDeFoto(f) === etapa).length >= MAX_FOTOS) {
+        return { status: 409, error: `Máximo ${MAX_FOTOS} fotos en ${etapa === 'seguimiento' ? 'seguimiento' : 'iconografía'}` };
+      }
+      historia.fotos = [...historia.fotos, { archivo, nota, etapa }];
       return null;
     },
     alFallar: () => borrarArchivoPrivado(CARPETA_FOTOS, archivo),

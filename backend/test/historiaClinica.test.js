@@ -27,7 +27,11 @@ describe('Historia clínica: definición y validación', () => {
       const claves = [];
       for (const grupo of seccion.grupos) {
         for (const campo of grupo.campos) {
-          expect(['check', 'texto', 'parrafo', 'opcion', 'numero', 'fecha']).toContain(campo.tipo);
+          expect(['check', 'texto', 'parrafo', 'opcion', 'numero', 'fecha', 'subtitulo']).toContain(campo.tipo);
+          if (campo.tipo === 'subtitulo') {
+            expect(campo.clave).toBeUndefined();
+            continue;
+          }
           claves.push(campo.clave);
           for (const det of campo.detalles || []) claves.push(`${campo.clave}_${det.clave}`);
           if (campo.tipo === 'opcion') expect(campo.opciones.length).toBeGreaterThan(1);
@@ -52,6 +56,8 @@ describe('Historia clínica: definición y validación', () => {
       dieta: 'vegana',
       esterilizacion: true,
       menstruacion_dolorosa: true,
+      sexual: true,
+      odontologica: true,
       agua: '  2 litros ',
     });
     expect(limpio).toEqual({ alergias: true, cardiovascular: false, tabaco: true, tabaco_frecuencia: 'diario', agua: '2 litros' });
@@ -85,12 +91,43 @@ describe('Historia clínica: definición y validación', () => {
       'Antecedentes personales patológicos',
       'Antecedentes personales no patológicos',
       'Antecedentes ginecológicos',
-      'Fórmula obstétrica',
       'Hábitos de vida',
       'Alimentación',
     ]);
     expect(titulos('datos_esteticos')).toEqual(['Rutina facial (skin care)', 'Mascarillas y exfoliantes', 'Antecedentes estéticos']);
-    expect(titulos('analisis_estetico').slice(-2)).toEqual(['Tipo facial', 'Ubicación de grasa corporal']);
+    expect(titulos('analisis_estetico')).toEqual([
+      'Fototipo Fitzpatrick', 'Escala de Glogau', 'Biotipo de piel', 'Grado de deshidratación', 'Grosor de piel',
+      'Evaluación de la piel', 'Cicatrices', 'Tipo facial', 'Ubicación de grasa corporal',
+      'Arrugas', 'Líneas de expresión', 'Clínica cutánea', 'Acné',
+    ]);
+    const semiologia = SECCIONES.find((s) => s.clave === 'analisis_estetico').grupos.filter((g) => g.apartado === 'Semiología cutánea');
+    expect(semiologia.map((g) => g.titulo)).toEqual(['Arrugas', 'Líneas de expresión', 'Clínica cutánea', 'Acné']);
+  });
+
+  test('cambios de la doctora (audios del 15/10): etiquetas, orden y campos quitados', () => {
+    const grupo = (seccion, titulo) => SECCIONES.find((s) => s.clave === seccion).grupos.find((g) => g.titulo === titulo);
+    const etiquetas = (seccion, titulo) => grupo(seccion, titulo).campos.map((c) => c.etiqueta);
+    const patologicos = etiquetas('datos_clinicos', 'Antecedentes personales patológicos');
+    expect(patologicos).toEqual(expect.arrayContaining(['Cardiología', 'Neumología', 'Reumatología', 'Psicológico', 'Implante mamario', 'Hematología']));
+    expect(patologicos).not.toContain('Sexual');
+    expect(patologicos).not.toContain('Odontológica');
+    expect(etiquetas('datos_clinicos', 'Antecedentes ginecológicos')).toEqual([
+      'Fórmula obstétrica', 'Gestas', 'Partos', 'Cesáreas', 'Abortos', 'Menopausia', 'Planificación familiar (método)', 'Ciclo menstrual',
+      'Fecha de última menstruación (FUM)',
+    ]);
+    expect(etiquetas('datos_clinicos', 'Hábitos de vida').slice(0, 7)).toEqual([
+      'Tabaco', 'Alcohol', 'Drogas', 'Cafeína', 'Actividad física', 'Calidad de sueño', 'Cantidad de agua al día',
+    ]);
+    expect(etiquetas('analisis_estetico', 'Biotipo de piel')).not.toContain('Asfíctica');
+    expect(etiquetas('analisis_estetico', 'Biotipo de piel')).toContain('Otros');
+    expect(etiquetas('analisis_estetico', 'Evaluación de la piel').slice(0, 7)).toEqual([
+      'Mácula', 'Nevus', 'Hiperpigmentación', 'Hipopigmentación', 'Efélides', 'Melasma', 'Léntigos solares',
+    ]);
+    expect(grupo('analisis_estetico', 'Acné').campos[0].opciones.map((op) => op.etiqueta)).toEqual(['Grado 1', 'Grado 2', 'Grado 3', 'Grado 4']);
+    expect(grupo('analisis_estetico', 'Escala de Glogau').campos[0].opciones.map((op) => op.clave)).toEqual(['I', 'II', 'III', 'IV']);
+    // Datos guardados con claves de antes siguen valiendo; los quitados se descartan.
+    expect(validarSeccion('analisis_estetico', { hiper_mancha: true, piel_asfictica: true, flacidez_grado: 'I', hipo_vitiligo: true, glogau: 'III' }))
+      .toEqual({ hiper_mancha: true, glogau: 'III' });
   });
 
   test('rechaza tipos y opciones inválidas indicando el campo', () => {
@@ -408,7 +445,8 @@ describe('Historia clínica: API', () => {
     expect(campoConsentimiento('Nombre completo')).toEqual(['Dra. Noemí', 'Ana Pérez']);
     expect(campoConsentimiento('Clínica/Consultorio')).toEqual(['Clinic NovagED']);
     expect(campoConsentimiento('Documento de identidad')).toEqual(['1234567 CB']);
-    expect(doc.bloques.filter((b) => b.tipo === 'tabla').map((t) => t.filas)).toEqual([[['Peeling', '4', '']], [['05/10/2026', 'Peeling', 'Bien']]]);
+    // El protocolo ya no se imprime: la única tabla es la de tratamiento.
+    expect(doc.bloques.filter((b) => b.tipo === 'tabla').map((t) => t.filas)).toEqual([[['05/10/2026', 'Peeling', 'Bien']]]);
   });
 
   test('documento: emitido, grupos nuevos, guías, fotos y consentimientos', () => {
@@ -418,7 +456,7 @@ describe('Historia clínica: API', () => {
       datos_esteticos: { antecedente_1: 'Toxina 2025' },
       analisis_estetico: { tipo_facial: 'mesofacial', grasa_muslos: true },
       protocolo: [],
-      fotos: [{ archivo: 'a.jpg', nota: 'frente' }],
+      fotos: [{ archivo: 'a.jpg', nota: 'frente' }, { archivo: 'b.jpg', nota: null, etapa: 'seguimiento' }],
       consentimientos: ['general'],
       Profesional: { nombre: 'Dra. X' },
     };
@@ -430,11 +468,14 @@ describe('Historia clínica: API', () => {
     expect(campo('1.').valor).toBe('Toxina 2025');
     expect(doc.bloques.filter((b) => b.tipo === 'imagen').map((b) => path.basename(b.archivo))).toEqual(['guia-tipos-faciales.png', 'guia-grasa-corporal.png']);
     expect(doc.bloques.find((b) => b.tipo === 'parrafo' && b.etiqueta === 'Diagnóstico').lineas).toBe(6);
-    const fotos = doc.bloques.find((b) => b.tipo === 'fotos');
-    expect(fotos.fotos).toEqual([{ ruta: path.join(process.env.PRIVADO_DIR, 'historias-fotos', 'a.jpg'), nota: 'frente' }]);
+    const [iconografia, seguimiento] = doc.bloques.filter((b) => b.tipo === 'fotos');
+    expect(iconografia.fotos).toEqual([{ ruta: path.join(process.env.PRIVADO_DIR, 'historias-fotos', 'a.jpg'), nota: 'frente' }]);
+    expect(seguimiento.fotos).toEqual([{ ruta: path.join(process.env.PRIVADO_DIR, 'historias-fotos', 'b.jpg'), nota: '' }]);
     const titulos = doc.bloques.filter((b) => b.tipo === 'seccion').map((b) => b.titulo);
-    expect(titulos).toContain('5. Diagnóstico');
-    expect(titulos).toContain('6. Consentimiento');
+    expect(titulos.slice(-5)).toEqual(['5. Iconografía', '6. Diagnóstico', '7. Tratamiento', '8. Seguimiento', '9. Consentimiento']);
+    expect(doc.bloques.some((b) => b.tipo === 'grupo' && /Protocolo/.test(b.titulo))).toBe(false);
+    expect(doc.bloques.filter((b) => b.tipo === 'apartado').map((b) => b.titulo)).toEqual(['Semiología cutánea']);
+    expect(doc.bloques.filter((b) => b.tipo === 'etiqueta').map((b) => b.texto)).toContain('Fórmula obstétrica');
     const consentimiento = doc.bloques.find((b) => b.tipo === 'consentimiento');
     expect(consentimiento.titulo).toBe('Consentimiento informado general – Medicina estética');
     expect(doc.bloques.filter((b) => b.tipo === 'texto').every((b) => !/\{\w+\}/.test(b.texto))).toBe(true);
@@ -641,6 +682,17 @@ describe('Historia clínica: API', () => {
       expect((await subir(h.id, exeFalso(), 'a.jpg')).status).toBe(400);
       for (let i = 0; i < 10; i += 1) expect((await subir(h.id, pngFalso(), 'a.png')).status).toBe(200);
       expect((await subir(h.id, pngFalso(), 'a.png')).status).toBe(409);
+    });
+
+    test('las fotos de seguimiento van aparte y tienen su propio límite', async () => {
+      const h = await crearEvaluacion();
+      for (let i = 0; i < 10; i += 1) expect((await subir(h.id, pngFalso(), 'a.png')).status).toBe(200);
+      const seg = await request(app).post(`/staff/historias/${h.id}/fotos`).set(auth()).attach('archivo', pngFalso(), 'b.png').field('etapa', 'seguimiento');
+      expect(seg.status).toBe(200);
+      expect(seg.body.fotos.map((x) => x.etapa)).toEqual([...Array(10).fill('inicial'), 'seguimiento']);
+      const mala = await request(app).post(`/staff/historias/${h.id}/fotos`).set(auth()).attach('archivo', pngFalso(), 'c.png').field('etapa', 'otra');
+      expect(mala.status).toBe(400);
+      expect(mala.body.campo).toBe('etapa');
     });
 
     test('subir y cambiar una nota a la vez no pierde ninguna de las dos', async () => {

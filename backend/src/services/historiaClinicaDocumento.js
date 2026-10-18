@@ -1,5 +1,5 @@
 const path = require('path');
-const { SECCIONES, COLUMNAS_PROTOCOLO, DIR_GUIAS } = require('../config/historiaClinica');
+const { SECCIONES, DIR_GUIAS, etapaDeFoto } = require('../config/historiaClinica');
 const { CONSENTIMIENTOS } = require('../config/consentimientos');
 const { formatoFecha } = require('./pdf');
 const { rutaArchivo } = require('./archivosPrivados');
@@ -36,8 +36,10 @@ function casillasDeOpciones(opciones, valor) {
   return { tipo: 'casillas', items: opciones.map(([clave, etiqueta]) => ({ etiqueta, marcado: valor === clave, detalles: [] })) };
 }
 
-function bloquesDeGrupo(grupo, datos) {
-  const bloques = [{ tipo: 'grupo', titulo: grupo.titulo, ...(grupo.subtitulo ? { subtitulo: grupo.subtitulo } : {}) }];
+function bloquesDeGrupo(grupo, datos, anterior) {
+  const bloques = [];
+  if (grupo.apartado && grupo.apartado !== (anterior && anterior.apartado)) bloques.push({ tipo: 'apartado', titulo: grupo.apartado });
+  bloques.push({ tipo: 'grupo', titulo: grupo.titulo, ...(grupo.subtitulo ? { subtitulo: grupo.subtitulo } : {}) });
   if (grupo.imagen) bloques.push({ tipo: 'imagen', archivo: path.join(DIR_GUIAS, grupo.imagen) });
   let casillas = null;
   for (const campo of grupo.campos) {
@@ -54,7 +56,9 @@ function bloquesDeGrupo(grupo, datos) {
       continue;
     }
     casillas = null;
-    if (campo.tipo === 'opcion') {
+    if (campo.tipo === 'subtitulo') {
+      bloques.push({ tipo: 'etiqueta', texto: campo.etiqueta });
+    } else if (campo.tipo === 'opcion') {
       bloques.push({ tipo: 'etiqueta', texto: campo.etiqueta });
       bloques.push(casillasDeOpciones(campo.opciones.map((op) => [op.clave, op.etiqueta]), datos[campo.clave]));
     } else if (campo.tipo === 'numero') {
@@ -97,16 +101,16 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
   for (const seccion of SECCIONES) {
     bloques.push({ tipo: 'seccion', titulo: seccion.titulo });
     const datos = (h[seccion.clave] && typeof h[seccion.clave] === 'object') ? h[seccion.clave] : {};
-    for (const grupo of seccion.grupos) bloques.push(...bloquesDeGrupo(grupo, datos));
+    seccion.grupos.forEach((grupo, i) => bloques.push(...bloquesDeGrupo(grupo, datos, seccion.grupos[i - 1])));
   }
 
   const vacias = (n) => Array.from({ length: FILAS_EN_BLANCO }, () => Array(n).fill(''));
-  const protocolo = enBlanco ? vacias(3) : (h.protocolo || []).map((f) => COLUMNAS_PROTOCOLO.map((c) => f[c.clave] || ''));
   const realizados = enBlanco
     ? vacias(3)
     : (tratamientos.filas || []).map((f) => [formatoFecha(f.fecha), f.procedimiento || '', f.observacion || '']);
 
-  const fotos = enBlanco ? [] : (h.fotos || []).map((f) => ({ ruta: rutaArchivo('historias-fotos', f.archivo), nota: f.nota || '' }));
+  const fotosDe = (etapa) => (enBlanco ? [] : (h.fotos || []).filter((f) => etapaDeFoto(f) === etapa))
+    .map((f) => ({ ruta: rutaArchivo('historias-fotos', f.archivo), nota: f.nota || '' }));
   const marcados = enBlanco ? [] : (h.consentimientos || []);
   const consentimientos = CONSENTIMIENTOS.filter((c) => marcados.includes(c.clave));
   const aImprimir = consentimientos.length ? consentimientos : CONSENTIMIENTOS.filter((c) => c.clave === 'general');
@@ -145,15 +149,18 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
   ];
 
   bloques.push(
-    { tipo: 'seccion', titulo: '5. Diagnóstico' },
+    // Orden pedido por la doctora: iconografía, diagnóstico, tratamiento,
+    // seguimiento (otra iconografía) y al final el consentimiento.
+    { tipo: 'seccion', titulo: '5. Iconografía' },
+    { tipo: 'fotos', fotos: fotosDe('inicial') },
+    { tipo: 'seccion', titulo: '6. Diagnóstico' },
     { tipo: 'parrafo', etiqueta: 'Diagnóstico', valor: h.diagnostico || '', lineas: 6 },
-    { tipo: 'grupo', titulo: 'Protocolo estético seleccionado' },
-    { tipo: 'tabla', columnas: COLUMNAS_PROTOCOLO.map((c) => c.etiqueta), filas: protocolo },
-    { tipo: 'grupo', titulo: 'Fotos' },
-    { tipo: 'fotos', fotos },
-    { tipo: 'grupo', titulo: 'Tratamiento estético realizado' },
+    { tipo: 'seccion', titulo: '7. Tratamiento' },
     { tipo: 'tabla', columnas: ['Fecha', 'Procedimiento', 'Observación/evaluación'], filas: realizados },
-    { tipo: 'seccion', titulo: '6. Consentimiento' },
+    { tipo: 'seccion', titulo: '8. Seguimiento' },
+    { tipo: 'grupo', titulo: 'Iconografía' },
+    { tipo: 'fotos', fotos: fotosDe('seguimiento') },
+    { tipo: 'seccion', titulo: '9. Consentimiento' },
     ...aImprimir.flatMap(bloquesConsentimiento)
   );
 

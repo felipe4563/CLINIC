@@ -4,18 +4,50 @@ export type Opcion = { clave: string; etiqueta: string };
 export type Campo = {
   clave: string;
   etiqueta: string;
-  tipo: 'check' | 'texto' | 'parrafo' | 'opcion' | 'numero' | 'fecha';
+  tipo: 'check' | 'texto' | 'parrafo' | 'opcion' | 'numero' | 'fecha' | 'subtitulo';
   opciones?: Opcion[];
   detalles?: Opcion[];
 };
-export type Grupo = { titulo: string; subtitulo?: string; imagen?: string; campos: Campo[] };
+export type Grupo = { titulo: string; subtitulo?: string; imagen?: string; apartado?: string; campos: Campo[] };
 export type Valores = Record<string, string | boolean | number>;
 
 // Un grupo de la definición: casillas (con sus detalles cuando están marcadas),
-// opciones como botones, y textos.
+// opciones como botones, y textos, en el orden de la definición (las casillas
+// seguidas se muestran juntas en una grilla).
 export default function CampoHistoria({ grupo, valores, onCambio, urlGuias }: { grupo: Grupo; valores: Valores; onCambio: (clave: string, valor: string | boolean | number) => void; urlGuias: string }) {
-  const checks = grupo.campos.filter((c) => c.tipo === 'check');
-  const otros = grupo.campos.filter((c) => c.tipo !== 'check');
+  const tramos: Campo[][] = [];
+  for (const c of grupo.campos) {
+    const ultimo = tramos[tramos.length - 1];
+    if (c.tipo === 'check' && ultimo && ultimo[0].tipo === 'check') ultimo.push(c);
+    else tramos.push([c]);
+  }
+
+  const casillas = (checks: Campo[]) => (
+    <div key={checks[0].clave} className="mb-2 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
+      {checks.map((c) => {
+        const marcado = valores[c.clave] === true;
+        return (
+          <div key={c.clave}>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={marcado} onChange={(e) => onCambio(c.clave, e.target.checked)} className="h-4 w-4 accent-[var(--accent)]" />
+              {c.etiqueta}
+            </label>
+            {marcado && (c.detalles || []).map((d) => (
+              <input
+                key={d.clave}
+                value={String(valores[`${c.clave}_${d.clave}`] ?? '')}
+                onChange={(e) => onCambio(`${c.clave}_${d.clave}`, e.target.value)}
+                placeholder={d.etiqueta}
+                aria-label={`${c.etiqueta}: ${d.etiqueta}`}
+                maxLength={500}
+                className="ml-6 mt-1 block w-[calc(100%-1.5rem)] rounded border border-border px-2 py-1 text-xs"
+              />
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <fieldset className="mb-4">
@@ -28,34 +60,10 @@ export default function CampoHistoria({ grupo, valores, onCambio, urlGuias }: { 
         <img src={`${urlGuias}/${grupo.imagen}`} alt={`Guía: ${grupo.titulo}`} className="mb-3 w-full rounded border border-border bg-white object-contain" />
       )}
 
-      {checks.length > 0 && (
-        <div className="mb-2 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
-          {checks.map((c) => {
-            const marcado = valores[c.clave] === true;
-            return (
-              <div key={c.clave}>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={marcado} onChange={(e) => onCambio(c.clave, e.target.checked)} className="h-4 w-4 accent-[var(--accent)]" />
-                  {c.etiqueta}
-                </label>
-                {marcado && (c.detalles || []).map((d) => (
-                  <input
-                    key={d.clave}
-                    value={String(valores[`${c.clave}_${d.clave}`] ?? '')}
-                    onChange={(e) => onCambio(`${c.clave}_${d.clave}`, e.target.value)}
-                    placeholder={d.etiqueta}
-                    aria-label={`${c.etiqueta}: ${d.etiqueta}`}
-                    maxLength={500}
-                    className="ml-6 mt-1 block w-[calc(100%-1.5rem)] rounded border border-border px-2 py-1 text-xs"
-                  />
-                ))}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {otros.map((c) => {
+      {tramos.map((tramo) => {
+        const c = tramo[0];
+        if (c.tipo === 'check') return casillas(tramo);
+        if (c.tipo === 'subtitulo') return <p key={`sub-${c.etiqueta}`} className="mb-1 mt-1 text-xs font-semibold text-foreground">{c.etiqueta}</p>;
         if (c.tipo === 'opcion') {
           const actual = valores[c.clave];
           return (

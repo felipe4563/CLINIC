@@ -12,8 +12,12 @@ const path = require('path');
 //   opcion  -> una sola de `opciones`, se guarda la clave
 //   numero  -> entero 0 a 99 (fórmula obstétrica)
 //   fecha   -> YYYY-MM-DD
+//   subtitulo -> solo un rótulo entre campos (sin clave ni dato)
 // Un grupo puede tener `imagen`: archivo de DIR_GUIAS que se muestra arriba
-// de sus campos en el panel, el PDF y el Word.
+// de sus campos en el panel, el PDF y el Word; y `apartado`: título que
+// agrupa grupos seguidos bajo un título (ej. "Semiología cutánea").
+// Las claves no cambian aunque cambie la etiqueta: así no se pierden datos
+// guardados. Quitar un campo descarta su dato la próxima vez que se guarda.
 
 const check = (clave, etiqueta, detalles) => ({ clave, etiqueta, tipo: 'check', ...(detalles ? { detalles } : {}) });
 const texto = (clave, etiqueta) => ({ clave, etiqueta, tipo: 'texto' });
@@ -22,6 +26,7 @@ const opcion = (clave, etiqueta, opciones) => ({ clave, etiqueta, tipo: 'opcion'
 const o = (clave, etiqueta) => ({ clave, etiqueta });
 const numero = (clave, etiqueta) => ({ clave, etiqueta, tipo: 'numero' });
 const fecha = (clave, etiqueta) => ({ clave, etiqueta, tipo: 'fecha' });
+const subtitulo = (etiqueta) => ({ etiqueta, tipo: 'subtitulo' });
 const FRECUENCIA = [o('frecuencia', 'Frecuencia')];
 const TIPO_FRECUENCIA = [o('tipo', 'Tipo'), o('frecuencia', 'Frecuencia')];
 const TIPO_TIEMPO = [o('tipo', 'Tipo'), o('tiempo', 'Tiempo')];
@@ -37,26 +42,24 @@ const SECCIONES = [
         titulo: 'Antecedentes personales patológicos',
         subtitulo: '(Padece alguna enfermedad)',
         campos: [
-          check('cardiovascular', 'Cardiovascular'),
-          check('pulmonar', 'Pulmonar'),
+          check('cardiovascular', 'Cardiología'),
+          check('pulmonar', 'Neumología'),
           check('renal', 'Renal'),
-          check('gastrointestinal', 'Gastrointestinal'),
-          check('hematologica', 'Hematológica'),
-          check('endocrina', 'Endocrina'),
-          check('inmunologica', 'Inmunológica'),
-          check('dermatologica', 'Dermatológica'),
-          check('oftalmologica', 'Oftalmológica'),
-          check('neurologica', 'Neurológica'),
-          check('reumatica', 'Reumática'),
-          check('mental', 'Mental'),
-          check('sexual', 'Sexual'),
-          check('odontologica', 'Odontológica'),
+          check('gastrointestinal', 'Gastroenterología'),
+          check('hematologica', 'Hematología'),
+          check('endocrina', 'Endocrinología'),
+          check('inmunologica', 'Inmunología'),
+          check('dermatologica', 'Dermatología'),
+          check('oftalmologica', 'Oftalmología'),
+          check('neurologica', 'Neurología'),
+          check('reumatica', 'Reumatología'),
+          check('mental', 'Psicológico'),
           check('alergias', 'Alergias'),
           parrafo('especificar', 'Especificar'),
           check('marcapasos', 'Marcapasos'),
           check('protesis_dentales', 'Prótesis dentales'),
           check('protesis_ortopedicas', 'Prótesis ortopédicas'),
-          check('protesis_mamarias', 'Prótesis mamarias'),
+          check('protesis_mamarias', 'Implante mamario'),
           texto('protesis_otras', 'Otras prótesis'),
           parrafo('procedimientos_quirurgicos', 'Procedimientos quirúrgicos'),
           parrafo('tratamiento_actual', 'Tratamiento médico actual'),
@@ -69,26 +72,27 @@ const SECCIONES = [
       {
         titulo: 'Antecedentes ginecológicos',
         campos: [
-          texto('menstruacion', 'Menstruación (¿cómo es?)'),
-          fecha('fum', 'Fecha de última menstruación (FUM)'),
-          texto('planificacion_familiar', 'Planificación familiar (método)'),
+          subtitulo('Fórmula obstétrica'),
+          numero('gestas', 'Gestas'),
+          numero('partos', 'Partos'),
+          numero('cesareas', 'Cesáreas'),
+          numero('abortos', 'Abortos'),
           check('menopausia', 'Menopausia'),
+          texto('planificacion_familiar', 'Planificación familiar (método)'),
+          texto('menstruacion', 'Ciclo menstrual'),
+          fecha('fum', 'Fecha de última menstruación (FUM)'),
         ],
-      },
-      {
-        titulo: 'Fórmula obstétrica',
-        campos: [numero('gestas', 'Gestas'), numero('partos', 'Partos'), numero('cesareas', 'Cesáreas'), numero('abortos', 'Abortos')],
       },
       {
         titulo: 'Hábitos de vida',
         campos: [
           check('tabaco', 'Tabaco', FRECUENCIA),
           check('alcohol', 'Alcohol', FRECUENCIA),
+          check('toxicomania', 'Drogas', FRECUENCIA),
           check('cafeina', 'Cafeína', FRECUENCIA),
-          check('toxicomania', 'Toxicomanía', FRECUENCIA),
           check('actividad_fisica', 'Actividad física', TIPO_TIEMPO),
-          texto('sueno', 'Horas y calidad de sueño'),
-          texto('agua', 'Agua al día (litros)'),
+          texto('sueno', 'Calidad de sueño'),
+          texto('agua', 'Cantidad de agua al día'),
           parrafo('observaciones', 'Observaciones'),
         ],
       },
@@ -141,13 +145,25 @@ const SECCIONES = [
     titulo: '4. Análisis estético',
     grupos: [
       {
-        titulo: 'Fototipo cutáneo',
+        titulo: 'Fototipo Fitzpatrick',
         campos: [
           opcion('fototipo', 'Fototipo', [o('I', 'I'), o('II', 'II'), o('III', 'III'), o('IV', 'IV'), o('V', 'V'), o('VI', 'VI')]),
         ],
       },
       {
-        titulo: 'Tipología cutánea',
+        // Clasificación del fotoenvejecimiento de Glogau (tipos I a IV).
+        titulo: 'Escala de Glogau',
+        campos: [
+          opcion('glogau', 'Tipo', [
+            o('I', 'I · Sin arrugas'),
+            o('II', 'II · Arrugas en movimiento'),
+            o('III', 'III · Arrugas en reposo'),
+            o('IV', 'IV · Solo arrugas'),
+          ]),
+        ],
+      },
+      {
+        titulo: 'Biotipo de piel',
         campos: [
           check('piel_normal', 'Piel normal'),
           check('piel_seca', 'Piel seca'),
@@ -156,8 +172,7 @@ const SECCIONES = [
           check('piel_grasa', 'Piel grasa'),
           check('piel_seborreica', 'Seborreica'),
           check('piel_deshidratada', 'Deshidratada'),
-          check('piel_asfictica', 'Asfíctica'),
-          check('piel_desvitalizada', 'Piel desvitalizada'),
+          check('piel_desvitalizada', 'Otros'),
         ],
       },
       {
@@ -178,28 +193,19 @@ const SECCIONES = [
         ],
       },
       {
-        titulo: 'Alteraciones en la pigmentación — Hipercromías',
+        titulo: 'Evaluación de la piel',
         campos: [
           check('hiper_macula', 'Mácula'),
-          check('hiper_mancha', 'Mancha'),
-          check('hiper_melasma', 'Melasma'),
-          check('hiper_nevos', 'Nevos'),
+          check('hiper_nevos', 'Nevus'),
+          check('hiper_mancha', 'Hiperpigmentación'),
+          check('hiper_hipopigmentacion', 'Hipopigmentación'),
           check('hiper_efelides', 'Efélides'),
-          check('hiper_lentigos', 'Lentigos'),
+          check('hiper_melasma', 'Melasma'),
+          check('hiper_lentigos', 'Léntigos solares'),
           texto('hiper_tiempo', 'Tiempo de aparición'),
           texto('hiper_causa', 'Causa'),
           texto('hiper_localizacion', 'Localización'),
           parrafo('hiper_observacion', 'Observación'),
-        ],
-      },
-      {
-        titulo: 'Hipocromías',
-        campos: [
-          check('hipo_micosis', 'Micosis solar'),
-          check('hipo_vitiligo', 'Vitíligo'),
-          check('hipo_otros', 'Otros'),
-          texto('hipo_especifique', 'Especifique'),
-          texto('hipo_localizacion', 'Localización'),
         ],
       },
       {
@@ -215,13 +221,19 @@ const SECCIONES = [
         ],
       },
       {
-        titulo: 'Envejecimiento cutáneo — Flacidez',
+        titulo: 'Tipo facial',
+        imagen: 'guia-tipos-faciales.png',
         campos: [
-          opcion('flacidez_grado', 'Grado', [o('I', 'I'), o('II', 'II'), o('III', 'III')]),
-          texto('flacidez_localizacion', 'Localización'),
+          opcion('tipo_facial', 'Tipo facial', [o('braquifacial', 'Braquifacial'), o('mesofacial', 'Mesofacial'), o('dolicofacial', 'Dolicofacial')]),
         ],
       },
       {
+        titulo: 'Ubicación de grasa corporal',
+        imagen: 'guia-grasa-corporal.png',
+        campos: [check('grasa_abdominal', 'Abdominal'), check('grasa_muslos', 'Muslos'), check('grasa_cadera_cintura', 'Cadera/cintura')],
+      },
+      {
+        apartado: 'Semiología cutánea',
         titulo: 'Arrugas',
         campos: [
           check('arr_dinamicas', 'Dinámicas'),
@@ -233,11 +245,13 @@ const SECCIONES = [
         ],
       },
       {
+        apartado: 'Semiología cutánea',
         titulo: 'Líneas de expresión',
         campos: [texto('lineas_localizacion', 'Localización')],
       },
       {
-        titulo: 'Patologías cutáneas',
+        apartado: 'Semiología cutánea',
+        titulo: 'Clínica cutánea',
         campos: [
           check('pat_eritema', 'Eritema'),
           check('pat_vesiculas', 'Vesículas'),
@@ -258,24 +272,13 @@ const SECCIONES = [
         ],
       },
       {
+        apartado: 'Semiología cutánea',
         titulo: 'Acné',
         campos: [
-          opcion('acne_grado', 'Grado', [o('I', 'I'), o('II', 'II'), o('III', 'III'), o('IV', 'IV')]),
+          opcion('acne_grado', 'Clasificación', [o('I', 'Grado 1'), o('II', 'Grado 2'), o('III', 'Grado 3'), o('IV', 'Grado 4')]),
           texto('acne_localizacion', 'Localización'),
           parrafo('acne_observacion', 'Observación'),
         ],
-      },
-      {
-        titulo: 'Tipo facial',
-        imagen: 'guia-tipos-faciales.png',
-        campos: [
-          opcion('tipo_facial', 'Tipo facial', [o('braquifacial', 'Braquifacial'), o('mesofacial', 'Mesofacial'), o('dolicofacial', 'Dolicofacial')]),
-        ],
-      },
-      {
-        titulo: 'Ubicación de grasa corporal',
-        imagen: 'guia-grasa-corporal.png',
-        campos: [check('grasa_abdominal', 'Abdominal'), check('grasa_muslos', 'Muslos'), check('grasa_cadera_cintura', 'Cadera/cintura')],
       },
     ],
   },
@@ -287,4 +290,9 @@ const COLUMNAS_PROTOCOLO = [
   { clave: 'comentario', etiqueta: 'Comentario' },
 ];
 
-module.exports = { SECCIONES, COLUMNAS_PROTOCOLO, DIR_GUIAS };
+// Fotos de la evaluación: las de "Iconografía" (inicial) y las de
+// "Seguimiento". Las subidas antes de separar las etapas son iniciales.
+const ETAPAS_FOTO = ['inicial', 'seguimiento'];
+const etapaDeFoto = (foto) => (foto.etapa === 'seguimiento' ? 'seguimiento' : 'inicial');
+
+module.exports = { SECCIONES, COLUMNAS_PROTOCOLO, DIR_GUIAS, ETAPAS_FOTO, etapaDeFoto };

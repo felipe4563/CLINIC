@@ -117,6 +117,10 @@ function enviarHistoriaPdf(res, documento, config, nombreArchivo) {
       doc.moveDown(0.6);
       doc.font('Helvetica-Bold').fontSize(12).fillColor(COLOR.ink).text(b.titulo, izq, doc.y);
       doc.moveDown(0.2);
+    } else if (b.tipo === 'apartado') {
+      asegurar(60);
+      doc.moveDown(0.5);
+      doc.font('Helvetica-Bold').fontSize(11).fillColor(COLOR.ink).text(b.titulo, izq, doc.y);
     } else if (b.tipo === 'grupo') {
       if (b.juntoAFirmas) {
         doc.font('Helvetica').fontSize(TAM);

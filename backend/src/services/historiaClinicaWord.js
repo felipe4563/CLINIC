@@ -145,6 +145,8 @@ async function generarHistoriaWord(documento, config) {
     if (b.tipo === 'seccion') {
       // El consentimiento va en hojas propias: se imprime y firma aparte.
       cuerpo.push(new Paragraph({ pageBreakBefore: b.titulo.includes('Consentimiento'), spacing: { before: 240, after: 80 }, children: [new TextRun({ text: b.titulo, bold: true, size: 24 })] }));
+    } else if (b.tipo === 'apartado') {
+      cuerpo.push(new Paragraph({ keepNext: true, spacing: { before: 200 }, children: [new TextRun({ text: b.titulo, bold: true, size: 22 })] }));
     } else if (b.tipo === 'grupo') {
       cuerpo.push(new Paragraph({ keepNext: true, spacing: { before: 120 }, children: [new TextRun({ text: b.titulo, bold: true, size: 20 })] }));
       if (b.subtitulo) cuerpo.push(new Paragraph({ keepNext: true, children: [new TextRun({ text: b.subtitulo, italics: true, size: 16 })] }));

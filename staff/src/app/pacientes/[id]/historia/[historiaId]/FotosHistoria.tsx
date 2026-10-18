@@ -4,7 +4,8 @@ import { ChangeEvent, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import ArchivoPrivado from '@/app/agenda/ArchivoPrivado';
 
-type Foto = { archivo: string; nota: string | null };
+type Foto = { archivo: string; nota: string | null; etapa?: 'inicial' | 'seguimiento' };
+export type EtapaFoto = 'inicial' | 'seguimiento';
 const MAX_FOTOS = 10;
 const LADO_MAX = 1600;
 
@@ -37,7 +38,9 @@ async function reducir(archivo: File): Promise<Blob> {
   );
 }
 
-export default function FotosHistoria<H>({ historiaId, fotos, onCambio }: { historiaId: number; fotos: Foto[]; onCambio: (h: H) => void }) {
+// Muestra y sube solo las fotos de una etapa (las antiguas sin etapa son iniciales).
+export default function FotosHistoria<H>({ historiaId, fotos: todas, etapa, onCambio }: { historiaId: number; fotos: Foto[]; etapa: EtapaFoto; onCambio: (h: H) => void }) {
+  const fotos = todas.filter((f) => (f.etapa === 'seguimiento' ? 'seguimiento' : 'inicial') === etapa);
   const input = useRef<HTMLInputElement>(null);
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState('');
@@ -52,9 +55,9 @@ export default function FotosHistoria<H>({ historiaId, fotos, onCambio }: { hist
     setSubiendo(true);
     try {
       for (const archivo of archivos.slice(0, MAX_FOTOS - fotos.length)) {
-        onCambio(await api.subirFotoHistoria(historiaId, await reducir(archivo), ''));
+        onCambio(await api.subirFotoHistoria(historiaId, await reducir(archivo), '', etapa));
       }
-      if (archivos.length > MAX_FOTOS - fotos.length) setError(`Solo se admiten ${MAX_FOTOS} fotos por evaluación`);
+      if (archivos.length > MAX_FOTOS - fotos.length) setError(`Solo se admiten ${MAX_FOTOS} fotos aquí`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo subir la foto');
     } finally {

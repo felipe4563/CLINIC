@@ -24,7 +24,7 @@ type Historia = {
   procedimiento_autorizado: string | null;
   profesional_id: number | null;
   documento_firmado: string | null;
-  fotos: { archivo: string; nota: string | null }[];
+  fotos: { archivo: string; nota: string | null; etapa?: 'inicial' | 'seguimiento' }[];
   consentimientos: string[];
   updated_at?: string;
   updatedAt?: string;
@@ -196,10 +196,9 @@ export default function EditorHistoria() {
     }
   }
 
-  function cambiarProtocolo(i: number, campo: keyof FilaProtocolo, valor: string) {
-    if (!historia) return;
-    cambiar('protocolo', historia.protocolo.map((f, j) => (j === i ? { ...f, [campo]: valor } : f)));
-  }
+  const cambioFotos = (h: Historia) =>
+    setHistoria((actual) => (actual ? { ...actual, fotos: h.fotos, updated_at: h.updated_at, updatedAt: h.updatedAt, ActualizadoPor: h.ActualizadoPor } : h));
+
 
   if (error && !historia) return <p className="text-sm text-danger">{error}</p>;
   if (!historia) return <p className="text-sm text-foreground/70">Cargando…</p>;
@@ -302,50 +301,46 @@ export default function EditorHistoria() {
           <details key={s.clave} className="rounded-lg border border-border bg-panel p-4">
             <summary className="cursor-pointer text-base font-semibold">{s.titulo}</summary>
             <div className="mt-3">
-              {s.grupos.map((g) => (
-                <CampoHistoria key={g.titulo} grupo={g} valores={historia[s.clave] || {}} onCambio={(clave, valor) => cambiarEnSeccion(s.clave, clave, valor)} urlGuias={URL_GUIAS} />
+              {s.grupos.map((g, i) => (
+                <div key={g.titulo}>
+                  {g.apartado && g.apartado !== s.grupos[i - 1]?.apartado && <h3 className="mb-2 mt-4 border-t border-border pt-3 text-sm font-bold">{g.apartado}</h3>}
+                  <CampoHistoria grupo={g} valores={historia[s.clave] || {}} onCambio={(clave, valor) => cambiarEnSeccion(s.clave, clave, valor)} urlGuias={URL_GUIAS} />
+                </div>
               ))}
             </div>
           </details>
         ))}
 
         <details className="rounded-lg border border-border bg-panel p-4">
-          <summary className="cursor-pointer text-base font-semibold">5. Diagnóstico</summary>
+          <summary className="cursor-pointer text-base font-semibold">5. Iconografía</summary>
+          <div className="mt-3">
+            <FotosHistoria<Historia> historiaId={historia.id} fotos={historia.fotos} etapa="inicial" onCambio={cambioFotos} />
+          </div>
+        </details>
+
+        <details className="rounded-lg border border-border bg-panel p-4">
+          <summary className="cursor-pointer text-base font-semibold">6. Diagnóstico</summary>
           <label className="mt-3 block text-xs text-muted-foreground">
             Diagnóstico
             <textarea value={historia.diagnostico ?? ''} onChange={(e) => cambiar('diagnostico', e.target.value)} rows={6} maxLength={4000} className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground" />
           </label>
-
-          <p className="mb-1 mt-4 text-sm font-semibold">Protocolo estético seleccionado</p>
-          <div className="flex flex-col gap-2">
-            {historia.protocolo.map((f, i) => (
-              <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_100px_2fr_auto]">
-                <input value={f.procedimiento} onChange={(e) => cambiarProtocolo(i, 'procedimiento', e.target.value)} placeholder="Procedimiento" aria-label="Procedimiento" maxLength={500} className="rounded border border-border px-2 py-1 text-sm" />
-                <input value={f.sesiones} onChange={(e) => cambiarProtocolo(i, 'sesiones', e.target.value)} placeholder="Sesiones" aria-label="Sesiones" maxLength={500} className="rounded border border-border px-2 py-1 text-sm" />
-                <input value={f.comentario} onChange={(e) => cambiarProtocolo(i, 'comentario', e.target.value)} placeholder="Comentario" aria-label="Comentario" maxLength={500} className="rounded border border-border px-2 py-1 text-sm" />
-                <button type="button" onClick={() => cambiar('protocolo', historia.protocolo.filter((_, j) => j !== i))} aria-label="Quitar fila" className="rounded border border-border px-2 text-xs text-danger hover:bg-accent-soft">✕</button>
-              </div>
-            ))}
-            {historia.protocolo.length < 20 && (
-              <button type="button" onClick={() => cambiar('protocolo', [...historia.protocolo, { procedimiento: '', sesiones: '', comentario: '' }])} className="w-fit rounded border border-border px-3 py-1.5 text-xs hover:bg-accent-soft">
-                + Agregar procedimiento
-              </button>
-            )}
-          </div>
-
-          <p className="mb-1 mt-4 text-sm font-semibold">Fotos</p>
-          <FotosHistoria<Historia>
-            historiaId={historia.id}
-            fotos={historia.fotos}
-            onCambio={(h) => setHistoria((actual) => (actual ? { ...actual, fotos: h.fotos, updated_at: h.updated_at, updatedAt: h.updatedAt, ActualizadoPor: h.ActualizadoPor } : h))}
-          />
-
-          <p className="mb-1 mt-4 text-sm font-semibold">Tratamiento estético realizado</p>
-          <TablaTratamientos pacienteId={params.id} filas={historia.tratamientos.filas} desde={historia.tratamientos.desde} onCambio={recargarTratamientos} />
         </details>
 
         <details className="rounded-lg border border-border bg-panel p-4">
-          <summary className="cursor-pointer text-base font-semibold">6. Consentimiento</summary>
+          <summary className="cursor-pointer text-base font-semibold">7. Tratamiento</summary>
+          <div className="mt-3">
+            <TablaTratamientos pacienteId={params.id} filas={historia.tratamientos.filas} desde={historia.tratamientos.desde} onCambio={recargarTratamientos} />
+          </div>
+        </details>
+
+        <details className="rounded-lg border border-border bg-panel p-4">
+          <summary className="cursor-pointer text-base font-semibold">8. Seguimiento</summary>
+          <p className="mb-1 mt-3 text-sm font-semibold">Iconografía</p>
+          <FotosHistoria<Historia> historiaId={historia.id} fotos={historia.fotos} etapa="seguimiento" onCambio={cambioFotos} />
+        </details>
+
+        <details className="rounded-lg border border-border bg-panel p-4">
+          <summary className="cursor-pointer text-base font-semibold">9. Consentimiento</summary>
           <p className="mt-3 text-xs text-muted-foreground">
             {consentimientosDisponibles.length === 1 ? 'Consentimiento que se imprime' : 'Consentimientos que se imprimen (si no marcas ninguno, sale el general)'}
           </p>
@@ -375,7 +370,7 @@ export default function EditorHistoria() {
             </label>
             <label className="text-xs text-muted-foreground">
               Procedimiento que se autoriza
-              <input value={historia.procedimiento_autorizado ?? ''} onChange={(e) => cambiar('procedimiento_autorizado', e.target.value)} placeholder={historia.protocolo[0]?.procedimiento || ''} maxLength={255} className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground" />
+              <input value={historia.procedimiento_autorizado ?? ''} onChange={(e) => cambiar('procedimiento_autorizado', e.target.value)} maxLength={255} className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground" />
             </label>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">Descarga el PDF o el Word, imprímelo y fírmenlo. Después sube aquí la foto o el escaneo firmado.</p>

@@ -21,6 +21,7 @@ const CAMPOS_POR_SECCION = new Map(
     const campos = new Map();
     for (const grupo of seccion.grupos) {
       for (const campo of grupo.campos) {
+        if (!campo.clave) continue; // rótulos (subtitulo) no guardan datos
         campos.set(campo.clave, { tipo: campo.tipo, opciones: campo.opciones?.map((op) => op.clave) });
         for (const det of campo.detalles || []) campos.set(`${campo.clave}_${det.clave}`, { tipo: 'texto' });
       }

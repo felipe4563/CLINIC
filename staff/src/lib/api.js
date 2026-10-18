@@ -166,10 +166,11 @@ export const api = {
     datos.append('archivo', archivo);
     return apiFetch(`/staff/historias/${id}/documento-firmado`, { method: 'POST', body: datos });
   },
-  subirFotoHistoria: (id, archivo, nota) => {
+  subirFotoHistoria: (id, archivo, nota, etapa = 'inicial') => {
     const datos = new FormData();
     datos.append('archivo', archivo, 'foto.jpg');
     if (nota) datos.append('nota', nota);
+    datos.append('etapa', etapa);
     return apiFetch(`/staff/historias/${id}/fotos`, { method: 'POST', body: datos });
   },
   cambiarNotaFoto: (id, archivo, nota) =>
