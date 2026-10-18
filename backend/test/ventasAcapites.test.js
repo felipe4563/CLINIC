@@ -102,6 +102,23 @@ describe('Ventas por acápites', () => {
     expect((await db.Producto.findByPk(usado.id)).activo).toBe(false);
   });
 
+  test('una compra con proveedor suma a cuántos hay del acápite y sale de caja', async () => {
+    const proveedor = await request(app).post('/staff/proveedores').set(auth()).send({ nombre: 'Distribuidora Sesderma' });
+    expect(proveedor.status).toBe(201);
+    const activo = (await crear({ acapite: 'activos', nombre: 'Ác. salicílico 30 ml', stock: 1 })).body;
+    const compra = await request(app).post('/staff/compras').set(auth()).send({
+      proveedorId: proveedor.body.id, items: [{ productoId: activo.id, cantidad: 4, costoUnitario: 35, lote: 'L1', fechaVencimiento: '2027-06-30' }],
+    });
+    expect(compra.status).toBe(201);
+    expect(Number(compra.body.compra.total)).toBe(140);
+    const actualizado = await db.Producto.findByPk(activo.id);
+    expect(actualizado.stock).toBe(5);
+    expect(actualizado.acapite).toBe('activos');
+    const egreso = await db.MovimientoCaja.findOne({ where: { compra_id: compra.body.compra.id } });
+    expect(egreso.tipo).toBe('egreso');
+    expect(Number(egreso.monto)).toBe(140);
+  });
+
   test('editar nombre, precio y código; el acápite no se pierde', async () => {
     const p = (await crear({ acapite: 'ventas', nombre: 'C-Vit', stock: 1 })).body;
     const res = await request(app).patch(`/staff/ventas/productos/${p.id}`).set(auth()).send({ nombre: 'C-Vit liposomal sérum 30 ml', precio_venta: '250.5', codigo: '40002447' });

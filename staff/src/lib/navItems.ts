@@ -9,6 +9,7 @@ import {
   IconClipboard,
   IconCashRegister,
   IconBox,
+  IconTruck,
   IconShoppingCart,
   IconBarChart,
   IconHeart,
@@ -44,6 +45,7 @@ export const GRUPOS_NAV: { label: string; items: NavItem[] }[] = [
     items: [
       { href: '/caja', label: 'Caja', icon: IconCashRegister, permiso: 'caja' },
       { href: '/inventario', label: 'Inventario', icon: IconBox, permiso: 'inventario' },
+      { href: '/compras', label: 'Compras', icon: IconTruck, permiso: 'compras' },
       { href: '/catalogo', label: 'Servicios', icon: IconCatalog, permiso: 'catalogo' },
       { href: '/usuarios', label: 'Usuarios', icon: IconUserCog, permiso: 'usuarios' },
       { href: '/automatizacion', label: 'Automatización', icon: IconBell, permiso: 'automatizacion' },
