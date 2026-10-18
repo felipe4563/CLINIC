@@ -216,6 +216,12 @@ export const api = {
     apiFetch(`/staff/servicios/${servicioId}/productos/${productoId}`, { method: 'DELETE' }),
 
   // Inventario por lugar (planillas de la clínica).
+  // Ventas por acápites (ventas, activos, mantenimiento).
+  getProductosVenta: () => apiFetch('/staff/ventas/productos'),
+  crearProductoVenta: (datos) => apiFetch('/staff/ventas/productos', { method: 'POST', body: JSON.stringify(datos) }),
+  actualizarProductoVenta: (id, datos) => apiFetch(`/staff/ventas/productos/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
+  movimientoProductoVenta: (id, datos) => apiFetch(`/staff/ventas/productos/${id}/movimiento`, { method: 'POST', body: JSON.stringify(datos) }),
+  borrarProductoVenta: (id) => apiFetch(`/staff/ventas/productos/${id}`, { method: 'DELETE' }),
   getInventarioLugares: () => apiFetch('/staff/inventario/lugares'),
   crearInventarioLugar: (nombre) => apiFetch('/staff/inventario/lugares', { method: 'POST', body: JSON.stringify({ nombre }) }),
   renombrarInventarioLugar: (id, nombre) => apiFetch(`/staff/inventario/lugares/${id}`, { method: 'PATCH', body: JSON.stringify({ nombre }) }),

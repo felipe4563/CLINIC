@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { IconTrash, IconPhoto, IconChevronDown, IconShoppingCart } from '@/components/icons';
+import AcapiteProductos, { type ProductoVenta } from './AcapiteProductos';
 
 function hoyISO() {
   const d = new Date();
@@ -11,16 +12,17 @@ function hoyISO() {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
-type Producto = {
-  id: number;
-  nombre: string;
-  Marca: { nombre: string } | null;
-  stock: number;
-  stock_minimo: number;
-  precio_venta: string;
-  imagen_url: string | null;
-  activo: boolean;
-};
+type Producto = ProductoVenta;
+
+// Acápites que pidió la doctora; "Vender" e "Historial" son el cobro y lo vendido.
+type Pestana = 'vender' | 'ventas' | 'activos' | 'mantenimiento' | 'historial';
+const PESTANAS: { clave: Pestana; texto: string }[] = [
+  { clave: 'vender', texto: 'Vender' },
+  { clave: 'ventas', texto: 'Ventas' },
+  { clave: 'activos', texto: 'Activos' },
+  { clave: 'mantenimiento', texto: 'Mantenimiento' },
+  { clave: 'historial', texto: 'Historial' },
+];
 
 function imagenSrc(imagenUrl: string | null) {
   if (!imagenUrl) return null;
@@ -43,7 +45,7 @@ type VentaHistorial = {
 };
 
 export default function VentasPage() {
-  const [tab, setTab] = useState<'vender' | 'mis-ventas'>('vender');
+  const [tab, setTab] = useState<Pestana>('vender');
   const [productos, setProductos] = useState<Producto[]>([]);
   const [q, setQ] = useState('');
   const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
@@ -75,7 +77,7 @@ export default function VentasPage() {
 
   const cargarProductos = useCallback(async () => {
     try {
-      setProductos(await api.getProductos());
+      setProductos(await api.getProductosVenta());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar productos');
     }
@@ -128,8 +130,9 @@ export default function VentasPage() {
     };
   }, []);
 
+  // Solo se vende lo del acápite Ventas; sin precio no se puede cobrar.
   const productosFiltrados = productos.filter(
-    (p) => p.activo !== false && p.nombre.toLowerCase().includes(q.toLowerCase()),
+    (p) => p.acapite === 'ventas' && p.activo !== false && p.nombre.toLowerCase().includes(q.toLowerCase()),
   );
 
   function agregarAlCarrito(producto: Producto) {
@@ -247,22 +250,19 @@ export default function VentasPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-semibold">Ventas (POS)</h1>
+      <h1 className="mb-4 text-lg font-semibold">Ventas</h1>
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
 
-      <div className="mb-4 flex gap-1 border-b border-border">
-        <button
-          onClick={() => setTab('vender')}
-          className={`px-3 py-2 text-sm font-medium ${tab === 'vender' ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
-        >
-          Vender
-        </button>
-        <button
-          onClick={() => setTab('mis-ventas')}
-          className={`px-3 py-2 text-sm font-medium ${tab === 'mis-ventas' ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
-        >
-          Mis ventas
-        </button>
+      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
+        {PESTANAS.map((p) => (
+          <button
+            key={p.clave}
+            onClick={() => setTab(p.clave)}
+            className={`px-3 py-2 text-sm font-medium ${tab === p.clave ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
+          >
+            {p.texto}
+          </button>
+        ))}
       </div>
 
       {tab === 'vender' && (
@@ -279,12 +279,14 @@ export default function VentasPage() {
             {productosFiltrados.map((p) => {
               const enCarrito = carrito.find((i) => i.producto.id === p.id)?.cantidad || 0;
               const stockBajo = p.stock > 0 && p.stock <= p.stock_minimo;
+              const sinPrecio = !(Number(p.precio_venta) > 0);
               const src = imagenSrc(p.imagen_url);
               return (
                 <button
                   key={p.id}
                   onClick={() => agregarAlCarrito(p)}
-                  disabled={p.stock === 0}
+                  disabled={p.stock === 0 || sinPrecio}
+                  title={sinPrecio ? 'Ponle precio en la pestaña Ventas' : undefined}
                   className="group relative overflow-hidden rounded-xl border border-border bg-panel text-left shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-accent hover:shadow-md active:translate-y-0 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm"
                 >
                   <div className="relative aspect-square w-full overflow-hidden bg-accent-soft">
@@ -319,7 +321,7 @@ export default function VentasPage() {
                     )}
 
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4">
-                      <p className="text-sm font-semibold text-white">Bs {p.precio_venta}</p>
+                      <p className="text-sm font-semibold text-white">{sinPrecio ? 'Sin precio' : `Bs ${p.precio_venta}`}</p>
                     </div>
                   </div>
 
@@ -444,7 +446,11 @@ export default function VentasPage() {
       </div>
       )}
 
-      {tab === 'mis-ventas' && (
+      {(tab === 'ventas' || tab === 'activos' || tab === 'mantenimiento') && (
+        <AcapiteProductos acapite={tab} titulo={PESTANAS.find((p) => p.clave === tab)!.texto} productos={productos} onCambio={cargarProductos} />
+      )}
+
+      {tab === 'historial' && (
       <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <input

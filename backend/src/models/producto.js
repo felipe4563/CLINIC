@@ -5,6 +5,8 @@ const Producto = sequelize.define('Producto', {
   nombre: { type: DataTypes.STRING, allowNull: false },
   // Código del proveedor (factura), opcional.
   codigo: { type: DataTypes.STRING, allowNull: true },
+  // Acápite de Ventas: lo que se vende, los cosméticos activos de los tratamientos o limpieza/mantenimiento.
+  acapite: { type: DataTypes.ENUM('activos', 'ventas', 'mantenimiento'), allowNull: false, defaultValue: 'ventas' },
   unidad: { type: DataTypes.STRING, allowNull: false, defaultValue: 'unidad' },
   stock: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   stock_minimo: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
