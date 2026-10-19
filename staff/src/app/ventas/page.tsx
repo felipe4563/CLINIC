@@ -134,6 +134,7 @@ export default function VentasPage() {
   const productosFiltrados = productos.filter(
     (p) => p.acapite === 'ventas' && p.activo !== false && p.nombre.toLowerCase().includes(q.toLowerCase()),
   );
+  const cantidadSinPrecio = productos.filter((p) => p.acapite === 'ventas' && p.activo !== false && !(Number(p.precio_venta) > 0)).length;
 
   function agregarAlCarrito(producto: Producto) {
     setCarrito((c) => {
@@ -275,6 +276,16 @@ export default function VentasPage() {
             onChange={(e) => setQ(e.target.value)}
             className="mb-3 w-full rounded border border-border px-3 py-2 text-sm"
           />
+          {cantidadSinPrecio > 0 && (
+            <div role="status" className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stat-amber/40 bg-stat-amber/10 px-4 py-3 text-sm">
+              <p>
+                {cantidadSinPrecio === 1 ? 'Hay 1 producto sin precio' : `Hay ${cantidadSinPrecio} productos sin precio`}: no se pueden vender hasta que tengan uno.
+              </p>
+              <button type="button" onClick={() => setTab('ventas')} className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground">
+                Ponerles precio
+              </button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
             {productosFiltrados.map((p) => {
               const enCarrito = carrito.find((i) => i.producto.id === p.id)?.cantidad || 0;
