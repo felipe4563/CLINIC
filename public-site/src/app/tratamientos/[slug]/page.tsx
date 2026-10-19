@@ -146,6 +146,25 @@ export default async function PaginaTratamiento({ params }: Props) {
                 <PreguntasFrecuentes preguntas={t.preguntas} />
               </section>
 
+              {hermanos.length > 0 && (
+                <section className="rounded-[28px] bg-neutral-cream p-7 sm:p-10">
+                  <Titulo etiqueta="Sigue explorando">También en {contexto}</Titulo>
+                  <ul className="mt-6 grid gap-x-8 sm:grid-cols-2 xl:grid-cols-3">
+                    {hermanos.map((h) => (
+                      <li key={h.slug}>
+                        <Link
+                          href={`/tratamientos/${h.slug}`}
+                          className="group flex min-h-12 items-center justify-between gap-3 border-b border-dotted border-tan/50 py-2.5 text-[15.5px] hover:text-espresso"
+                        >
+                          <span className="group-hover:underline group-hover:decoration-manhattan group-hover:underline-offset-4">{h.nombre}</span>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" className="shrink-0 text-tan transition-transform group-hover:translate-x-1"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
               <footer className="px-2 text-xs text-muted">
                 <p>Información orientativa. No reemplaza la valoración médica personalizada.</p>
                 <p className="mt-5 uppercase tracking-widest">Fuentes</p>
@@ -178,8 +197,9 @@ export default async function PaginaTratamiento({ params }: Props) {
               </footer>
             </div>
 
-            <aside aria-label="Reservar" className="lg:row-span-1">
-              <TarjetaReserva nombre={t.nombre} contexto={contexto} hermanos={hermanos} />
+            {/* La columna se estira a todo el alto para que la tarjeta quede fija al bajar */}
+            <aside aria-label="Reservar" className="lg:self-stretch">
+              <TarjetaReserva nombre={t.nombre} />
             </aside>
           </div>
         </div>

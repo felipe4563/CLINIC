@@ -1,10 +1,12 @@
 'use client';
+import Image from 'next/image';
 import Link from 'next/link';
 import { datosContacto, enlaceWhatsapp, useConfiguracion } from '@/lib/useDatosClinica';
 import BotonReservar from './BotonReservar';
 
-// Tarjeta lateral de la página de tratamiento: queda fija al bajar en pantallas grandes.
-export default function TarjetaReserva({ nombre, contexto, hermanos }: { nombre: string; contexto: string; hermanos: { slug: string; nombre: string }[] }) {
+// Columna lateral de la página de tratamiento: reserva y quién atiende.
+// Es corta a propósito para que entre en pantalla y acompañe al bajar.
+export default function TarjetaReserva({ nombre }: { nombre: string }) {
   const c = datosContacto(useConfiguracion());
   return (
     <div className="flex flex-col gap-4 lg:sticky lg:top-28">
@@ -37,24 +39,16 @@ export default function TarjetaReserva({ nombre, contexto, hermanos }: { nombre:
         </dl>
       </div>
 
-      {hermanos.length > 0 && (
-        <div className="rounded-[28px] bg-white p-7">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-tan">También en {contexto}</p>
-          <ul className="mt-3">
-            {hermanos.map((h) => (
-              <li key={h.slug}>
-                <Link
-                  href={`/tratamientos/${h.slug}`}
-                  className="group flex items-center justify-between gap-3 border-b border-dotted border-tan/40 py-2.5 text-[15px] hover:text-espresso"
-                >
-                  <span className="group-hover:underline group-hover:decoration-manhattan group-hover:underline-offset-4">{h.nombre}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" className="shrink-0 text-tan transition-transform group-hover:translate-x-1"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <Link href="/#doctora" className="group flex items-center gap-4 rounded-[28px] bg-white p-5 transition-shadow hover:shadow-[0_30px_60px_-40px_rgba(45,36,30,0.6)]">
+        <span className="relative h-20 w-16 shrink-0 overflow-hidden rounded-t-full rounded-b-xl bg-neutral-cream">
+          <Image src="/novaged-assets/DraNovaged-CZHbEtUk.jpeg" alt="" fill sizes="64px" className="object-cover object-top" />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-[11px] uppercase tracking-[0.2em] text-tan">Te atiende</span>
+          <span className="mt-1 block font-serif text-xl leading-tight text-espresso">Dra. Maria Noemi Ponce Caisiri</span>
+          <span className="mt-1 block text-sm text-tan">Médico estético · Matriculada en SEDES</span>
+        </span>
+      </Link>
     </div>
   );
 }
