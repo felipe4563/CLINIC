@@ -46,7 +46,7 @@ export default function Nav({ onReservar, solido = false }: { onReservar: () => 
         }`}
       >
         <Link href="/#inicio" className="flex shrink-0 items-center gap-2.5 text-espresso" aria-label="Clinic NovagED, inicio">
-          <Image src="/novaged-assets/icon-Bvf3Rv87.png" alt="" width={24} height={34} className="h-9 w-auto" priority />
+          <Image src="/novaged-assets/isotipo-chocolate.png" alt="" width={23} height={40} className="h-9 w-auto" priority />
           <span className="font-serif text-[26px] leading-none md:text-[28px]">
             Clinic <em className="italic">NovagED</em>
           </span>

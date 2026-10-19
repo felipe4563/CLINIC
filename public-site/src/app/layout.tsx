@@ -19,9 +19,6 @@ export const metadata: Metadata = {
   title: "Clinic NovagED — Medicina estética en Cochabamba",
   description:
     "Medicina estética, ginecología, ecografía, fisioterapia y enfermería con la Dra. Maria Noemi Ponce Caisiri. Reserva en línea y paga con QR. Calle Lanza N.º 670, Cochabamba.",
-  icons: {
-    icon: "/novaged-assets/icon-Bvf3Rv87.png",
-  },
 };
 
 export const viewport: Viewport = {
