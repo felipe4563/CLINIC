@@ -36,8 +36,8 @@ export default function CartaTratamientos() {
   }
 
   return (
-    <section id="especialidades" className="px-4 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto max-w-7xl">
+    <section id="especialidades" className="px-4 py-24 sm:px-8 xl:px-12 md:py-32">
+      <div className="mx-auto max-w-sitio">
         <Reveal className="mb-12 grid items-end gap-6 md:mb-16 lg:grid-cols-2">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-tan">Carta de tratamientos</p>

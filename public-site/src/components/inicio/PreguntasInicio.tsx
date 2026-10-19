@@ -44,8 +44,8 @@ export default function PreguntasInicio() {
   ];
 
   return (
-    <section id="preguntas" className="px-4 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto grid max-w-7xl items-start gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+    <section id="preguntas" className="px-4 py-24 sm:px-8 xl:px-12 md:py-32">
+      <div className="mx-auto grid max-w-sitio items-start gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <Reveal className="lg:sticky lg:top-32">
           <p className="text-xs uppercase tracking-[0.22em] text-tan">Antes de reservar</p>
           <h2 className="mt-5 font-serif text-[clamp(44px,5.4vw,80px)] font-light leading-[0.92] text-espresso">

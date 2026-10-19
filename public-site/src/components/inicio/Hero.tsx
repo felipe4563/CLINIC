@@ -31,15 +31,15 @@ export default function Hero({ onReservar }: { onReservar: (nombreServicio?: str
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.8, delay: retraso, ease: easeSalida },
   });
-  const titulo = 'font-serif font-light leading-[0.86] tracking-[-0.01em] text-espresso text-[clamp(56px,11.5vw,176px)]';
+  const titulo = 'font-serif font-light leading-[0.86] tracking-[-0.01em] text-espresso text-[clamp(56px,11.5vw,200px)]';
 
   return (
-    <section id="inicio" className="relative overflow-hidden px-4 pb-10 pt-28 sm:px-8 md:pt-32">
+    <section id="inicio" className="relative overflow-hidden px-4 pb-10 pt-28 sm:px-8 xl:px-12 md:pt-32">
       <div className="aura -right-52 -top-56 h-[640px] w-[640px] bg-[#D9C5B0] opacity-55" />
       <div className="aura -left-56 top-96 h-[520px] w-[520px] bg-neutral-cream opacity-90 [animation-delay:-7s]" />
       <div className="grano" />
 
-      <div className="relative z-10 mx-auto max-w-7xl">
+      <div className="relative z-10 mx-auto max-w-sitio">
         <h1 className="sr-only">Tu salud es nuestra prioridad — Clinic NovagED, medicina estética en Cochabamba</h1>
         <p className={titulo}>
           <Linea retraso={0.1}>Tu salud es</Linea>
@@ -48,7 +48,7 @@ export default function Hero({ onReservar }: { onReservar: (nombreServicio?: str
           </Linea>
         </p>
 
-        <div className="mt-8 grid items-center gap-10 lg:my-5 lg:grid-cols-[1fr_380px_1fr] lg:gap-10">
+        <div className="mt-8 grid items-center gap-10 lg:my-5 lg:grid-cols-[1fr_400px_1fr] 2xl:grid-cols-[1fr_470px_1fr] lg:gap-10">
           <motion.div {...aparece(0.5)} className="order-2 flex max-w-md flex-col gap-6 lg:order-1">
             <p className="text-xs uppercase tracking-[0.22em] text-tan">Medicina estética con criterio médico</p>
             <p className="text-lg leading-relaxed text-ink">
@@ -67,7 +67,7 @@ export default function Hero({ onReservar }: { onReservar: (nombreServicio?: str
           </motion.div>
 
           <motion.div
-            className="arco relative order-1 mx-auto aspect-[3/4.2] w-full max-w-[380px] bg-neutral-cream shadow-[0_60px_90px_-60px_rgba(45,36,30,0.8)] lg:order-2"
+            className="arco relative order-1 mx-auto aspect-[3/4.2] w-full max-w-[380px] lg:max-w-[400px] 2xl:max-w-[470px] bg-neutral-cream shadow-[0_60px_90px_-60px_rgba(45,36,30,0.8)] lg:order-2"
             initial={reducir ? undefined : { opacity: 0, scale: 1.06 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.4, delay: 0.2, ease: easeSalida }}
@@ -77,7 +77,7 @@ export default function Hero({ onReservar }: { onReservar: (nombreServicio?: str
               alt="Dra. Maria Noemi Ponce Caisiri en Clinic NovagED"
               fill
               priority
-              sizes="(min-width: 1024px) 380px, 90vw"
+              sizes="(min-width: 1536px) 470px, (min-width: 1024px) 400px, 90vw"
               className="object-cover object-top"
             />
           </motion.div>

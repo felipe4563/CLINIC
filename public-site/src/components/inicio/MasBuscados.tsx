@@ -20,9 +20,9 @@ const DESTACADOS = [
 export default function MasBuscados() {
   const duraciones = useDuraciones();
   return (
-    <section id="destacados" className="relative rounded-t-[40px] bg-neutral-cream px-4 py-24 sm:px-8 md:rounded-t-[56px] md:py-32">
+    <section id="destacados" className="relative rounded-t-[40px] bg-neutral-cream px-4 py-24 sm:px-8 xl:px-12 md:rounded-t-[56px] md:py-32">
       <div className="grano rounded-t-[40px] md:rounded-t-[56px]" />
-      <div className="relative mx-auto max-w-7xl">
+      <div className="relative mx-auto max-w-sitio">
         <Reveal className="mb-12 grid items-end gap-6 lg:grid-cols-2">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-tan">Los más buscados</p>

@@ -12,9 +12,9 @@ const CREDENCIALES = [
 // Texto de la presentación de la doctora (el mismo de la web anterior).
 export default function Doctora({ onReservar }: { onReservar: () => void }) {
   return (
-    <section id="doctora" className="relative overflow-hidden bg-espresso-900 px-4 py-24 text-neutral-cream sm:px-8 md:py-32">
+    <section id="doctora" className="relative overflow-hidden bg-espresso-900 px-4 py-24 text-neutral-cream sm:px-8 xl:px-12 md:py-32">
       <div className="aura -left-52 -top-60 h-[620px] w-[620px] bg-espresso opacity-55" />
-      <div className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-2 lg:gap-20">
+      <div className="relative mx-auto grid max-w-sitio gap-14 lg:grid-cols-2 lg:gap-20">
         <Reveal className="flex flex-col gap-7">
           <p className="text-xs uppercase tracking-[0.22em] text-manhattan">Quién te atiende</p>
           <h2 className="font-serif text-[clamp(44px,5.4vw,84px)] font-light leading-[0.95] text-cream">

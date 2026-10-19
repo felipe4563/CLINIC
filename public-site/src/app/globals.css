@@ -12,6 +12,7 @@
   --color-pearl: #F5F5F3;         /* variante casi-blanca para chips/iconos sobre fondo claro */
   --color-espresso-900: #2D241E;  /* marron muy oscuro para secciones full-bleed */
   --color-espresso-950: #1A1109;  /* el mas oscuro de la familia espresso, casi negro */
+  --container-sitio: 1680px;      /* ancho de la portada: aprovecha pantallas grandes sin estirar de más */
 }
 
 @theme inline {

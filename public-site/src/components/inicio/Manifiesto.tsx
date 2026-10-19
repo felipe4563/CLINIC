@@ -10,8 +10,8 @@ const PILARES = [
 
 export default function Manifiesto() {
   return (
-    <section className="px-4 py-24 sm:px-8 md:py-32">
-      <div className="mx-auto max-w-6xl">
+    <section className="px-4 py-24 sm:px-8 xl:px-12 md:py-32">
+      <div className="mx-auto max-w-sitio">
         <Reveal>
           <p className="text-xs uppercase tracking-[0.22em] text-tan">Nuestra forma de trabajar</p>
           <p className="mt-7 font-serif text-[clamp(32px,4.4vw,60px)] font-light leading-[1.15] text-espresso">

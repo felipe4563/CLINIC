@@ -9,8 +9,8 @@ export default function Contacto({ onReservar }: { onReservar: () => void }) {
   const mapa = encodeURIComponent(c.completa);
 
   return (
-    <section id="contacto" className="px-4 pb-24 sm:px-8 md:pb-32">
-      <Reveal className="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] bg-espresso px-6 py-14 text-neutral-cream sm:px-12 md:rounded-[48px] md:py-20 lg:px-16">
+    <section id="contacto" className="px-4 pb-24 sm:px-8 xl:px-12 md:pb-32">
+      <Reveal className="relative mx-auto max-w-sitio overflow-hidden rounded-[32px] bg-espresso px-6 py-14 text-neutral-cream sm:px-12 md:rounded-[48px] md:py-20 lg:px-16">
         <div className="aura -bottom-64 -right-32 h-[520px] w-[520px] bg-tan opacity-70" />
         <div className="relative grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="flex flex-col gap-7">

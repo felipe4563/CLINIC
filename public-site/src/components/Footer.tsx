@@ -7,8 +7,8 @@ const ESPECIALIDADES = ['Medicina estética', 'Ginecología y obstetricia', 'Eco
 export default function Footer() {
   const c = datosContacto(useConfiguracion());
   return (
-    <footer className="rounded-t-[40px] bg-espresso-900 px-4 pb-8 pt-16 text-neutral-cream sm:px-8 md:rounded-t-[56px] md:pt-20">
-      <div className="mx-auto flex max-w-7xl flex-col gap-12">
+    <footer className="rounded-t-[40px] bg-espresso-900 px-4 pb-8 pt-16 text-neutral-cream sm:px-8 xl:px-12 md:rounded-t-[56px] md:pt-20">
+      <div className="mx-auto flex max-w-sitio flex-col gap-12">
         <div className="grid gap-10 text-[15px] sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <p className="font-serif text-3xl font-light leading-tight text-cream">
             Salud, belleza y <em className="italic text-manhattan">armonía</em>.

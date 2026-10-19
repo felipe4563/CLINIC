@@ -21,8 +21,8 @@ const PASOS = [
 
 export default function PrimeraVisita() {
   return (
-    <section id="visita" className="bg-neutral-cream px-4 pb-24 sm:px-8 md:pb-32">
-      <div className="mx-auto grid max-w-7xl items-start gap-12 rounded-[32px] bg-cream p-7 sm:p-12 md:rounded-[44px] lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:p-16">
+    <section id="visita" className="bg-neutral-cream px-4 pb-24 sm:px-8 xl:px-12 md:pb-32">
+      <div className="mx-auto grid max-w-sitio items-start gap-12 rounded-[32px] bg-cream p-7 sm:p-12 md:rounded-[44px] lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:p-16">
         <Reveal>
           <p className="text-xs uppercase tracking-[0.22em] text-tan">Tu primera visita</p>
           <h2 className="mt-5 font-serif text-[clamp(40px,5vw,72px)] font-light leading-[0.95] text-espresso">

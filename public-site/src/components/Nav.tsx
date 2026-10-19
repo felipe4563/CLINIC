@@ -39,9 +39,9 @@ export default function Nav({ onReservar, solido = false }: { onReservar: () => 
   const capsula = solido || bajo || menuAbierto;
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 md:px-6 md:pt-4">
+    <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 md:px-6 md:pt-4 xl:px-12">
       <div
-        className={`mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full py-2 pl-5 pr-2 transition-all duration-500 md:pl-7 ${
+        className={`mx-auto flex max-w-sitio items-center justify-between gap-4 rounded-full py-2 pl-5 pr-2 transition-all duration-500 md:pl-7 ${
           capsula ? 'vidrio shadow-[0_20px_50px_-30px_rgba(45,36,30,0.45)]' : 'border border-transparent'
         }`}
       >
@@ -87,7 +87,7 @@ export default function Nav({ onReservar, solido = false }: { onReservar: () => 
       </div>
 
       {menuAbierto && (
-        <div id="menu-movil" className="vidrio mx-auto mt-2 max-w-7xl rounded-[32px] p-6 shadow-[0_30px_60px_-30px_rgba(45,36,30,0.5)] lg:hidden">
+        <div id="menu-movil" className="vidrio mx-auto mt-2 max-w-sitio rounded-[32px] p-6 shadow-[0_30px_60px_-30px_rgba(45,36,30,0.5)] lg:hidden">
           <nav aria-label="Menú" className="flex flex-col">
             {ENLACES.map((e) => (
               <Link
