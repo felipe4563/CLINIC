@@ -7,6 +7,7 @@ import { TRATAMIENTOS, buscarTratamiento } from '@/lib/tratamientos';
 import MarcoTratamiento from '@/components/tratamiento/MarcoTratamiento';
 import BotonReservar from '@/components/tratamiento/BotonReservar';
 import PreguntasFrecuentes from '@/components/tratamiento/PreguntasFrecuentes';
+import TarjetaReserva from '@/components/tratamiento/TarjetaReserva';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -23,23 +24,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: `${info.tratamiento.nombre} — Clinic NovagED`, description: info.tratamiento.resumen };
 }
 
-function Titulo({ children }: { children: ReactNode }) {
-  return <h2 className="font-serif text-2xl text-espresso md:text-3xl">{children}</h2>;
+function Titulo({ etiqueta, children }: { etiqueta?: string; children: ReactNode }) {
+  return (
+    <div>
+      {etiqueta && <p className="text-[11px] uppercase tracking-[0.2em] text-tan">{etiqueta}</p>}
+      <h2 className="mt-2 font-serif text-[clamp(30px,3vw,44px)] font-light leading-tight text-espresso">{children}</h2>
+    </div>
+  );
 }
 
-function Lista({ titulo, items }: { titulo: string; items: string[] }) {
+function Vinetas({ items, oscuro = false }: { items: string[]; oscuro?: boolean }) {
   return (
-    <section>
-      <Titulo>{titulo}</Titulo>
-      <ul className="mt-5 space-y-3 text-ink">
-        {items.map((item) => (
-          <li key={item} className="flex gap-3 leading-relaxed">
-            <span aria-hidden="true" className="text-tan">✦</span>
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <ul className="mt-5 space-y-3">
+      {items.map((item) => (
+        <li key={item} className="flex gap-3 leading-relaxed">
+          <span aria-hidden="true" className={oscuro ? 'text-manhattan' : 'text-tan'}>✦</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -51,103 +54,134 @@ export default async function PaginaTratamiento({ params }: Props) {
 
   return (
     <MarcoTratamiento>
-      <article className="pt-[88px] md:pt-24">
-        <header className="md:flex md:min-h-[70vh]">
-          <div className="relative h-[45vh] md:h-auto md:w-1/2">
-            <Image src={imagen} alt={credito ? t.nombre : ''} fill priority sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
-          </div>
-          <div className="flex items-center px-6 py-12 md:w-1/2 md:px-16">
-            <div className="max-w-md">
-              <nav aria-label="Ubicación en el sitio" className="text-xs uppercase tracking-widest text-muted">
-                <Link href="/#tratamientos" className="hover:opacity-70">Tratamientos</Link>
-                <span className="mx-2" aria-hidden="true">/</span>
-                <span>{categoria.titulo}</span>
-              </nav>
-              <h1 className="mt-4 break-words font-serif text-4xl leading-[1.05] text-espresso md:text-[52px]">{t.nombre}</h1>
-              <p className="mt-6 text-muted">{t.resumen}</p>
-              <BotonReservar nombreServicio={t.nombre} className="mt-10" />
+      <article className="px-4 pb-24 pt-24 sm:px-8 md:pt-28 xl:px-12">
+        <div className="mx-auto max-w-sitio">
+          {/* Portada: foto en arco y título */}
+          <header className="relative grid items-center gap-8 overflow-hidden rounded-[32px] bg-neutral-cream p-5 sm:p-8 md:rounded-[44px] lg:grid-cols-[0.9fr_1.1fr] lg:gap-14 lg:p-12">
+            <div className="grano" />
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[24px] sm:aspect-[16/10] lg:aspect-[4/4.2] lg:rounded-t-full lg:rounded-b-[28px]">
+              <Image src={imagen} alt={credito ? t.nombre : ''} fill priority sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
             </div>
-          </div>
-        </header>
-
-        <div className="mx-auto max-w-3xl space-y-16 px-6 py-16 md:py-24">
-          <section>
-            <Titulo>Qué es</Titulo>
-            {t.queEs.map((parrafo) => (
-              <p key={parrafo} className="mt-5 leading-relaxed text-ink">{parrafo}</p>
-            ))}
-          </section>
-
-          <Lista titulo="Beneficios" items={t.beneficios} />
-
-          <div className="grid gap-16 md:grid-cols-2 md:gap-12">
-            <Lista titulo="Antes del tratamiento" items={t.antes} />
-            <Lista titulo="Después del tratamiento" items={t.despues} />
-          </div>
-
-          <Lista titulo="Contraindicaciones" items={t.contraindicaciones} />
-
-          <section>
-            <Titulo>Preguntas frecuentes</Titulo>
-            <PreguntasFrecuentes preguntas={t.preguntas} />
-          </section>
-
-          <section className="rounded-2xl bg-neutral-cream px-6 py-10 text-center">
-            <p className="font-serif text-2xl text-espresso">¿Te interesa este tratamiento?</p>
-            <p className="mx-auto mt-3 max-w-md text-sm text-muted">
-              En la consulta evaluamos tu caso y te recomendamos el protocolo adecuado para ti.
-            </p>
-            <BotonReservar nombreServicio={t.nombre} className="mt-8" />
-          </section>
-
-          {hermanos.length > 0 && (
-            <section>
-              <Titulo>También en {contexto}</Titulo>
-              <ul className="mt-6 flex flex-wrap gap-3">
-                {hermanos.map((h) => (
-                  <li key={h.slug} className="max-w-full">
-                    <Link
-                      href={`/tratamientos/${h.slug}`}
-                      className="inline-block max-w-full rounded-full border border-tan/30 px-4 py-2 text-sm text-ink transition-colors hover:border-tan"
-                    >
-                      {h.nombre}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          <footer className="border-t border-manhattan/40 pt-8 text-xs text-muted">
-            <p>Información orientativa. No reemplaza la valoración médica personalizada.</p>
-            <p className="mt-6 uppercase tracking-widest">Fuentes</p>
-            <ul className="mt-3 space-y-2">
-              {t.fuentes.map((f) => (
-                <li key={f.url} className="break-words">
-                  <a href={f.url} target="_blank" rel="noopener noreferrer" className="underline decoration-manhattan underline-offset-2 hover:text-espresso">
-                    {f.sitio} — {f.titulo}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            {credito && (
-              <p className="mt-6 break-words">
-                Foto:{' '}
-                <a href={credito.url} target="_blank" rel="noopener noreferrer" className="underline decoration-manhattan underline-offset-2 hover:text-espresso">
-                  {credito.autor} · {credito.sitio}
-                </a>{' '}
-                (
-                {credito.licenciaUrl ? (
-                  <a href={credito.licenciaUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-manhattan underline-offset-2 hover:text-espresso">
-                    {credito.licencia}
-                  </a>
-                ) : (
-                  credito.licencia
+            <div className="relative flex flex-col gap-6 lg:py-6">
+              <nav aria-label="Ubicación en el sitio" className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-tan">
+                <Link href="/#especialidades" className="hover:text-espresso">Tratamientos</Link>
+                <span aria-hidden="true">/</span>
+                <span>{categoria.titulo}</span>
+                {contexto !== categoria.titulo && (
+                  <>
+                    <span aria-hidden="true">/</span>
+                    <span>{contexto}</span>
+                  </>
                 )}
-                )
-              </p>
-            )}
-          </footer>
+              </nav>
+              <h1 className="break-words font-serif text-[clamp(44px,6vw,96px)] font-light leading-[0.95] text-espresso">{t.nombre}</h1>
+              <p className="max-w-xl text-lg leading-relaxed">{t.resumen}</p>
+              {categoria.numero === '01' && (
+                <ul className="flex flex-wrap gap-2 text-sm">
+                  {['Evaluación médica previa', 'Consentimiento informado', 'Seguimiento con fotos'].map((s) => (
+                    <li key={s} className="vidrio rounded-full px-4 py-2 text-espresso">{s}</li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex flex-wrap gap-3">
+                <BotonReservar nombreServicio={t.nombre} />
+                <a href="#que-es" className="inline-flex min-h-12 items-center rounded-full border border-espresso px-7 text-[15px] text-espresso transition-colors hover:bg-espresso hover:text-cream">
+                  Conocer el tratamiento
+                </a>
+              </div>
+            </div>
+          </header>
+
+          {/* Contenido + tarjeta de reserva */}
+          <div className="mt-12 grid items-start gap-10 md:mt-16 lg:grid-cols-[1fr_380px] lg:gap-14 2xl:grid-cols-[1fr_420px]">
+            <div className="flex min-w-0 flex-col gap-6">
+              <section id="que-es" className="rounded-[28px] bg-white p-7 sm:p-10">
+                <Titulo etiqueta="El tratamiento">Qué es</Titulo>
+                <div className="mt-5 grid gap-5 text-[16.5px] leading-relaxed xl:grid-cols-2 xl:gap-10">
+                  {t.queEs.map((parrafo) => (
+                    <p key={parrafo}>{parrafo}</p>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-[28px] bg-white p-7 sm:p-10">
+                <Titulo etiqueta="Por qué elegirlo">Beneficios</Titulo>
+                <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {t.beneficios.map((b, i) => (
+                    <li key={b} className="flex flex-col gap-3 rounded-2xl bg-cream p-5">
+                      <span aria-hidden="true" className="font-serif text-3xl font-light leading-none text-manhattan">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="leading-relaxed">{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <section className="rounded-[28px] bg-neutral-cream p-7 sm:p-10">
+                  <Titulo etiqueta="Prepárate">Antes del tratamiento</Titulo>
+                  <Vinetas items={t.antes} />
+                </section>
+                <section className="rounded-[28px] bg-espresso p-7 text-neutral-cream sm:p-10">
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Cuidados</p>
+                  <h2 className="mt-2 font-serif text-[clamp(30px,3vw,44px)] font-light leading-tight text-cream">Después del tratamiento</h2>
+                  <Vinetas items={t.despues} oscuro />
+                </section>
+              </div>
+
+              <section className="rounded-[28px] border border-manhattan/60 p-7 sm:p-10">
+                <Titulo etiqueta="Tu seguridad primero">Contraindicaciones</Titulo>
+                <p className="mt-3 text-sm text-tan">Si alguna aplica a tu caso, cuéntaselo a la doctora en la evaluación.</p>
+                <ul className="mt-5 grid gap-x-10 gap-y-3 md:grid-cols-2">
+                  {t.contraindicaciones.map((c) => (
+                    <li key={c} className="flex gap-3 leading-relaxed">
+                      <span aria-hidden="true" className="text-tan">—</span>
+                      <span>{c}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="rounded-[28px] bg-white p-7 sm:p-10">
+                <Titulo etiqueta="Dudas">Preguntas frecuentes</Titulo>
+                <PreguntasFrecuentes preguntas={t.preguntas} />
+              </section>
+
+              <footer className="px-2 text-xs text-muted">
+                <p>Información orientativa. No reemplaza la valoración médica personalizada.</p>
+                <p className="mt-5 uppercase tracking-widest">Fuentes</p>
+                <ul className="mt-3 space-y-2">
+                  {t.fuentes.map((f) => (
+                    <li key={f.url} className="break-words">
+                      <a href={f.url} target="_blank" rel="noopener noreferrer" className="underline decoration-manhattan underline-offset-2 hover:text-espresso">
+                        {f.sitio} — {f.titulo}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                {credito && (
+                  <p className="mt-5 break-words">
+                    Foto:{' '}
+                    <a href={credito.url} target="_blank" rel="noopener noreferrer" className="underline decoration-manhattan underline-offset-2 hover:text-espresso">
+                      {credito.autor} · {credito.sitio}
+                    </a>{' '}
+                    (
+                    {credito.licenciaUrl ? (
+                      <a href={credito.licenciaUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-manhattan underline-offset-2 hover:text-espresso">
+                        {credito.licencia}
+                      </a>
+                    ) : (
+                      credito.licencia
+                    )}
+                    )
+                  </p>
+                )}
+              </footer>
+            </div>
+
+            <aside aria-label="Reservar" className="lg:row-span-1">
+              <TarjetaReserva nombre={t.nombre} contexto={contexto} hermanos={hermanos} />
+            </aside>
+          </div>
         </div>
       </article>
     </MarcoTratamiento>

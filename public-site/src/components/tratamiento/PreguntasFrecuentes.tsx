@@ -17,7 +17,7 @@ export default function PreguntasFrecuentes({ preguntas }: { preguntas: Pregunta
               onClick={() => setAbierta(estaAbierta ? null : i)}
               aria-expanded={estaAbierta}
               aria-controls={`${base}-r${i}`}
-              className="flex w-full items-center justify-between gap-4 py-5 text-left font-serif text-lg text-espresso"
+              className="flex min-h-12 w-full items-center justify-between gap-4 py-5 text-left font-serif text-xl font-light text-espresso md:text-2xl"
             >
               {p.pregunta}
               <Chevron abierto={estaAbierta} />

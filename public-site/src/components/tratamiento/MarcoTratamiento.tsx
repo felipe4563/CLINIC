@@ -4,16 +4,18 @@ import { BookingProvider, useBooking } from '@/lib/bookingContext';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 import FloatingCta from '@/components/FloatingCta';
+import WhatsappFlotante from '@/components/WhatsappFlotante';
 import BookingModal from '@/components/booking/BookingModal';
 
 function Contenido({ children }: { children: ReactNode }) {
   const { open } = useBooking();
   return (
     <main>
-      <Nav onReservar={open} solido />
+      <Nav onReservar={() => open()} solido />
       {children}
       <Footer />
-      <FloatingCta onClick={open} />
+      <FloatingCta onClick={() => open()} />
+      <WhatsappFlotante />
       <BookingModal />
     </main>
   );
