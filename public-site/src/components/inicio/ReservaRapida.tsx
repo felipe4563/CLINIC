@@ -1,21 +1,15 @@
 'use client';
 import { useId, useState } from 'react';
 import { CARTA, CONSULTA } from '@/lib/cartaInicio';
-import { duracionDe, useDuraciones } from '@/lib/useDatosClinica';
 
 // Barra de reserva de la portada: elige especialidad y tratamiento, y abre la
 // reserva ya en el paso del profesional.
 export default function ReservaRapida({ onReservar }: { onReservar: (nombreServicio?: string) => void }) {
   const id = useId();
-  const duraciones = useDuraciones();
   const [especialidad, setEspecialidad] = useState(0);
   const [servicio, setServicio] = useState(CONSULTA);
 
   const items = CARTA[especialidad].secciones.flatMap((s) => s.items);
-  const etiqueta = (nombre: string, nombreServicio: string) => {
-    const min = duracionDe(duraciones, nombreServicio);
-    return min ? `${nombre} · ${min} min` : nombre;
-  };
 
   return (
     <form
@@ -51,9 +45,9 @@ export default function ReservaRapida({ onReservar }: { onReservar: (nombreServi
           onChange={(e) => setServicio(e.target.value)}
           className="min-h-10 w-full cursor-pointer bg-transparent text-base text-ink outline-none"
         >
-          {especialidad === 0 && <option value={CONSULTA}>{etiqueta('Consulta de evaluación', CONSULTA)}</option>}
+          {especialidad === 0 && <option value={CONSULTA}>Consulta de evaluación</option>}
           {items.map((i) => (
-            <option key={i.slug} value={i.nombreServicio}>{etiqueta(i.nombre, i.nombreServicio)}</option>
+            <option key={i.slug} value={i.nombreServicio}>{i.nombre}</option>
           ))}
         </select>
       </div>

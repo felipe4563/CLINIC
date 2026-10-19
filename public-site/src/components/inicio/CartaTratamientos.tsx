@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { CARTA, TOTAL_TRATAMIENTOS } from '@/lib/cartaInicio';
-import { duracionDe, useDuraciones } from '@/lib/useDatosClinica';
 import Reveal from '../Reveal';
 
 // Foto y frase de cada especialidad, en el orden de CARTA.
@@ -19,7 +18,6 @@ const PORTADAS = [
 export default function CartaTratamientos() {
   const base = useId();
   const reducir = useReducedMotion();
-  const duraciones = useDuraciones();
   const [activa, setActiva] = useState(0);
   const pestanas = useRef<(HTMLButtonElement | null)[]>([]);
   const esp = CARTA[activa];
@@ -46,7 +44,7 @@ export default function CartaTratamientos() {
             </h2>
           </div>
           <p className="max-w-md lg:justify-self-end">
-            {TOTAL_TRATAMIENTOS} tratamientos con la misma médica y la misma historia clínica. Elige una especialidad para ver su carta completa y el tiempo de cada sesión.
+            {TOTAL_TRATAMIENTOS} tratamientos con la misma médica y la misma historia clínica. Elige una especialidad para ver su carta completa.
           </p>
         </Reveal>
 
@@ -109,9 +107,7 @@ export default function CartaTratamientos() {
                     <div key={s.titulo ?? esp.titulo}>
                       {s.titulo && <h4 className="mb-2 text-[11px] uppercase tracking-[0.2em] text-tan">{s.titulo}</h4>}
                       <ul>
-                        {s.items.map((it) => {
-                          const min = duracionDe(duraciones, it.nombreServicio);
-                          return (
+                        {s.items.map((it) => (
                             <li key={it.slug}>
                               <Link
                                 href={`/tratamientos/${it.slug}`}
@@ -121,14 +117,12 @@ export default function CartaTratamientos() {
                                   <span className="text-[15.5px] group-hover/item:underline group-hover/item:decoration-manhattan group-hover/item:underline-offset-4">{it.nombre}</span>
                                   {it.descripcion && <span className="mt-0.5 block text-sm text-tan">{it.descripcion}</span>}
                                 </span>
-                                <span className="flex shrink-0 items-center gap-2 text-[13px] text-tan">
-                                  {min ? `${min} min` : ''}
+                                <span className="flex shrink-0 items-center text-tan">
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" className="transition-transform group-hover/item:translate-x-1"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                                 </span>
                               </Link>
                             </li>
-                          );
-                        })}
+                        ))}
                       </ul>
                     </div>
                   ))}

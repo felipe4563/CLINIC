@@ -1,48 +1,18 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from './api';
-import type { ConfiguracionPublica, Servicio } from './types';
-import { normalizarNombre } from './servicios';
+import type { ConfiguracionPublica } from './types';
 
-// La portada pide los servicios y la configuración una sola vez, aunque varias
-// secciones los usen. Si la API falla, cada sección muestra su texto de respaldo.
-let servicios: Promise<Servicio[]> | null = null;
+// La portada pide la configuración una sola vez, aunque varias secciones la usen.
+// Si la API falla, cada sección muestra su texto de respaldo.
 let configuracion: Promise<ConfiguracionPublica | null> | null = null;
-
-function cargarServicios() {
-  servicios ??= api.getServicios().catch(() => {
-    servicios = null; // se reintenta en la próxima visita
-    return [];
-  });
-  return servicios;
-}
 
 function cargarConfiguracion() {
   configuracion ??= api.getConfiguracionPublica().catch(() => {
-    configuracion = null;
+    configuracion = null; // se reintenta en la próxima visita
     return null;
   });
   return configuracion;
-}
-
-// Duración en minutos de cada servicio, por nombre normalizado.
-export function useDuraciones(): Map<string, number> {
-  const [duraciones, setDuraciones] = useState<Map<string, number>>(() => new Map());
-  useEffect(() => {
-    let vivo = true;
-    cargarServicios().then((lista) => {
-      if (!vivo) return;
-      setDuraciones(new Map(lista.filter((s) => s.duracion_min).map((s) => [normalizarNombre(s.nombre), Number(s.duracion_min)])));
-    });
-    return () => {
-      vivo = false;
-    };
-  }, []);
-  return duraciones;
-}
-
-export function duracionDe(duraciones: Map<string, number>, nombreServicio: string): number | undefined {
-  return duraciones.get(normalizarNombre(nombreServicio));
 }
 
 export function useConfiguracion(): ConfiguracionPublica | null {

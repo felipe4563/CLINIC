@@ -2,7 +2,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { buscarTratamiento } from '@/lib/tratamientos';
-import { duracionDe, useDuraciones } from '@/lib/useDatosClinica';
 import Reveal from '../Reveal';
 
 const DESTACADOS = [
@@ -18,7 +17,6 @@ const DESTACADOS = [
 // Cuatro tratamientos con foto. En pantallas con mouse el resumen aparece al pasar
 // el cursor; en el celular se ve siempre y las tarjetas se deslizan de lado.
 export default function MasBuscados() {
-  const duraciones = useDuraciones();
   return (
     <section id="destacados" className="relative rounded-t-[40px] bg-neutral-cream px-4 py-24 sm:px-8 xl:px-12 md:rounded-t-[56px] md:py-32">
       <div className="grano rounded-t-[40px] md:rounded-t-[56px]" />
@@ -30,13 +28,11 @@ export default function MasBuscados() {
               Resultados que <em className="italic">se ven naturales</em>
             </h2>
           </div>
-          <p className="max-w-md lg:justify-self-end">Qué es cada uno, cuánto dura la sesión y todo lo que conviene saber antes y después, explicado en su página.</p>
+          <p className="max-w-md lg:justify-self-end">Qué es cada uno, sus beneficios y todo lo que conviene saber antes y después, explicado en su página.</p>
         </Reveal>
 
         <ul className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4 lg:gap-5">
-          {DESTACADOS.map((d, i) => {
-            const min = duracionDe(duraciones, d.nombre);
-            return (
+          {DESTACADOS.map((d, i) => (
               <li key={d.slug} className="w-[78vw] max-w-[320px] shrink-0 snap-start sm:w-auto sm:max-w-none">
                 <Reveal delay={i * 0.08}>
                   <Link
@@ -48,7 +44,6 @@ export default function MasBuscados() {
                     <span className="absolute inset-x-0 bottom-0 p-6">
                       <span className="text-[11px] uppercase tracking-[0.2em] text-manhattan">
                         {d.tipo}
-                        {min ? ` · ${min} min` : ''}
                       </span>
                       <span className="mt-1.5 block font-serif text-3xl font-light leading-[1.05]">{d.nombre}</span>
                       <span className="mt-2 block text-sm leading-snug text-neutral-cream transition-all duration-500 [@media(hover:hover)]:max-h-0 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:max-h-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-visible:max-h-40 [@media(hover:hover)]:group-focus-visible:opacity-100">
@@ -62,8 +57,7 @@ export default function MasBuscados() {
                   </Link>
                 </Reveal>
               </li>
-            );
-          })}
+          ))}
         </ul>
 
         <div className="mt-10 flex justify-center">
