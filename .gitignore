@@ -22,3 +22,10 @@ uploads/
 
 # Comprobantes y justificaciones privados
 **/privado/
+
+# Documentos de la doctora (consentimiento, planillas de inventario, fotos de
+# facturas) y respaldos de la base: se usan como referencia local, nunca se suben.
+*.docx
+*.doc
+/doc/
+backend/sql/
