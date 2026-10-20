@@ -53,7 +53,7 @@ export default function ReservaRapida({ onReservar }: { onReservar: (nombreServi
       </div>
       <div className="hidden flex-col px-6 py-2 md:flex">
         <span className="text-[11px] uppercase tracking-[0.16em] text-tan">Pago</span>
-        <span className="min-h-10 py-2 text-base text-ink">Con QR · 50 % o total</span>
+        <span className="min-h-10 py-2 text-base text-ink">Con QR</span>
       </div>
       <button
         type="submit"
