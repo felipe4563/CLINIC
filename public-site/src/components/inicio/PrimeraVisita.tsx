@@ -3,7 +3,7 @@ import Reveal from '../Reveal';
 const PASOS = [
   {
     titulo: 'Reservas en línea',
-    texto: 'Eliges tratamiento, día y hora. Aseguras tu horario pagando con QR el 50 % como adelanto o el total; el saldo lo pagas en la clínica.',
+    texto: 'Eliges tratamiento, día y hora. Aseguras tu horario pagando el total con QR.',
   },
   {
     titulo: 'Evaluación con la doctora',

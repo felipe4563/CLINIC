@@ -6,7 +6,7 @@ import { mensajeError } from '@/lib/types';
 import PoliticaInasistencia from './PoliticaInasistencia';
 
 export default function StepConfirmar() {
-  const { profesionalId, servicioId, servicio, profesional, fecha, horaInicio, setCitaId, setPago, setStep, config, setConfig, porcentaje, setPorcentaje, aceptaPolitica, setAceptaPolitica } = useBooking();
+  const { profesionalId, servicioId, servicio, profesional, fecha, horaInicio, setCitaId, setPago, setStep, config, setConfig, porcentaje, aceptaPolitica, setAceptaPolitica } = useBooking();
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
@@ -53,34 +53,7 @@ export default function StepConfirmar() {
       </div>
 
       {cobraAdelanto && precio !== null && (
-        <div className="mt-6">
-          <p className="text-xs uppercase tracking-widest text-muted">¿Cuánto pagas ahora?</p>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setPorcentaje(50)}
-              aria-pressed={porcentaje === 50}
-              className={`rounded border px-4 py-3 text-left ${porcentaje === 50 ? 'border-espresso bg-espresso text-cream' : 'border-tan/30 text-ink hover:border-espresso'}`}
-            >
-              <span className="block text-sm font-medium">Seña del 50%</span>
-              <span className="block text-xs opacity-80">Bs. {Math.round(precio * 0.5 * 100) / 100}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPorcentaje(100)}
-              aria-pressed={porcentaje === 100}
-              className={`rounded border px-4 py-3 text-left ${porcentaje === 100 ? 'border-espresso bg-espresso text-cream' : 'border-tan/30 text-ink hover:border-espresso'}`}
-            >
-              <span className="block text-sm font-medium">Pago completo</span>
-              <span className="block text-xs opacity-80">Bs. {precio}</span>
-            </button>
-          </div>
-          {porcentaje === 50 && (
-            <p className="mt-2 text-xs text-muted">
-              El saldo restante (Bs. {Math.round(precio * 0.5 * 100) / 100}) se paga en la clínica el día de tu cita.
-            </p>
-          )}
-        </div>
+        <p className="mt-6 text-sm text-muted">Pagas el total (Bs. {precio}) con QR para asegurar tu horario.</p>
       )}
       {cobraAdelanto && (
         <PoliticaInasistencia

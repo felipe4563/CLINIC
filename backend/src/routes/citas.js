@@ -8,7 +8,9 @@ const { enviarConfirmacionCita } = require('../services/avisosCita');
 
 const router = express.Router();
 
-const PORCENTAJES_VALIDOS = [50, 100];
+// La clínica cobra siempre el monto total al reservar (las señas del 50 % de
+// citas antiguas se siguen mostrando, pero ya no se crean nuevas).
+const PORCENTAJES_VALIDOS = [100];
 
 const crearCitaLimiter = crearLimiter(20, 'Demasiadas reservas seguidas, intenta de nuevo mas tarde');
 
@@ -24,7 +26,7 @@ router.post('/citas', crearCitaLimiter, requirePaciente, recibirArchivo('comprob
   }
   const porcentaje = porcentajePago ? Number(porcentajePago) : 100;
   if (!PORCENTAJES_VALIDOS.includes(porcentaje)) {
-    return res.status(400).json({ error: 'porcentajePago debe ser 50 o 100' });
+    return res.status(400).json({ error: 'El pago es siempre el monto total' });
   }
 
   const config = await db.ConfiguracionClinica.obtenerConfig();

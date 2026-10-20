@@ -25,7 +25,7 @@ export default function PreguntasInicio() {
     {
       pregunta: '¿Cómo se paga?',
       respuesta: [
-        'Al reservar pagas con QR el 50 % como adelanto o el total. Ese pago asegura tu horario: queda reservado solo para ti. El saldo lo pagas en la clínica.',
+        'Al reservar pagas el total con QR. Ese pago asegura tu horario: queda reservado solo para ti.',
       ],
     },
     { pregunta: '¿Y si no puedo asistir?', respuesta: inasistencia },

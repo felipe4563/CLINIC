@@ -44,7 +44,7 @@ describe('POST /citas según el modo de pago', () => {
       .field('servicioId', String(servicio.id))
       .field('fecha', lunes)
       .field('horaInicio', hora)
-      .field('porcentajePago', '50')
+      .field('porcentajePago', '100')
       .field('aceptaPolitica', extra.aceptaPolitica ?? 'true');
     return archivo ? req.attach('comprobante', archivo, { filename: 'c.png', contentType }) : req;
   }
@@ -122,7 +122,7 @@ describe('POST /citas según el modo de pago', () => {
     expect(res.body.pago.metodo_adelanto).toBe('qr_fijo');
     expect(res.body.pago.comprobante_revision).toBe('sin_revisar');
     expect(res.body.pago).not.toHaveProperty('comprobante_archivo');
-    expect(Number(res.body.pago.monto)).toBe(50);
+    expect(Number(res.body.pago.monto)).toBe(100);
     expect(res.body.avisoWhatsApp).toBe('enviado');
     expect(archivosGuardados()).toBe(antes + 1);
     expect(enviarPlantillaWhatsApp).toHaveBeenCalledWith('59170000030', 'cita_confirmada', [lunes, '10:00']);

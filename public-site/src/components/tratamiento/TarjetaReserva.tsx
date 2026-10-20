@@ -14,7 +14,7 @@ export default function TarjetaReserva({ nombre }: { nombre: string }) {
         <p className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Reserva en línea</p>
         <p className="mt-2 font-serif text-3xl font-light leading-tight text-cream">{nombre}</p>
         <p className="mt-3 text-[15px] leading-relaxed">
-          Elige día y hora, y asegura tu horario pagando con QR el 50 % o el total. Antes del tratamiento la doctora te evalúa y te explica todo.
+          Elige día y hora, y asegura tu horario pagando con QR. Antes del tratamiento la doctora te evalúa y te explica todo.
         </p>
         <BotonReservar nombreServicio={nombre} className="mt-6 w-full bg-cream! text-espresso! hover:bg-white!" />
         {c.whatsapp && (

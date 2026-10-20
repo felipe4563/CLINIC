@@ -79,9 +79,6 @@ export default function StepPagoComprobante() {
         <p className="mt-6 text-sm text-red-600">La clínica todavía no cargó su QR. Escríbenos por WhatsApp para reservar.</p>
       )}
       {config?.qr_fijo_datos && <p className="mt-3 text-sm text-muted">{config.qr_fijo_datos}</p>}
-      {porcentaje === 50 && (
-        <p className="mt-2 text-sm text-muted">Esto es tu seña del 50%. El saldo de Bs. {Math.round((precio - monto) * 100) / 100} se paga en la clínica el día de tu cita.</p>
-      )}
 
       <label className="mt-6 block text-left text-sm text-ink">
         <span className="text-xs uppercase tracking-widest text-muted">Comprobante de pago</span>

@@ -77,7 +77,7 @@ describe('citas routes', () => {
     expect(c.Pago).not.toHaveProperty('comprobante_revisado_por_id');
   });
 
-  test('books with a 50% deposit and computes monto from monto_total', async () => {
+  test('la clínica cobra siempre el total: una seña del 50% se rechaza', async () => {
     const res = await request(app)
       .post('/citas')
       .set('Authorization', `Bearer ${token}`)
@@ -90,10 +90,21 @@ describe('citas routes', () => {
         aceptaPolitica: true,
       });
 
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('El pago es siempre el monto total');
+    expect(await db.Cita.count({ where: { fecha: lunes, hora_inicio: '09:30' } })).toBe(0);
+  });
+
+  test('sin porcentaje, el pago es el monto total', async () => {
+    const res = await request(app)
+      .post('/citas')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ profesionalId: profesional.id, servicioId: servicio.id, fecha: lunes, horaInicio: '09:30', aceptaPolitica: true });
+
     expect(res.status).toBe(201);
-    expect(Number(res.body.pago.monto)).toBe(50);
+    expect(Number(res.body.pago.monto)).toBe(100);
     expect(Number(res.body.pago.monto_total)).toBe(100);
-    expect(res.body.pago.porcentaje).toBe(50);
+    expect(res.body.pago.porcentaje).toBe(100);
   });
 
   test('rejects an invalid porcentajePago', async () => {
