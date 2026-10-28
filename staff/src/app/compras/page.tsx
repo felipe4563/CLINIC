@@ -53,7 +53,14 @@ function fmtFecha(fecha: string) {
   return `${d}/${m}/${a}`;
 }
 
+const PESTANAS = [
+  { clave: 'comprar', texto: 'Comprar' },
+  { clave: 'proveedores', texto: 'Proveedores' },
+] as const;
+type Pestana = (typeof PESTANAS)[number]['clave'];
+
 export default function ComprasPage() {
+  const [tab, setTab] = useState<Pestana>('comprar');
   const [productos, setProductos] = useState<Producto[]>([]);
   const [acapite, setAcapite] = useState<Acapite | ''>('');
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
@@ -196,7 +203,20 @@ export default function ComprasPage() {
       <h1 className="mb-4 text-lg font-semibold">Compras</h1>
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
 
-      <div className="mb-4">
+      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
+        {PESTANAS.map((p) => (
+          <button
+            key={p.clave}
+            onClick={() => setTab(p.clave)}
+            className={`px-3 py-2 text-sm font-medium ${tab === p.clave ? 'border-b-2 border-accent text-accent' : 'text-muted-foreground'}`}
+          >
+            {p.texto}
+            {p.clave === 'proveedores' ? ` (${proveedores.length})` : ''}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'proveedores' && (
         <ProveedorManager
           proveedores={proveedores}
           onCrear={async (datos) => {
@@ -208,8 +228,10 @@ export default function ComprasPage() {
             cargarProveedores();
           }}
         />
-      </div>
+      )}
 
+      {tab === 'comprar' && (
+      <>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_380px]">
         <div>
           <input
@@ -462,6 +484,8 @@ export default function ComprasPage() {
         })}
         {compras.length === 0 && <p className="text-sm text-muted-foreground">Sin compras registradas hoy.</p>}
       </div>
+      </>
+      )}
     </div>
   );
 }

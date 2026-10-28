@@ -15,7 +15,6 @@ export default function ProveedorManager({
   onCrear: (datos: { nombre: string; contacto: string | null; telefono: string | null }) => Promise<void>;
   onEliminar: (id: number) => Promise<void>;
 }) {
-  const [abierto, setAbierto] = useState(false);
   const [form, setForm] = useState(VACIO);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
@@ -44,57 +43,59 @@ export default function ProveedorManager({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-panel p-3 text-sm">
-      <button onClick={() => setAbierto((v) => !v)} className="flex w-full items-center justify-between text-left font-medium">
-        Proveedores
-        <span className="text-xs text-muted-foreground">{abierto ? 'Ocultar' : `Gestionar (${proveedores.length})`}</span>
-      </button>
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[380px_1fr]">
+      <form onSubmit={crear} className="flex flex-col gap-2 self-start rounded-lg border border-border bg-panel p-4 text-sm">
+        <h2 className="font-medium">Nuevo proveedor</h2>
+        <input
+          value={form.nombre}
+          onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+          placeholder="Nombre del proveedor"
+          required
+          className="rounded border border-border px-3 py-2 text-sm"
+        />
+        <input
+          value={form.contacto}
+          onChange={(e) => setForm({ ...form, contacto: e.target.value })}
+          placeholder="Contacto (opcional)"
+          className="rounded border border-border px-3 py-2 text-sm"
+        />
+        <input
+          value={form.telefono}
+          onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+          placeholder="Teléfono (opcional)"
+          className="rounded border border-border px-3 py-2 text-sm"
+        />
+        <button
+          type="submit"
+          disabled={guardando}
+          className="mt-1 rounded bg-accent px-3 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
+        >
+          {guardando ? 'Guardando…' : 'Agregar proveedor'}
+        </button>
+        {error && <p className="text-xs text-danger">{error}</p>}
+      </form>
 
-      {abierto && (
-        <div className="mt-3">
-          <form onSubmit={crear} className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <input
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              placeholder="Nombre del proveedor"
-              required
-              className="rounded border border-border px-2 py-1.5 text-xs"
-            />
-            <input
-              value={form.contacto}
-              onChange={(e) => setForm({ ...form, contacto: e.target.value })}
-              placeholder="Contacto (opcional)"
-              className="rounded border border-border px-2 py-1.5 text-xs"
-            />
-            <input
-              value={form.telefono}
-              onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-              placeholder="Teléfono (opcional)"
-              className="rounded border border-border px-2 py-1.5 text-xs"
-            />
-            <button
-              type="submit"
-              disabled={guardando}
-              className="rounded bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground disabled:opacity-50 sm:col-span-3"
-            >
-              Agregar proveedor
-            </button>
-          </form>
-          {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}
-          <div className="mt-2 flex flex-wrap gap-1.5">
+      <div className="self-start rounded-lg border border-border bg-panel text-sm">
+        {proveedores.length === 0 ? (
+          <p className="p-4 text-muted-foreground">Todavía no hay proveedores. Agrega el primero con el formulario.</p>
+        ) : (
+          <ul className="divide-y divide-border">
             {proveedores.map((p) => (
-              <span key={p.id} className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs">
-                {p.nombre}
-                {p.telefono ? ` · ${p.telefono}` : ''}
-                <button onClick={() => eliminar(p.id)} className="text-muted-foreground hover:text-danger" aria-label={`Eliminar ${p.nombre}`}>
-                  ×
+              <li key={p.id} className="flex items-center justify-between gap-3 p-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{p.nombre}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {[p.contacto, p.telefono].filter(Boolean).join(' · ') || 'Sin datos de contacto'}
+                  </p>
+                </div>
+                <button onClick={() => eliminar(p.id)} className="shrink-0 text-xs text-danger hover:underline" aria-label={`Eliminar ${p.nombre}`}>
+                  Eliminar
                 </button>
-              </span>
+              </li>
             ))}
-            {proveedores.length === 0 && <p className="text-xs text-muted-foreground">Ninguno todavía.</p>}
-          </div>
-        </div>
-      )}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
