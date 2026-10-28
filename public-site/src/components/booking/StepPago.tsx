@@ -61,58 +61,42 @@ export default function StepPago() {
     }
   }
 
-  const esSena = pago && Number(pago.porcentaje) === 50;
-  const saldo = pago ? Math.round((Number(pago.monto_total) - Number(pago.monto)) * 100) / 100 : null;
-
   if (confirmada) {
     return (
-      <div className="text-center">
-        <h3 className="font-serif text-2xl text-espresso">¡Cita confirmada!</h3>
-        <p className="mt-4 text-sm text-ink">Recibirás la confirmación también por WhatsApp.</p>
-        {esSena && saldo !== null && (
-          <p className="mt-2 text-sm text-muted">El saldo de Bs. {saldo} se paga en la clínica el día de tu cita.</p>
-        )}
-        <button onClick={close} className="mt-8 rounded-full bg-espresso text-cream text-xs tracking-widest uppercase px-6 py-3">
-          Cerrar
+      <div className="mx-auto flex max-w-xl flex-col items-center py-6 text-center">
+        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-espresso text-cream">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 12.5l4.5 4.5L19 7.5" />
+          </svg>
+        </span>
+        <h2 className="mt-6 font-serif text-[clamp(34px,4vw,48px)] font-light leading-tight text-espresso">¡Cita confirmada!</h2>
+        <p className="mt-3 text-[15px] text-tan">Recibimos tu pago. Te llega la confirmación por WhatsApp.</p>
+        <button onClick={close} className="mt-8 min-h-12 rounded-full bg-espresso px-10 text-[15px] text-cream hover:bg-espresso-900">
+          Listo
         </button>
       </div>
     );
   }
 
   return (
-    <div className="text-center">
-      <h3 className="font-serif text-2xl text-espresso">
-        {pago ? `Paga Bs. ${pago.monto} con QR` : 'Paga con QR'}
-      </h3>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-      {qr && (
-        <Image
-          src={`data:image/png;base64,${qr}`}
-          alt="QR de pago"
-          width={256}
-          height={256}
-          unoptimized
-          className="mx-auto mt-6 w-64"
-        />
-      )}
-      <p className="mt-6 text-sm text-muted">
-        Escanea el código con tu app bancaria. Estamos revisando automáticamente si ya llegó tu pago.
-      </p>
-      {esSena && saldo !== null && (
-        <p className="mt-2 text-sm text-muted">
-          Esto es tu seña del 50%. El saldo de Bs. {saldo} se paga en la clínica el día de tu cita.
-        </p>
-      )}
-      <button
-        onClick={verificarAhora}
-        disabled={verificando}
-        className="mt-6 rounded-full border border-espresso/40 text-espresso text-xs tracking-widest uppercase px-6 py-3 disabled:opacity-60"
-      >
-        {verificando ? 'Verificando…' : 'Ya pagué, verificar ahora'}
-      </button>
-      <div>
-        <button onClick={close} className="mt-4 text-xs uppercase tracking-widest text-tan">
-          Cerrar
+    <div>
+      <h2 className="font-serif text-[clamp(30px,3.4vw,42px)] font-light leading-tight text-espresso">
+        {pago ? `Paga Bs ${pago.monto} con QR` : 'Paga con QR'}
+      </h2>
+      <p className="mt-1 text-[15px] text-tan">Escanea el código con la app de tu banco. Revisamos solos cuando llega tu pago.</p>
+      {error && <p role="alert" className="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
+      <div className="mx-auto mt-6 flex max-w-sm flex-col items-center rounded-3xl bg-white p-6 text-center">
+        {qr ? (
+          <Image src={`data:image/png;base64,${qr}`} alt="QR de pago" width={256} height={256} unoptimized className="w-64 rounded-2xl" />
+        ) : (
+          <span className="h-64 w-64 animate-pulse rounded-2xl bg-neutral-cream" aria-hidden="true" />
+        )}
+        <button
+          onClick={verificarAhora}
+          disabled={verificando}
+          className="mt-6 min-h-12 w-full rounded-full border border-espresso px-6 text-[15px] text-espresso hover:bg-neutral-cream disabled:opacity-50"
+        >
+          {verificando ? 'Verificando…' : 'Ya pagué, verificar ahora'}
         </button>
       </div>
     </div>

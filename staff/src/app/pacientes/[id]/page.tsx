@@ -34,6 +34,7 @@ type Paciente = {
   direccion: string | null;
   ocupacion: string | null;
   email: string | null;
+  como_nos_conocio: string | null;
   contacto_emergencia: string | null;
   parentesco_emergencia: string | null;
   Cita: Cita[];
@@ -229,6 +230,7 @@ export default function FichaPacientePage() {
         direccion: paciente.direccion ?? '',
         ocupacion: paciente.ocupacion ?? '',
         email: paciente.email ?? '',
+        como_nos_conocio: paciente.como_nos_conocio ?? '',
         contacto_emergencia: paciente.contacto_emergencia ?? '',
         parentesco_emergencia: paciente.parentesco_emergencia ?? '',
       });
@@ -387,6 +389,7 @@ export default function FichaPacientePage() {
               ['direccion', 'Dirección', 255],
               ['ocupacion', 'Ocupación', 120],
               ['email', 'E-mail', 160],
+              ['como_nos_conocio', '¿Cómo nos conoció?', 60],
               ['contacto_emergencia', 'Contacto de emergencia', 160],
               ['parentesco_emergencia', 'Parentesco', 60],
             ] as const

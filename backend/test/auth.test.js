@@ -105,10 +105,6 @@ describe('Registro directo (sin OTP)', () => {
     await db.sequelize.sync({ force: true });
   });
 
-  afterAll(async () => {
-    await db.sequelize.close();
-  });
-
   test('crea un paciente nuevo y devuelve token sin pedir OTP', async () => {
     const res = await request(app).post('/auth/registro').send({
       telefono: '59170000060',
@@ -145,6 +141,85 @@ describe('Registro directo (sin OTP)', () => {
 
   test('rechaza datos incompletos', async () => {
     const res = await request(app).post('/auth/registro').send({ telefono: '59170000062' });
+    expect(res.status).toBe(400);
+  });
+
+  test('guarda la ficha completa que llega desde la web', async () => {
+    const res = await request(app).post('/auth/registro').send({
+      telefono: '59170000063',
+      nombre_completo: 'Ana Ficha Completa',
+      carnet_identidad: '5556667',
+      carnet_expedido: 'CB',
+      sexo: 'F',
+      fecha_nacimiento: '1990-05-12',
+      email: 'ana@ejemplo.com',
+      direccion: 'Av. América 123',
+      como_nos_conocio: 'Instagram',
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.nombre).toBe('Ana Ficha Completa');
+    const p = await db.Paciente.findOne({ where: { telefono: '59170000063' } });
+    expect(p.sexo).toBe('F');
+    expect(p.fecha_nacimiento).toBe('1990-05-12');
+    expect(p.email).toBe('ana@ejemplo.com');
+    expect(p.direccion).toBe('Av. América 123');
+    expect(p.como_nos_conocio).toBe('Instagram');
+  });
+
+  test('un telefono ya registrado con otro carnet no entra a esa ficha', async () => {
+    await request(app).post('/auth/registro').send({
+      telefono: '59170000064', nombre_completo: 'Duena Real', carnet_identidad: '1112223', carnet_expedido: 'CB',
+    });
+    const res = await request(app).post('/auth/registro').send({
+      telefono: '59170000064', nombre_completo: 'Otra Persona', carnet_identidad: '9998887', carnet_expedido: 'CB',
+    });
+    expect(res.status).toBe(409);
+    expect(res.body.token).toBeUndefined();
+  });
+});
+
+describe('POST /auth/ci/login (ya vine antes)', () => {
+  beforeAll(async () => {
+    await db.Paciente.create({
+      codigo_paciente: 'NOVA-CI001', nombre_completo: 'Paciente Con CI',
+      telefono: '59171234567', carnet_identidad: '7778889', carnet_expedido: 'CB',
+    });
+  });
+
+  afterAll(async () => {
+    await db.sequelize.close();
+  });
+
+  test('entra con CI y telefono, con o sin el 591', async () => {
+    for (const telefono of ['59171234567', '71234567', '+591 712 34567']) {
+      const res = await request(app).post('/auth/ci/login').send({ carnet_identidad: '7778889', telefono });
+      expect(res.status).toBe(200);
+      expect(res.body.token).toBeDefined();
+      expect(res.body.nombre).toBe('Paciente Con CI');
+    }
+  });
+
+  test('con el telefono equivocado no revela a quien pertenece el CI', async () => {
+    const res = await request(app).post('/auth/ci/login').send({ carnet_identidad: '7778889', telefono: '70000000' });
+    expect(res.status).toBe(401);
+    expect(res.body.nombre).toBeUndefined();
+    expect(res.body.token).toBeUndefined();
+  });
+
+  test('un CI que solo contiene al buscado no cuenta', async () => {
+    const res = await request(app).post('/auth/ci/login').send({ carnet_identidad: '777888', telefono: '71234567' });
+    expect(res.status).toBe(401);
+  });
+
+  test('los ingresos correctos no gastan los intentos', async () => {
+    for (let i = 0; i < 12; i++) {
+      const res = await request(app).post('/auth/ci/login').send({ carnet_identidad: '7778889', telefono: '71234567' });
+      expect(res.status).toBe(200);
+    }
+  });
+
+  test('pide los dos datos', async () => {
+    const res = await request(app).post('/auth/ci/login').send({ carnet_identidad: '7778889' });
     expect(res.status).toBe(400);
   });
 });

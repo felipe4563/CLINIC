@@ -2,11 +2,14 @@ export interface Servicio {
   id: number;
   nombre: string;
   precio: number | string;
+  descripcion?: string | null;
 }
 
 export interface Profesional {
   id: number;
   nombre: string;
+  especialidad?: string | null;
+  foto_url?: string | null;
 }
 
 export interface Pago {

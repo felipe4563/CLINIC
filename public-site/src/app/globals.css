@@ -101,3 +101,29 @@ textarea:focus-visible,
     scroll-behavior: auto !important;
   }
 }
+
+/* Barra de desplazamiento fina con los colores de la marca (reserva y paneles con scroll). */
+/* Firefox usa las propiedades estándar; Chrome y Safari, las de -webkit- (que permiten quitar las flechas). */
+@supports (-moz-appearance: none) {
+  .barra-fina {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-manhattan) transparent;
+  }
+}
+.barra-fina::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.barra-fina::-webkit-scrollbar-track {
+  background: transparent;
+}
+.barra-fina::-webkit-scrollbar-thumb {
+  background: var(--color-manhattan);
+  border-radius: 9999px;
+}
+.barra-fina::-webkit-scrollbar-thumb:hover {
+  background: var(--color-tan);
+}
+.barra-fina::-webkit-scrollbar-button {
+  display: none;
+}

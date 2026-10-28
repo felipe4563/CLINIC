@@ -16,6 +16,7 @@ const Paciente = sequelize.define('Paciente', {
   direccion: { type: DataTypes.STRING(255), allowNull: true },
   ocupacion: { type: DataTypes.STRING(120), allowNull: true },
   email: { type: DataTypes.STRING(160), allowNull: true },
+  como_nos_conocio: { type: DataTypes.STRING(60), allowNull: true },
   contacto_emergencia: { type: DataTypes.STRING(160), allowNull: true },
   parentesco_emergencia: { type: DataTypes.STRING(60), allowNull: true },
 }, { tableName: 'pacientes', underscored: true });

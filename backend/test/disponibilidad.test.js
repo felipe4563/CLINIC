@@ -1,5 +1,7 @@
 const db = require('../src/models');
 const { getSlotsDisponibles } = require('../src/services/disponibilidad');
+const request = require('supertest');
+const app = require('../src/app');
 const { proximoLunes, sumarDias } = require('./helpers/fechas');
 
 describe('getSlotsDisponibles', () => {
@@ -119,5 +121,21 @@ describe('getSlotsDisponibles', () => {
         { hora_inicio: '10:30', hora_fin: '11:00' },
       ]);
     });
+  });
+
+  test('GET /disponibilidad/mes devuelve solo los dias con horarios libres', async () => {
+    const mes = lunesSiguiente.slice(0, 7);
+    const res = await request(app).get(`/disponibilidad/mes?profesionalId=${profesional.id}&servicioId=${servicio.id}&mes=${mes}`);
+    expect(res.status).toBe(200);
+    const fechas = res.body.map((d) => d.fecha);
+    expect(fechas).toContain(lunesSiguiente);
+    // solo hay horario los lunes
+    for (const f of fechas) expect(new Date(`${f}T00:00:00`).getDay()).toBe(1);
+    expect(res.body.find((d) => d.fecha === lunesSiguiente).libres).toBeGreaterThan(0);
+  });
+
+  test('GET /disponibilidad/mes valida el mes', async () => {
+    const res = await request(app).get(`/disponibilidad/mes?profesionalId=${profesional.id}&servicioId=${servicio.id}&mes=2026-1`);
+    expect(res.status).toBe(400);
   });
 });

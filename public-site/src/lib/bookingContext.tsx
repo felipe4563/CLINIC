@@ -4,7 +4,7 @@ import type { Servicio, Profesional, Pago, ConfiguracionPublica } from './types'
 import { api } from './api';
 import { buscarServicioPorNombre } from './servicios';
 
-type Step = 'servicio' | 'profesional' | 'horario' | 'login' | 'confirmar' | 'pago' | 'confirmada';
+export type Step = 'servicio' | 'paciente' | 'horario' | 'confirmar' | 'pago' | 'confirmada';
 
 interface BookingState {
   isOpen: boolean;
@@ -34,6 +34,9 @@ interface BookingState {
   setPorcentaje: (p: 50 | 100) => void;
   aceptaPolitica: boolean;
   setAceptaPolitica: (v: boolean) => void;
+  // Paciente identificado en esta reserva ("ya vine antes" o ficha nueva).
+  paciente: { nombre: string } | null;
+  setPaciente: (p: { nombre: string } | null) => void;
 }
 
 const BookingContext = createContext<BookingState | null>(null);
@@ -52,6 +55,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<ConfiguracionPublica | null>(null);
   const [porcentaje, setPorcentaje] = useState<50 | 100>(100);
   const [aceptaPolitica, setAceptaPolitica] = useState(false);
+  const [paciente, setPaciente] = useState<{ nombre: string } | null>(null);
   const aperturaRef = useRef(0);
 
   // `nombreServicio` llega como texto desde las páginas de tratamiento. El Nav y el
@@ -68,6 +72,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setPago(null);
     setPorcentaje(100);
     setAceptaPolitica(false);
+    setPaciente(null);
     setIsOpen(true);
     const apertura = ++aperturaRef.current;
     if (typeof nombreServicio !== 'string') return;
@@ -79,7 +84,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
         if (!encontrado) return; // renombrado o inactivo: queda en "Elige un servicio"
         setServicioId(encontrado.id);
         setServicio(encontrado);
-        setStep('profesional');
+        setStep('paciente');
       })
       .catch(() => {}); // StepServicio ya muestra su propio error de carga
   }
@@ -90,7 +95,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
   return (
     <BookingContext.Provider
-      value={{ isOpen, open, close, step, setStep, servicioId, setServicioId, servicio, setServicio, profesionalId, setProfesionalId, profesional, setProfesional, fecha, setFecha, horaInicio, setHoraInicio, citaId, setCitaId, pago, setPago, config, setConfig, porcentaje, setPorcentaje, aceptaPolitica, setAceptaPolitica }}
+      value={{ isOpen, open, close, step, setStep, servicioId, setServicioId, servicio, setServicio, profesionalId, setProfesionalId, profesional, setProfesional, fecha, setFecha, horaInicio, setHoraInicio, citaId, setCitaId, pago, setPago, config, setConfig, porcentaje, setPorcentaje, aceptaPolitica, setAceptaPolitica, paciente, setPaciente }}
     >
       {children}
     </BookingContext.Provider>

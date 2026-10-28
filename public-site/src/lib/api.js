@@ -31,13 +31,11 @@ export const api = {
   getProfesionales: (servicioId) => apiFetch(`/profesionales?servicioId=${servicioId}`),
   getDisponibilidad: (profesionalId, servicioId, fecha) =>
     apiFetch(`/disponibilidad?profesionalId=${profesionalId}&servicioId=${servicioId}&fecha=${fecha}`),
-  registro: (telefono, nombre_completo, carnet_identidad, carnet_complemento, carnet_expedido) =>
-    apiFetch('/auth/registro', {
-      method: 'POST',
-      body: JSON.stringify({ telefono, nombre_completo, carnet_identidad, carnet_complemento, carnet_expedido }),
-    }),
-  loginConCodigo: (codigo_paciente, telefono) =>
-    apiFetch('/auth/codigo/login', { method: 'POST', body: JSON.stringify({ codigo_paciente, telefono }) }),
+  getDisponibilidadMes: (profesionalId, servicioId, mes) =>
+    apiFetch(`/disponibilidad/mes?profesionalId=${profesionalId}&servicioId=${servicioId}&mes=${mes}`),
+  registro: (ficha) => apiFetch('/auth/registro', { method: 'POST', body: JSON.stringify(ficha) }),
+  loginConCi: (carnet_identidad, telefono) =>
+    apiFetch('/auth/ci/login', { method: 'POST', body: JSON.stringify({ carnet_identidad, telefono }) }),
   crearCita: (profesionalId, servicioId, fecha, horaInicio, porcentajePago, aceptaPolitica) =>
     apiFetch('/citas', {
       method: 'POST',

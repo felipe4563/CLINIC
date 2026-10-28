@@ -8,9 +8,9 @@ const { borrarFotosDe } = require('./staffHistoriaClinica');
 
 const router = express.Router();
 
-const LARGO_PERSONAL = { direccion: 255, ocupacion: 120, email: 160, contacto_emergencia: 160, parentesco_emergencia: 60 };
+const LARGO_PERSONAL = { direccion: 255, ocupacion: 120, email: 160, como_nos_conocio: 60, contacto_emergencia: 160, parentesco_emergencia: 60 };
 const CAMPOS_PERSONALES = [
-  'sexo', 'estado_civil', 'grupo_sanguineo', 'direccion', 'ocupacion', 'email', 'contacto_emergencia', 'parentesco_emergencia',
+  'sexo', 'estado_civil', 'grupo_sanguineo', 'direccion', 'ocupacion', 'email', 'como_nos_conocio', 'contacto_emergencia', 'parentesco_emergencia',
 ];
 
 router.get('/staff/pacientes', requirePermiso('pacientes'), async (req, res) => {
