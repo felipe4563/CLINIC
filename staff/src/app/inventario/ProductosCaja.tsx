@@ -1,8 +1,8 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { api } from '@/lib/api';
+import { api, API_URL } from '@/lib/api';
 
 // Una caja del inventario: insumos (jeringas, guantes…), activos (lo que usa la
 // doctora en los tratamientos) o ventas (lo que se vende). Se suma lo que llega y
@@ -33,6 +33,43 @@ export const CAJAS: Record<Acapite, { titulo: string; descripcion: string }> = {
 export const seAcaba = (p: ProductoVenta) => p.stock === 0 || (p.stock_minimo > 0 && p.stock <= p.stock_minimo);
 
 const input = 'rounded border border-border bg-panel px-2 py-1 text-sm';
+
+function imagenSrc(imagenUrl: string | null) {
+  if (!imagenUrl) return null;
+  return imagenUrl.startsWith('/uploads/') ? `${API_URL}${imagenUrl}` : imagenUrl;
+}
+
+// Foto del producto (la que se ve al vender): al tocarla se elige otra.
+function FotoProducto({ producto, accion }: { producto: ProductoVenta; accion: (fn: () => Promise<unknown>) => Promise<boolean> }) {
+  const archivo = useRef<HTMLInputElement>(null);
+  const [subiendo, setSubiendo] = useState(false);
+  const src = imagenSrc(producto.imagen_url);
+
+  async function elegir(e: ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f) return;
+    setSubiendo(true);
+    await accion(() => api.subirImagenProducto(producto.id, f));
+    setSubiendo(false);
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => archivo.current?.click()}
+        disabled={subiendo}
+        title={src ? 'Cambiar foto' : 'Agregar foto'}
+        aria-label={`${src ? 'Cambiar' : 'Agregar'} foto de ${producto.nombre}`}
+        className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded border border-border bg-accent-soft text-[10px] leading-tight text-muted-foreground hover:border-accent disabled:opacity-50"
+      >
+        {subiendo ? '…' : src ? <img src={src} alt="" className="h-full w-full object-cover" /> : '+ Foto'}
+      </button>
+      <input ref={archivo} type="file" accept="image/png,image/jpeg,image/webp" onChange={elegir} className="hidden" />
+    </>
+  );
+}
 
 export default function ProductosCaja({ acapite, productos, onCambio }: {
   acapite: Acapite; productos: ProductoVenta[]; onCambio: () => Promise<void> | void;
@@ -187,6 +224,12 @@ function Fila({ producto: p, conPrecio, accion, onHistorial }: {
       <tr className="border-t border-border">
         <td colSpan={conPrecio ? 5 : 4} className="py-1.5">
           <form onSubmit={guardar} className="flex flex-wrap items-center gap-2">
+            <FotoProducto producto={p} accion={accion} />
+            {p.imagen_url && (
+              <button type="button" onClick={() => accion(() => api.eliminarImagenProducto(p.id))} className="text-xs text-danger hover:underline">
+                Quitar foto
+              </button>
+            )}
             <input autoFocus required value={d.nombre} onChange={(e) => setD({ ...d, nombre: e.target.value })} maxLength={255} aria-label="Producto" className={`${input} min-w-0 flex-1`} />
             <input type="number" min={0} value={d.minimo} onChange={(e) => setD({ ...d, minimo: e.target.value })} placeholder="Avisar con" aria-label="Avisar cuando queden" className={`${input} w-28`} />
             {conPrecio && <input type="number" min={0} step="0.01" value={d.precio} onChange={(e) => setD({ ...d, precio: e.target.value })} aria-label="Precio" className={`${input} w-28`} />}
@@ -202,8 +245,13 @@ function Fila({ producto: p, conPrecio, accion, onHistorial }: {
   return (
     <tr className="border-t border-border align-top">
       <td className="py-1.5 pr-2">
-        {p.nombre}
-        {(p.codigo || p.Marca) && <p className="text-xs text-muted-foreground">{[p.codigo && `Cód. ${p.codigo}`, p.Marca?.nombre].filter(Boolean).join(' · ')}</p>}
+        <div className="flex items-center gap-2.5">
+          <FotoProducto producto={p} accion={accion} />
+          <div className="min-w-0">
+            {p.nombre}
+            {(p.codigo || p.Marca) && <p className="text-xs text-muted-foreground">{[p.codigo && `Cód. ${p.codigo}`, p.Marca?.nombre].filter(Boolean).join(' · ')}</p>}
+          </div>
+        </div>
       </td>
       <td className="py-1.5 pr-2">
         <span className={`font-medium tabular-nums ${acaba ? 'text-stat-rose' : ''}`}>{p.stock}</span>
