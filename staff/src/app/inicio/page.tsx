@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/authContext';
 import { useTheme } from '@/lib/themeContext';
-import { GRUPOS_NAV } from '@/lib/navItems';
+import { GRUPOS_NAV, puedeVer } from '@/lib/navItems';
 import { api } from '@/lib/api';
 import { IconUserCircle, IconLogout, IconSun, IconMoon, IconHeart, IconSparkle, IconCruzMedica } from '@/components/icons';
 
@@ -221,7 +221,7 @@ export default function InicioPage() {
   };
 
   const modulos: Tarjeta[] = GRUPOS_NAV.flatMap((g) => g.items.map((item) => ({ ...item, grupo: grupoDe(g.label) })))
-    .filter((item) => item.href !== '/inicio' && usuario.permisos?.includes(item.permiso))
+    .filter((item) => item.href !== '/inicio' && puedeVer(item, usuario.permisos))
     .map((item) => ({
       tipo: 'link',
       href: item.href,

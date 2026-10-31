@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/authContext';
 import { IconX } from './icons';
-import { GRUPOS_NAV } from '@/lib/navItems';
+import { GRUPOS_NAV, puedeVer } from '@/lib/navItems';
 
 export default function Sidebar({
   open,
@@ -46,7 +46,7 @@ export default function Sidebar({
 
       <nav className="flex flex-col gap-6 px-3 py-5">
         {GRUPOS_NAV.map((group) => {
-          const items = group.items.filter((item) => usuario.permisos?.includes(item.permiso));
+          const items = group.items.filter((item) => puedeVer(item, usuario.permisos));
           if (items.length === 0) return null;
           return (
             <div key={group.label}>

@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { api } from './api';
-import { GRUPOS_NAV } from './navItems';
+import { GRUPOS_NAV, puedeVer } from './navItems';
 
 type Usuario = { id: number; nombre: string; email: string; rol: string; permisos: string[]; avatar_url?: string | null };
 
@@ -25,7 +25,7 @@ function rutaAutorizada(pathname: string, usuario: Usuario | null): boolean {
   const item = GRUPOS_NAV.flatMap((g) => g.items).find(
     (i) => i.href !== '/inicio' && pathname.startsWith(i.href),
   );
-  if (item && !usuario.permisos?.includes(item.permiso)) return false;
+  if (item && !puedeVer(item, usuario.permisos)) return false;
   return true;
 }
 

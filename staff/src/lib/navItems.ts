@@ -19,7 +19,12 @@ import {
   IconSettings,
 } from '@/components/icons';
 
-export type NavItem = { href: string; label: string; icon: (p: { className?: string }) => React.JSX.Element; permiso: string };
+// permiso null: lo ve todo el personal (marcar asistencia no depende del rol).
+export type NavItem = { href: string; label: string; icon: (p: { className?: string }) => React.JSX.Element; permiso: string | null };
+
+export function puedeVer(item: NavItem, permisos: string[] | undefined) {
+  return item.permiso === null || Boolean(permisos?.includes(item.permiso));
+}
 
 export const GRUPOS_NAV: { label: string; items: NavItem[] }[] = [
   {
@@ -37,7 +42,7 @@ export const GRUPOS_NAV: { label: string; items: NavItem[] }[] = [
       { href: '/tratamientos', label: 'Tratamientos', icon: IconClipboard, permiso: 'pacientes' },
       { href: '/saldos', label: 'Saldos pendientes', icon: IconWallet, permiso: 'pacientes' },
       { href: '/ventas', label: 'Ventas', icon: IconShoppingCart, permiso: 'ventas' },
-      { href: '/mi-asistencia', label: 'Mi asistencia', icon: IconClock, permiso: 'dashboard' },
+      { href: '/mi-asistencia', label: 'Mi asistencia', icon: IconClock, permiso: null },
     ],
   },
   {
