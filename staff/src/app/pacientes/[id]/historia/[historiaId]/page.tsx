@@ -30,7 +30,7 @@ type Historia = {
   updatedAt?: string;
   ActualizadoPor?: { nombre: string } | null;
   Paciente: {
-    nombre_completo: string; codigo_paciente: string; carnet_identidad: string; carnet_expedido: string; fecha_nacimiento: string | null; telefono: string;
+    nombre_completo: string; codigo_paciente: string; carnet_identidad: string; carnet_expedido: string; fecha_nacimiento: string | null; edad: number | null; edad_fecha: string | null; telefono: string;
     sexo: 'F' | 'M' | null; estado_civil: 'S' | 'C' | 'D' | 'V' | null; grupo_sanguineo: string | null; direccion: string | null;
     ocupacion: string | null; email: string | null; contacto_emergencia: string | null; parentesco_emergencia: string | null;
   };
@@ -48,12 +48,19 @@ function fmtFechaHora(iso: string) {
   return `${dos(f.getDate())}/${dos(f.getMonth() + 1)}/${f.getFullYear()} ${dos(f.getHours())}:${dos(f.getMinutes())}`;
 }
 
-// Edad cumplida a la fecha de la evaluación.
-function edadA(nacimiento: string | null, referencia: string) {
-  if (!nacimiento) return null;
-  const [an, mn, dn] = nacimiento.split('-').map(Number);
-  const [ar, mr, dr] = referencia.split('-').map(Number);
-  const edad = ar - an - (mr < mn || (mr === mn && dr < dn) ? 1 : 0);
+function aniosEntre(desde: string, hasta: string) {
+  const [an, mn, dn] = desde.split('-').map(Number);
+  const [ar, mr, dr] = hasta.split('-').map(Number);
+  return ar - an - (mr < mn || (mr === mn && dr < dn) ? 1 : 0);
+}
+
+// Edad cumplida a la fecha de la evaluación. Sin fecha de nacimiento se usa la
+// edad dicha al reservar en la web, sumando los años pasados desde ese día.
+function edadA(nacimiento: string | null, referencia: string, edadDicha: number | null = null, edadFecha: string | null = null) {
+  let edad: number;
+  if (nacimiento) edad = aniosEntre(nacimiento, referencia);
+  else if (edadDicha !== null) edad = edadDicha + (edadFecha ? Math.max(0, aniosEntre(edadFecha, referencia)) : 0);
+  else return null;
   return edad >= 0 ? edad : null;
 }
 
@@ -253,7 +260,7 @@ export default function EditorHistoria() {
             </label>
             <div className="text-xs text-muted-foreground">
               Edad
-              <p className="mt-1 py-1.5 text-sm text-foreground">{edadA(p.fecha_nacimiento, historia.fecha) ?? '—'}</p>
+              <p className="mt-1 py-1.5 text-sm text-foreground">{edadA(p.fecha_nacimiento, historia.fecha, p.edad, p.edad_fecha) ?? '—'}</p>
             </div>
             <label className="text-xs text-muted-foreground">
               Sexo

@@ -131,6 +131,8 @@ router.post('/registro', registroLimiter, async (req, res) => {
   }
   const sexo = ['F', 'M'].includes(req.body.sexo) ? req.body.sexo : null;
   const fechaNacimiento = /^\d{4}-\d{2}-\d{2}$/.test(req.body.fecha_nacimiento || '') ? req.body.fecha_nacimiento : null;
+  const edadNum = Number(req.body.edad);
+  const edad = req.body.edad !== undefined && req.body.edad !== '' && Number.isInteger(edadNum) && edadNum >= 0 && edadNum <= 120 ? edadNum : null;
 
   let paciente = await db.Paciente.findOne({ where: { telefono } });
   if (paciente) {
@@ -149,6 +151,8 @@ router.post('/registro', registroLimiter, async (req, res) => {
       carnet_expedido,
       sexo,
       fecha_nacimiento: fechaNacimiento,
+      edad,
+      edad_fecha: edad !== null ? new Date().toISOString().slice(0, 10) : null,
       email: texto(req.body.email, 160),
       direccion: texto(req.body.direccion, 255),
       como_nos_conocio: texto(req.body.como_nos_conocio, 60),

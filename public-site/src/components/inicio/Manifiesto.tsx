@@ -22,7 +22,7 @@ export default function Manifiesto() {
         <div className="mt-16 grid gap-10 md:grid-cols-3">
           {PILARES.map((p, i) => (
             <Reveal key={p.titulo} delay={i * 0.1} className="flex flex-col gap-3">
-              <span aria-hidden="true" className="font-serif text-6xl font-light leading-none text-manhattan">{String(i + 1).padStart(2, '0')}</span>
+              <span aria-hidden="true" className="font-serif text-6xl font-light leading-none text-tan">{String(i + 1).padStart(2, '0')}</span>
               <h3 className="text-xl font-normal text-espresso">{p.titulo}</h3>
               <p className="text-[15px] leading-relaxed">{p.texto}</p>
             </Reveal>

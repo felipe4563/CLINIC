@@ -6,6 +6,7 @@
   --color-espresso: #5F4534; /* su "chocolate": titulares y botones solidos oscuros */
   --color-tan: #73593F;      /* su "route" oscurecido ~15% para cumplir contraste AA 4.5:1 sobre cream (el original, #876A4A, da 4.35:1) */
   --color-manhattan: #C5B198;/* su "manhattan": acento suave, texto secundario sobre fondo oscuro */
+  --color-arena: #D6C7B2;   /* manhattan aclarado: texto secundario sobre chocolate con contraste AA (5.3:1; manhattan da 4.2:1) */
   --color-ink: #3A2E22;
   --color-muted: #73593F;
   --color-neutral-cream: #EAE2D6; /* su "neutral cream": paneles suaves sobre fondo claro */

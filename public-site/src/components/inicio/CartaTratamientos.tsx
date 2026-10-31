@@ -38,8 +38,8 @@ export default function CartaTratamientos() {
       <div className="mx-auto max-w-sitio">
         <Reveal className="mb-12 grid items-end gap-6 md:mb-16 lg:grid-cols-2">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-tan">Carta de tratamientos</p>
-            <h2 className="mt-5 font-serif text-[clamp(44px,6vw,92px)] font-light leading-[0.92] text-espresso">
+            <p className="text-sm uppercase tracking-[0.22em] text-espresso">Carta de tratamientos</p>
+            <h2 className="mt-5 font-serif text-[clamp(36px,5vw,76px)] font-light uppercase leading-[0.98] text-espresso">
               Cinco especialidades, <em className="italic">un solo lugar</em>
             </h2>
           </div>
@@ -71,12 +71,12 @@ export default function CartaTratamientos() {
                   onClick={() => setActiva(i)}
                   onKeyDown={(ev) => alTeclear(ev, i)}
                   className={`group shrink-0 rounded-full border px-5 py-3 text-left transition-all duration-300 lg:grid lg:grid-cols-[56px_1fr_auto] lg:items-baseline lg:gap-3 lg:rounded-none lg:border-0 lg:border-t lg:border-manhattan/60 lg:px-0 lg:py-6 ${
-                    sel ? 'border-espresso bg-espresso text-cream lg:bg-transparent lg:pl-4 lg:text-espresso' : 'border-manhattan/70 text-tan hover:text-espresso'
+                    sel ? 'border-espresso bg-espresso text-cream lg:bg-transparent lg:pl-4 lg:text-espresso' : 'border-manhattan/70 text-ink hover:text-espresso'
                   }`}
                 >
                   <span className="hidden font-serif text-lg lg:inline">{e.numero}</span>
                   <span className="whitespace-nowrap text-[15px] lg:whitespace-normal lg:font-serif lg:text-[clamp(28px,3vw,42px)] lg:font-light lg:leading-[1.1]">{e.titulo}</span>
-                  <span className="ml-2 text-xs opacity-80 lg:ml-0 lg:text-[13px]">{e.total}</span>
+                  <span className="ml-2 text-xs lg:ml-0 lg:text-[13px]">{e.total}</span>
                 </button>
               );
             })}

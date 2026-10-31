@@ -33,7 +33,9 @@ function requireStaff(...rolesPermitidos) {
   };
 }
 
+// Basta con tener uno de los permisos (p. ej. los productos los usan Ventas e Inventario).
 function requirePermiso(clave) {
+  const claves = Array.isArray(clave) ? clave : [clave];
   return (req, res, next) => {
     const header = req.headers.authorization || '';
     const token = header.startsWith('Bearer ') ? header.slice(7) : null;
@@ -41,7 +43,7 @@ function requirePermiso(clave) {
     try {
       const payload = jwt.verify(token, process.env.JWT_STAFF_SECRET);
       const permisos = payload.permisos || [];
-      if (!permisos.includes(clave)) {
+      if (!claves.some((c) => permisos.includes(c))) {
         return res.status(403).json({ error: 'No autorizado para este recurso' });
       }
       req.usuarioId = payload.usuarioId;

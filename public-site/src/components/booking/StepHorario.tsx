@@ -3,11 +3,11 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
 import { Profesional, mensajeError } from '@/lib/types';
+import { fotoSrc } from '@/lib/useEquipo';
 import { aTexto, fechaLarga, hoyTexto, mayuscula } from './fechas';
 
 type Slot = { hora_inicio: string; hora_fin: string };
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 function mesDe(fecha: string) {
   return fecha.slice(0, 7);
@@ -19,7 +19,7 @@ function moverMes(mes: string, delta: number) {
 }
 
 export default function StepHorario() {
-  const { servicioId, profesionalId, profesional, setProfesionalId, setProfesional, fecha, setFecha, horaInicio, setHoraInicio } = useBooking();
+  const { servicioId, profesionalId, profesional, setProfesionalId, setProfesional, fecha, setFecha, horaInicio, setHoraInicio, profesionalPreferidoId } = useBooking();
   const hoy = hoyTexto();
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [mes, setMes] = useState(mesDe(fecha || hoy));
@@ -32,7 +32,8 @@ export default function StepHorario() {
   const slots = fecha && horas?.clave === claveDia ? horas.slots : null;
   const [error, setError] = useState('');
 
-  // Profesionales del servicio; si hay una sola, queda elegida.
+  // Profesionales del servicio: queda elegida la de "Reservar con …" si atiende este
+  // servicio; si no, la primera.
   useEffect(() => {
     if (!servicioId) return;
     api
@@ -40,8 +41,9 @@ export default function StepHorario() {
       .then((lista: Profesional[]) => {
         setProfesionales(lista);
         if (lista.length && !lista.some((p) => p.id === profesionalId)) {
-          setProfesionalId(lista[0].id);
-          setProfesional(lista[0]);
+          const elegida = lista.find((p) => p.id === profesionalPreferidoId) ?? lista[0];
+          setProfesionalId(elegida.id);
+          setProfesional(elegida);
         }
       })
       .catch((e: unknown) => setError(mensajeError(e)));
@@ -170,14 +172,14 @@ export default function StepHorario() {
                 <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-cream font-serif text-xl text-espresso">
                   {p.foto_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={`${API_URL}${p.foto_url}`} alt="" className="h-full w-full object-cover" />
+                    <img src={fotoSrc(p.foto_url)!} alt="" className="h-full w-full object-cover object-top" />
                   ) : (
                     p.nombre.charAt(0)
                   )}
                 </span>
                 <span className="min-w-0">
                   <span className="block font-serif text-xl leading-tight text-espresso">{p.nombre}</span>
-                  <span className="block text-sm text-tan">{p.especialidad || 'Profesional de la clínica'}</span>
+                  <span className="block text-sm text-tan">{p.cargo || p.especialidad || 'Profesional de la clínica'}</span>
                 </span>
               </button>
             );

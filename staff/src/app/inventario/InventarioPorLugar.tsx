@@ -17,6 +17,8 @@ type Item = {
   estado: Estado;
   fecha_ingreso: string | null;
   observacion: string | null;
+  // Unidades afuera ahora (se mandan y recogen en Inventario → Mantenimiento).
+  en_mantenimiento?: number;
 };
 type Lugar = { id: number; nombre: string; InventarioItems: Item[] };
 
@@ -299,7 +301,12 @@ function FilaItem({ item, accion }: { item: Item; accion: (fn: () => Promise<unk
         {item.nombre}
         {item.observacion && <p className="text-xs text-muted-foreground">{item.observacion}</p>}
       </td>
-      <td className={`py-1.5 pr-2 text-xs ${estado?.clase || ''}`}>{estado?.texto}</td>
+      <td className={`py-1.5 pr-2 text-xs ${estado?.clase || ''}`}>
+        {estado?.texto}
+        {item.estado !== 'mantenimiento' && !!item.en_mantenimiento && (
+          <p className="text-stat-amber">{item.en_mantenimiento} en mantenimiento</p>
+        )}
+      </td>
       <td className="py-1.5 pr-2 text-xs">{fechaCorta(item.fecha_ingreso)}</td>
       <td className="py-1.5 pr-2 text-xs">{tiempoDeUso(item.fecha_ingreso)}</td>
       <td className="py-1.5 text-right">

@@ -42,14 +42,14 @@ export default function MasBuscados() {
                     <Image src={d.imagen} alt={d.nombre} fill sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 78vw" className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105" />
                     <span className="absolute inset-0 bg-gradient-to-b from-transparent from-30% to-espresso-900/90" />
                     <span className="absolute inset-x-0 bottom-0 p-6">
-                      <span className="text-[11px] uppercase tracking-[0.2em] text-manhattan">
+                      <span className="text-[11px] uppercase tracking-[0.2em] text-arena">
                         {d.tipo}
                       </span>
                       <span className="mt-1.5 block font-serif text-3xl font-light leading-[1.05]">{d.nombre}</span>
                       <span className="mt-2 block text-sm leading-snug text-neutral-cream transition-all duration-500 [@media(hover:hover)]:max-h-0 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:max-h-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-visible:max-h-40 [@media(hover:hover)]:group-focus-visible:opacity-100">
                         {d.resumen}
                       </span>
-                      <span className="mt-3 inline-flex items-center gap-2 text-[13px] text-manhattan">
+                      <span className="mt-3 inline-flex items-center gap-2 text-[13px] text-arena">
                         Ver tratamiento
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                       </span>

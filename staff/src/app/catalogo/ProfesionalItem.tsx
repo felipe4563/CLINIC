@@ -1,22 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { api, API_URL } from '@/lib/api';
+import PerfilWebModal from './PerfilWebModal';
+import DetallesProfesionalModal from './DetallesProfesionalModal';
 import type { Servicio } from './ServicioItem';
 
 export type Profesional = {
   id: number;
   nombre: string;
+  slug?: string | null;
   especialidad: string | null;
   registro_profesional?: string | null;
+  cargo?: string | null;
+  biografia?: string | null;
+  formacion?: { titulo: string; detalle: string }[];
+  mostrar_en_web?: boolean;
+  orden_web?: number;
   foto_url: string | null;
   activo: boolean;
   Servicios?: Servicio[];
 };
 
-type Horario = { id: number; dia_semana: number; hora_inicio: string; hora_fin: string };
-
-const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+// Las fotos subidas viven en la API; las que se cargaron antes como enlace se usan tal cual.
+export function fotoSrc(fotoUrl: string | null | undefined) {
+  if (!fotoUrl) return null;
+  return fotoUrl.startsWith('/uploads/') ? `${API_URL}${fotoUrl}` : fotoUrl;
+}
 
 export default function ProfesionalItem({
   profesional,
@@ -28,32 +39,18 @@ export default function ProfesionalItem({
   onChange: () => void;
 }) {
   const [editando, setEditando] = useState(false);
-  const [expandido, setExpandido] = useState(false);
+  const [detallesAbierto, setDetallesAbierto] = useState(false);
+  const [perfilAbierto, setPerfilAbierto] = useState(false);
   const [nombre, setNombre] = useState(profesional.nombre);
   const [especialidad, setEspecialidad] = useState(profesional.especialidad || '');
   const [registro, setRegistro] = useState(profesional.registro_profesional || '');
-  const [fotoUrl, setFotoUrl] = useState(profesional.foto_url || '');
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
-
-  const [horarios, setHorarios] = useState<Horario[]>([]);
-  const [diaNuevo, setDiaNuevo] = useState('1');
-  const [horaInicioNueva, setHoraInicioNueva] = useState('09:00');
-  const [horaFinNueva, setHoraFinNueva] = useState('17:00');
-
-  const serviciosAsignadosIds = new Set((profesional.Servicios || []).map((s) => s.id));
-
-  useEffect(() => {
-    if (expandido) {
-      api.getHorarios(profesional.id).then(setHorarios).catch(() => setHorarios([]));
-    }
-  }, [expandido, profesional.id]);
 
   function empezarEdicion() {
     setNombre(profesional.nombre);
     setEspecialidad(profesional.especialidad || '');
     setRegistro(profesional.registro_profesional || '');
-    setFotoUrl(profesional.foto_url || '');
     setError('');
     setEditando(true);
   }
@@ -66,7 +63,6 @@ export default function ProfesionalItem({
         nombre,
         especialidad: especialidad || null,
         registro_profesional: registro || null,
-        foto_url: fotoUrl || null,
       });
       setEditando(false);
       onChange();
@@ -80,30 +76,6 @@ export default function ProfesionalItem({
   async function toggleActivo() {
     await api.actualizarProfesional(profesional.id, { activo: !profesional.activo });
     onChange();
-  }
-
-  async function toggleServicio(servicioId: number, asignado: boolean) {
-    if (asignado) {
-      await api.desvincularServicio(profesional.id, servicioId);
-    } else {
-      await api.vincularServicio(profesional.id, servicioId);
-    }
-    onChange();
-  }
-
-  async function agregarHorario(e: React.FormEvent) {
-    e.preventDefault();
-    const nuevo = await api.crearHorario(profesional.id, {
-      dia_semana: Number(diaNuevo),
-      hora_inicio: horaInicioNueva,
-      hora_fin: horaFinNueva,
-    });
-    setHorarios((h) => [...h, nuevo].sort((a, b) => a.dia_semana - b.dia_semana || a.hora_inicio.localeCompare(b.hora_inicio)));
-  }
-
-  async function eliminarHorario(id: number) {
-    await api.eliminarHorario(id);
-    setHorarios((h) => h.filter((x) => x.id !== id));
   }
 
   if (editando) {
@@ -121,12 +93,6 @@ export default function ProfesionalItem({
             placeholder="Registro profesional (sale en el consentimiento)"
             value={registro}
             onChange={(e) => setRegistro(e.target.value)}
-            className="rounded border border-border px-2 py-1.5"
-          />
-          <input
-            value={fotoUrl}
-            onChange={(e) => setFotoUrl(e.target.value)}
-            placeholder="URL de foto (opcional)"
             className="rounded border border-border px-2 py-1.5"
           />
           {error && <p className="text-xs text-danger">{error}</p>}
@@ -158,9 +124,9 @@ export default function ProfesionalItem({
   return (
     <div className="rounded-xl border border-border bg-panel text-sm shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex flex-col gap-3 p-4">
-        <button onClick={() => setExpandido((v) => !v)} className="flex min-w-0 items-center gap-3 text-left">
+        <button onClick={() => setDetallesAbierto(true)} className="flex min-w-0 items-center gap-3 text-left">
           {profesional.foto_url ? (
-            <img src={profesional.foto_url} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
+            <img src={fotoSrc(profesional.foto_url)!} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover object-top" />
           ) : (
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-soft text-base font-semibold text-accent">
               {iniciales || '?'}
@@ -173,6 +139,7 @@ export default function ProfesionalItem({
             <p className="mt-0.5 text-xs text-muted-foreground">
               {(profesional.Servicios || []).length} servicio(s) asignado(s)
               {!profesional.activo ? ' · Inactivo' : ''}
+              {profesional.mostrar_en_web ? ' · En la web' : ''}
             </p>
           </span>
         </button>
@@ -183,79 +150,28 @@ export default function ProfesionalItem({
           <button onClick={toggleActivo} className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft">
             {profesional.activo ? 'Desactivar' : 'Activar'}
           </button>
-          <button onClick={() => setExpandido((v) => !v)} className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft">
-            {expandido ? 'Ocultar' : 'Detalles'}
+          <button onClick={() => setPerfilAbierto(true)} className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft">
+            Perfil web
+          </button>
+          <button onClick={() => setDetallesAbierto(true)} className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft">
+            Servicios y horario
           </button>
         </div>
       </div>
 
-      {expandido && (
-        <div className="flex flex-col gap-4 border-t border-border p-3">
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Servicios que atiende</p>
-            <div className="flex flex-wrap gap-2">
-              {todosLosServicios.map((s) => {
-                const asignado = serviciosAsignadosIds.has(s.id);
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => toggleServicio(s.id, asignado)}
-                    className={`rounded-full border px-3 py-1 text-xs ${
-                      asignado ? 'border-accent bg-accent-soft text-accent' : 'border-border text-muted-foreground hover:border-accent'
-                    }`}
-                  >
-                    {s.nombre}
-                  </button>
-                );
-              })}
-              {todosLosServicios.length === 0 && <p className="text-xs text-muted-foreground">No hay servicios en el catálogo.</p>}
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Horario disponible</p>
-            <div className="flex flex-col gap-1.5">
-              {horarios.map((h) => (
-                <div key={h.id} className="flex items-center justify-between rounded border border-border px-2.5 py-1.5 text-xs">
-                  <span>
-                    {DIAS[h.dia_semana]} · {h.hora_inicio.slice(0, 5)}–{h.hora_fin.slice(0, 5)}
-                  </span>
-                  <button onClick={() => eliminarHorario(h.id)} className="text-danger hover:underline">
-                    Quitar
-                  </button>
-                </div>
-              ))}
-              {horarios.length === 0 && <p className="text-xs text-muted-foreground">Sin horarios configurados.</p>}
-            </div>
-
-            <form onSubmit={agregarHorario} className="mt-2 flex flex-wrap items-center gap-2">
-              <select value={diaNuevo} onChange={(e) => setDiaNuevo(e.target.value)} className="rounded border border-border px-2 py-1.5 text-xs">
-                {DIAS.map((d, i) => (
-                  <option key={i} value={i}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="time"
-                value={horaInicioNueva}
-                onChange={(e) => setHoraInicioNueva(e.target.value)}
-                className="rounded border border-border px-2 py-1.5 text-xs"
-              />
-              <span className="text-xs text-muted-foreground">a</span>
-              <input
-                type="time"
-                value={horaFinNueva}
-                onChange={(e) => setHoraFinNueva(e.target.value)}
-                className="rounded border border-border px-2 py-1.5 text-xs"
-              />
-              <button type="submit" className="rounded bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground">
-                Agregar
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* En el body: la tarjeta se mueve al pasar el mouse y su transform encerraría a los modales fijos. */}
+      {perfilAbierto &&
+        createPortal(<PerfilWebModal profesional={profesional} onClose={() => setPerfilAbierto(false)} onCambio={onChange} />, document.body)}
+      {detallesAbierto &&
+        createPortal(
+          <DetallesProfesionalModal
+            profesional={profesional}
+            todosLosServicios={todosLosServicios}
+            onClose={() => setDetallesAbierto(false)}
+            onCambio={onChange}
+          />,
+          document.body,
+        )}
     </div>
   );
 }

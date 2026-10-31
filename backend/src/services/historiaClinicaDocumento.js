@@ -18,12 +18,19 @@ function hoyEnBolivia() {
   return formatoFecha(partes);
 }
 
-function edadA(fechaNacimiento, fechaReferencia) {
-  if (!fechaNacimiento) return '';
-  const [an, mn, dn] = fechaNacimiento.split('-').map(Number);
-  const [ar, mr, dr] = (fechaReferencia || new Date().toISOString().slice(0, 10)).split('-').map(Number);
-  let edad = ar - an;
-  if (mr < mn || (mr === mn && dr < dn)) edad -= 1;
+function aniosEntre(desde, hasta) {
+  const [an, mn, dn] = desde.split('-').map(Number);
+  const [ar, mr, dr] = (hasta || new Date().toISOString().slice(0, 10)).split('-').map(Number);
+  return ar - an - (mr < mn || (mr === mn && dr < dn) ? 1 : 0);
+}
+
+// Sin fecha de nacimiento se usa la edad dicha al reservar, sumando los años
+// pasados desde ese día.
+function edadA(fechaNacimiento, fechaReferencia, edadDicha = null, edadFecha = null) {
+  let edad;
+  if (fechaNacimiento) edad = aniosEntre(fechaNacimiento, fechaReferencia);
+  else if (edadDicha !== null && edadDicha !== undefined) edad = edadDicha + (edadFecha ? Math.max(0, aniosEntre(edadFecha, fechaReferencia)) : 0);
+  else return '';
   return edad >= 0 ? String(edad) : '';
 }
 
@@ -82,7 +89,7 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
     { tipo: 'seccion', titulo: '1. Datos personales' },
     { tipo: 'campo', etiqueta: 'Nombres y apellidos', valor: p.nombre_completo || '' },
     { tipo: 'campo', etiqueta: 'Fecha de nacimiento', valor: p.fecha_nacimiento ? formatoFecha(p.fecha_nacimiento) : '' },
-    { tipo: 'campo', etiqueta: 'Edad', valor: edadA(p.fecha_nacimiento, h.fecha) },
+    { tipo: 'campo', etiqueta: 'Edad', valor: edadA(p.fecha_nacimiento, h.fecha, p.edad, p.edad_fecha) },
     { tipo: 'etiqueta', texto: 'Sexo' },
     casillasDeOpciones(SEXO, p.sexo),
     { tipo: 'campo', etiqueta: 'C.I.', valor: carnet(p) },

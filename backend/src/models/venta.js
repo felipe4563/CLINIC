@@ -3,6 +3,9 @@ const sequelize = require('../config/database');
 
 const Venta = sequelize.define('Venta', {
   fecha: { type: DataTypes.DATEONLY, allowNull: false },
+  // Antes del descuento; total ya lo tiene aplicado.
+  subtotal: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
+  descuento_porcentaje: { type: DataTypes.DECIMAL(5, 2), allowNull: false, defaultValue: 0 },
   total: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   metodo_pago: { type: DataTypes.ENUM('efectivo', 'qr'), allowNull: false, defaultValue: 'efectivo' },
   estado: { type: DataTypes.ENUM('pendiente', 'pagado'), allowNull: false, defaultValue: 'pagado' },

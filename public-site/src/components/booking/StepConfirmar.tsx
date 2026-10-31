@@ -67,7 +67,7 @@ export default function StepConfirmar() {
 
         <div className="flex flex-col gap-5 rounded-3xl bg-espresso p-6 text-neutral-cream sm:flex-row sm:items-center sm:px-8">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Total</p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-arena">Total</p>
             <p className="font-serif text-5xl font-light text-cream">{precio !== null ? `Bs ${precio.toLocaleString('es-BO')}` : '—'}</p>
             <p className="mt-1 text-[15px]">
               {cobraAdelanto ? 'Pagas el total con QR para asegurar tu horario.' : 'Pagas el total en la clínica el día de tu cita.'}
@@ -88,7 +88,7 @@ export default function StepConfirmar() {
                   ? `Confirmar y pagar Bs ${montoAPagar}`
                   : 'Confirmar reserva'}
           </button>
-          {cobraAdelanto && !aceptaPolitica && <p className="mt-2 text-center text-xs text-manhattan">Acepta la política de inasistencia para continuar.</p>}
+          {cobraAdelanto && !aceptaPolitica && <p className="mt-2 text-center text-xs text-arena">Acepta la política de inasistencia para continuar.</p>}
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@ export default function Cinta() {
     <div aria-hidden="true" className="overflow-hidden bg-espresso py-6 text-neutral-cream">
       <div className="cinta gap-14 whitespace-nowrap font-serif text-3xl font-light md:text-4xl">
         {[...vuelta, ...vuelta].map((texto, i) => (
-          <span key={i} className={texto === '·' ? 'text-manhattan' : ''}>{texto}</span>
+          <span key={i} className={texto === '·' ? 'text-arena' : ''}>{texto}</span>
         ))}
       </div>
     </div>

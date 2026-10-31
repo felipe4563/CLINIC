@@ -7,6 +7,7 @@ const { enviarSiCorresponde } = require('../services/notificacionesAutomaticas')
 const { crearReportePDF, dibujarTabla, formatoFecha, COLOR } = require('../services/pdf');
 const { otorgarPuntosPorGasto } = require('../services/fidelizacion');
 const { conPolitica } = require('../services/politicaInasistencia');
+const { descontarPorCita, revertirPorCita } = require('../services/consumoTratamiento');
 const { otorgarSello, revertirSello } = require('../services/sellos');
 
 const router = express.Router();
@@ -29,6 +30,16 @@ router.post('/staff/citas', requirePermiso('agenda'), async (req, res) => {
   const servicio = await db.Servicio.findByPk(servicioId);
   if (!servicio) return res.status(404).json({ error: 'Servicio no encontrado' });
 
+  // En tratamientos el descuento es en Bs y se pone al crear la cita.
+  const precio = Number(servicio.precio);
+  const descuento = req.body.descuento === undefined || req.body.descuento === '' || req.body.descuento === null ? 0 : Number(req.body.descuento);
+  if (!Number.isFinite(descuento) || descuento < 0) {
+    return res.status(400).json({ error: 'El descuento debe ser un monto en Bs' });
+  }
+  if (descuento > precio) {
+    return res.status(400).json({ error: `El descuento no puede ser mayor al precio (Bs ${precio.toFixed(2)})` });
+  }
+
   const slots = await getSlotsDisponibles({
     profesionalId: Number(profesionalId),
     servicioId: Number(servicioId),
@@ -49,13 +60,15 @@ router.post('/staff/citas', requirePermiso('agenda'), async (req, res) => {
     estado: pagada ? 'confirmada' : 'pendiente_pago',
   });
 
-  const montoTotal = Number(servicio.precio);
+  const descuentoBs = Math.round(descuento * 100) / 100;
+  const montoTotal = Math.round((precio - descuentoBs) * 100) / 100;
   const monto = Math.round(montoTotal * (porcentaje / 100) * 100) / 100;
 
   const pago = await db.Pago.create({
     cita_id: cita.id,
     monto,
     monto_total: montoTotal,
+    descuento: descuentoBs,
     porcentaje,
     estado: pagada ? 'pagado' : 'pendiente',
   });
@@ -226,10 +239,14 @@ router.patch('/staff/citas/:id/estado', requirePermiso('agenda'), async (req, re
 
   // Tarjeta de sellos: después de asignar el paquete, para saber si la sesión era un premio.
   let sello = null;
+  // Lo que usa el tratamiento sale del inventario al completarse (y vuelve si se deshace).
+  let faltantes = [];
   if (estado === 'completada' && estadoAnterior !== 'completada') {
     sello = await otorgarSello(cita, req.usuarioId);
+    faltantes = await descontarPorCita(cita, req.usuarioId);
   } else if (estado !== 'completada' && estadoAnterior === 'completada') {
     await revertirSello(cita);
+    await revertirPorCita(cita, req.usuarioId);
   }
 
   const evento = TEMPLATE_POR_ESTADO[estado];
@@ -247,7 +264,7 @@ router.patch('/staff/citas/:id/estado', requirePermiso('agenda'), async (req, re
     }
   }
 
-  res.json({ ...cita.toJSON(), sello });
+  res.json({ ...cita.toJSON(), sello, faltantes });
 });
 
 module.exports = router;

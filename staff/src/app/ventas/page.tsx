@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
+import { imprimirComprobanteVenta } from '@/lib/comprobanteVenta';
 import { IconTrash, IconPhoto, IconChevronDown, IconShoppingCart } from '@/components/icons';
-import AcapiteProductos, { type ProductoVenta } from './AcapiteProductos';
+import type { ProductoVenta } from '../inventario/ProductosCaja';
 
 function hoyISO() {
   const d = new Date();
@@ -14,13 +16,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 type Producto = ProductoVenta;
 
-// Acápites que pidió la doctora; "Vender" e "Historial" son el cobro y lo vendido.
-type Pestana = 'vender' | 'ventas' | 'activos' | 'mantenimiento' | 'historial';
+// Ventas es solo cobrar y ver lo vendido; los productos (precio, cuántos hay) se
+// manejan en Inventario → Ventas, y el mantenimiento de equipos en Inventario.
+type Pestana = 'vender' | 'historial';
 const PESTANAS: { clave: Pestana; texto: string }[] = [
-  { clave: 'vender', texto: 'Vender' },
-  { clave: 'ventas', texto: 'Ventas' },
-  { clave: 'activos', texto: 'Activos' },
-  { clave: 'mantenimiento', texto: 'Mantenimiento' },
+  { clave: 'vender', texto: 'Ventas' },
   { clave: 'historial', texto: 'Historial' },
 ];
 
@@ -31,11 +31,18 @@ function imagenSrc(imagenUrl: string | null) {
 
 type ItemCarrito = { producto: Producto; cantidad: number };
 
+// Igual que la reserva web: QR del banco (se confirma solo) o el QR fijo de la clínica
+// (el personal confirma). Sin ninguno de los dos, solo se cobra en efectivo.
+type ModoQR = 'banco' | 'fijo' | null;
+type VentaQR = { ventaId: number; modo: 'banco'; qr: string } | { ventaId: number; modo: 'fijo'; url: string; datos: string | null };
+
 type PacienteBusqueda = { id: number; nombre_completo: string; telefono: string };
 
 type VentaHistorial = {
   id: number;
   total: string;
+  subtotal: string | null;
+  descuento_porcentaje: string;
   metodo_pago: 'efectivo' | 'qr';
   estado: 'pendiente' | 'pagado';
   cliente_nombre: string | null;
@@ -50,6 +57,8 @@ export default function VentasPage() {
   const [q, setQ] = useState('');
   const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   const [clienteNombre, setClienteNombre] = useState('');
+  // Descuento de la venta, solo en % (los descuentos en Bs son de tratamientos).
+  const [descuento, setDescuento] = useState('');
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState<PacienteBusqueda | null>(null);
   const [sugerenciasPacientes, setSugerenciasPacientes] = useState<PacienteBusqueda[]>([]);
   const [buscandoPaciente, setBuscandoPaciente] = useState(false);
@@ -71,9 +80,23 @@ export default function VentasPage() {
   }
 
   const [cobrando, setCobrando] = useState(false);
-  const [ventaQR, setVentaQR] = useState<{ ventaId: number; qr: string } | null>(null);
-  const [confirmada, setConfirmada] = useState(false);
+  const [ventaQR, setVentaQR] = useState<VentaQR | null>(null);
+  // Aviso de la última venta cobrada, con su comprobante a mano para imprimir.
+  const [aviso, setAviso] = useState<{ texto: string; ventaId: number } | null>(null);
+  const [imprimiendo, setImprimiendo] = useState<number | null>(null);
+  const [confirmando, setConfirmando] = useState(false);
+  const [modoQR, setModoQR] = useState<ModoQR>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const carritoRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    api
+      .getConfiguracionPublica()
+      .then((c: { metodo_pago_online: string; qr_fijo_url: string | null }) =>
+        setModoQR(c.metodo_pago_online === 'qr_banco' ? 'banco' : c.qr_fijo_url ? 'fijo' : null),
+      )
+      .catch(() => setModoQR(null));
+  }, []);
 
   const cargarProductos = useCallback(async () => {
     try {
@@ -159,44 +182,67 @@ export default function VentasPage() {
     setCarrito((c) => c.filter((i) => i.producto.id !== productoId));
   }
 
-  const total = carrito.reduce((acc, i) => acc + Number(i.producto.precio_venta) * i.cantidad, 0);
+  const subtotal = carrito.reduce((acc, i) => acc + Number(i.producto.precio_venta) * i.cantidad, 0);
+  const porcentaje = Number(descuento) || 0;
+  const descuentoInvalido = descuento !== '' && !(porcentaje >= 0 && porcentaje <= 100);
+  const montoDescuento = descuentoInvalido ? 0 : Math.round(subtotal * porcentaje) / 100;
+  const total = Math.round((subtotal - montoDescuento) * 100) / 100;
 
   function limpiarVenta() {
     setCarrito([]);
+    setDescuento('');
     setClienteNombre('');
     setPacienteSeleccionado(null);
     setSugerenciasPacientes([]);
     setVentaQR(null);
-    setConfirmada(false);
     if (pollRef.current) clearInterval(pollRef.current);
   }
 
+  // Cobrada la venta se vuelve directo a la pestaña Ventas, lista para la siguiente.
+  function ventaCobrada(monto: number, ventaId: number) {
+    limpiarVenta();
+    setTab('vender');
+    setAviso({ texto: `Venta de Bs ${monto.toFixed(2)} cobrada.`, ventaId });
+    cargarProductos();
+    cargarVentas(fechaVentas);
+  }
+
+  async function imprimir(ventaId: number) {
+    setImprimiendo(ventaId);
+    setError('');
+    try {
+      await imprimirComprobanteVenta(ventaId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo imprimir el comprobante');
+    } finally {
+      setImprimiendo(null);
+    }
+  }
+
   async function cobrar(metodoPago: 'efectivo' | 'qr') {
-    if (carrito.length === 0) return;
+    if (carrito.length === 0 || descuentoInvalido) return;
     setCobrando(true);
     setError('');
     try {
       const res = await api.crearVenta({
         items: carrito.map((i) => ({ productoId: i.producto.id, cantidad: i.cantidad })),
         metodoPago,
+        descuentoPorcentaje: porcentaje,
         clienteNombre: pacienteSeleccionado ? null : clienteNombre || null,
         pacienteId: pacienteSeleccionado ? pacienteSeleccionado.id : null,
       });
 
       if (metodoPago === 'efectivo') {
-        limpiarVenta();
-        cargarProductos();
-        cargarVentas(fechaVentas);
+        ventaCobrada(total, res.venta.id);
+      } else if (res.modo === 'fijo') {
+        setVentaQR({ ventaId: res.venta.id, modo: 'fijo', url: res.qrFijo.url, datos: res.qrFijo.datos });
       } else {
-        setVentaQR({ ventaId: res.venta.id, qr: res.qrImageBase64 });
+        setVentaQR({ ventaId: res.venta.id, modo: 'banco', qr: res.qrImageBase64 });
         pollRef.current = setInterval(async () => {
           try {
             const estado = await api.estadoVentaQR(res.venta.id);
             if (estado.pagado) {
-              if (pollRef.current) clearInterval(pollRef.current);
-              setConfirmada(true);
-              cargarProductos();
-              cargarVentas(fechaVentas);
+              ventaCobrada(total, res.venta.id);
             }
           } catch {
             // reintenta solo
@@ -207,6 +253,20 @@ export default function VentasPage() {
       setError(err instanceof Error ? err.message : 'No se pudo registrar la venta');
     } finally {
       setCobrando(false);
+    }
+  }
+
+  async function confirmarPagoFijo() {
+    if (!ventaQR) return;
+    setConfirmando(true);
+    setError('');
+    try {
+      await api.confirmarVentaQR(ventaQR.ventaId);
+      ventaCobrada(total, ventaQR.ventaId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo confirmar el pago');
+    } finally {
+      setConfirmando(false);
     }
   }
 
@@ -225,26 +285,36 @@ export default function VentasPage() {
   if (ventaQR) {
     return (
       <div className="mx-auto max-w-sm text-center">
-        {confirmada ? (
-          <>
-            <h1 className="text-lg font-semibold">Venta confirmada</h1>
-            <p className="mt-2 text-sm text-muted-foreground">El pago fue recibido correctamente.</p>
-            <button onClick={limpiarVenta} className="mt-6 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground">
-              Nueva venta
-            </button>
-          </>
-        ) : (
           <>
             <h1 className="text-lg font-semibold">Cobra Bs {total.toFixed(2)} con QR</h1>
-            <img src={`data:image/png;base64,${ventaQR.qr}`} alt="QR de pago" className="mx-auto mt-4 w-56" />
-            <p className="mt-4 text-xs text-muted-foreground">
-              Que el cliente escanee el código. Estamos revisando automáticamente si ya llegó el pago.
-            </p>
-            <button onClick={cancelarVentaQR} className="mt-6 rounded-lg border border-border px-4 py-2 text-sm">
+            {ventaQR.modo === 'banco' ? (
+              <>
+                <img src={`data:image/png;base64,${ventaQR.qr}`} alt="QR de pago" className="mx-auto mt-4 w-56" />
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Que el cliente escanee el código. Estamos revisando automáticamente si ya llegó el pago.
+                </p>
+              </>
+            ) : (
+              <>
+                <img src={imagenSrc(ventaQR.url)!} alt="QR de la clínica" className="mx-auto mt-4 w-56 rounded-lg bg-white object-contain p-2" />
+                {ventaQR.datos && <p className="mt-3 text-sm">{ventaQR.datos}</p>}
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Que el cliente pague Bs {total.toFixed(2)} con este QR. Cuando veas el pago en la cuenta, confírmalo.
+                </p>
+                {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+                <button
+                  onClick={confirmarPagoFijo}
+                  disabled={confirmando}
+                  className="mt-5 w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground disabled:opacity-50"
+                >
+                  {confirmando ? 'Confirmando…' : 'Ya pagó, confirmar'}
+                </button>
+              </>
+            )}
+            <button onClick={cancelarVentaQR} className="mt-3 rounded-lg border border-border px-4 py-2 text-sm">
               Cancelar venta
             </button>
           </>
-        )}
       </div>
     );
   }
@@ -253,6 +323,24 @@ export default function VentasPage() {
     <div>
       <h1 className="mb-4 text-lg font-semibold">Ventas</h1>
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
+      {aviso && (
+        <div role="status" className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stat-green/40 bg-stat-green/10 px-4 py-2.5 text-sm">
+          <p>{aviso.texto}</p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => imprimir(aviso.ventaId)}
+              disabled={imprimiendo === aviso.ventaId}
+              className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground disabled:opacity-50"
+            >
+              {imprimiendo === aviso.ventaId ? 'Preparando…' : 'Imprimir comprobante'}
+            </button>
+            <button type="button" onClick={() => setAviso(null)} className="rounded border border-border px-3 py-1.5 text-sm hover:bg-accent-soft">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
         {PESTANAS.map((p) => (
@@ -267,7 +355,7 @@ export default function VentasPage() {
       </div>
 
       {tab === 'vender' && (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_340px]">
+      <div className={`grid grid-cols-1 gap-4 lg:grid-cols-[1fr_340px] ${carrito.length > 0 ? 'pb-20 lg:pb-0' : ''}`}>
         <div>
           <input
             type="search"
@@ -281,9 +369,9 @@ export default function VentasPage() {
               <p>
                 {cantidadSinPrecio === 1 ? 'Hay 1 producto sin precio' : `Hay ${cantidadSinPrecio} productos sin precio`}: no se pueden vender hasta que tengan uno.
               </p>
-              <button type="button" onClick={() => setTab('ventas')} className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground">
+              <Link href="/inventario?tab=ventas" className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground">
                 Ponerles precio
-              </button>
+              </Link>
             </div>
           )}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
@@ -297,7 +385,7 @@ export default function VentasPage() {
                   key={p.id}
                   onClick={() => agregarAlCarrito(p)}
                   disabled={p.stock === 0 || sinPrecio}
-                  title={sinPrecio ? 'Ponle precio en la pestaña Ventas' : undefined}
+                  title={sinPrecio ? 'Ponle precio en Inventario → Ventas' : undefined}
                   className="group relative overflow-hidden rounded-xl border border-border bg-panel text-left shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-accent hover:shadow-md active:translate-y-0 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm"
                 >
                   <div className="relative aspect-square w-full overflow-hidden bg-accent-soft">
@@ -347,9 +435,13 @@ export default function VentasPage() {
           </div>
         </div>
 
-        <div className="flex flex-col rounded-lg border border-border bg-panel p-3">
+        {/* Fijo al bajar: el total y los botones de cobro siempre a la vista. */}
+        <div
+          ref={carritoRef}
+          className="flex scroll-mt-20 flex-col rounded-lg border border-border bg-panel p-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start"
+        >
           <p className="mb-2 text-sm font-semibold">Carrito</p>
-          <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
             {carrito.map((i) => {
               const src = imagenSrc(i.producto.imagen_url);
               return (
@@ -432,34 +524,81 @@ export default function VentasPage() {
             )}
           </div>
 
-          <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-sm font-semibold">
-            <span>Total</span>
-            <span>Bs {total.toFixed(2)}</span>
+          <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-sm">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span>Subtotal</span>
+              <span>Bs {subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor="descuento-venta" className="text-muted-foreground">
+                Descuento
+              </label>
+              <div className="flex items-center gap-2">
+                {montoDescuento > 0 && <span className="text-xs text-muted-foreground">− Bs {montoDescuento.toFixed(2)}</span>}
+                <div className="flex items-center rounded border border-border focus-within:border-accent">
+                  <input
+                    id="descuento-venta"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={100}
+                    step="any"
+                    placeholder="0"
+                    value={descuento}
+                    onChange={(e) => setDescuento(e.target.value)}
+                    className="w-16 [appearance:textfield] bg-transparent px-2 py-1 text-right text-sm outline-none focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                  <span className="pr-2 text-muted-foreground">%</span>
+                </div>
+              </div>
+            </div>
+            {descuentoInvalido && <p className="text-xs text-danger">El descuento va de 0 a 100 %.</p>}
+            <div className="flex items-center justify-between font-semibold">
+              <span>Total</span>
+              <span>Bs {total.toFixed(2)}</span>
+            </div>
           </div>
 
           <div className="mt-3 flex gap-2">
             <button
               onClick={() => cobrar('efectivo')}
-              disabled={cobrando || carrito.length === 0}
+              disabled={cobrando || carrito.length === 0 || descuentoInvalido}
               className="flex-1 rounded border border-border px-3 py-2 text-sm font-medium hover:bg-accent-soft disabled:opacity-50"
             >
               Efectivo
             </button>
-            <button
-              onClick={() => cobrar('qr')}
-              disabled={cobrando || carrito.length === 0}
-              className="flex-1 rounded bg-accent px-3 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
-            >
-              {cobrando ? 'Procesando…' : 'Cobrar con QR'}
-            </button>
+            {modoQR && (
+              <button
+                onClick={() => cobrar('qr')}
+                disabled={cobrando || carrito.length === 0 || descuentoInvalido || !(total > 0)}
+                className="flex-1 rounded bg-accent px-3 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
+              >
+                {cobrando ? 'Procesando…' : 'Cobrar con QR'}
+              </button>
+            )}
           </div>
+          {!modoQR && (
+            <p className="mt-2 text-xs text-muted-foreground">Para cobrar con QR, sube el QR de la clínica en Configuración.</p>
+          )}
         </div>
       </div>
       )}
 
-      {(tab === 'ventas' || tab === 'activos' || tab === 'mantenimiento') && (
-        <AcapiteProductos acapite={tab} titulo={PESTANAS.find((p) => p.clave === tab)!.texto} productos={productos} onCambio={cargarProductos} />
+      {tab === 'vender' && carrito.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-panel px-4 py-3 shadow-[0_-8px_24px_rgba(0,0,0,0.15)] lg:hidden">
+          <button
+            type="button"
+            onClick={() => carritoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="flex w-full items-center justify-between rounded-lg bg-accent px-4 py-3 text-sm font-medium text-accent-foreground"
+          >
+            <span>
+              {carrito.reduce((acc, i) => acc + i.cantidad, 0)} en el carrito · Bs {total.toFixed(2)}
+            </span>
+            <span>Ir a cobrar</span>
+          </button>
+        </div>
       )}
+
 
       {tab === 'historial' && (
       <div>
@@ -490,6 +629,7 @@ export default function VentasPage() {
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {v.Paciente?.nombre_completo || v.cliente_nombre || 'Cliente mostrador'} · {v.Usuario.nombre}
                     {v.estado === 'pendiente' ? ' · Pendiente de pago' : ''}
+                    {Number(v.descuento_porcentaje) > 0 ? ` · Descuento ${Number(v.descuento_porcentaje)} %` : ''}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
@@ -510,7 +650,23 @@ export default function VentasPage() {
                         <span className="w-20 shrink-0 text-right font-medium">Bs {(it.cantidad * Number(it.precio_unitario)).toFixed(2)}</span>
                       </div>
                     ))}
+                    {Number(v.descuento_porcentaje) > 0 && (
+                      <div className="flex items-center justify-between gap-2 border-t border-border pt-1.5 text-xs text-foreground/80">
+                        <span className="min-w-0 flex-1">Descuento {Number(v.descuento_porcentaje)} %</span>
+                        <span className="w-20 shrink-0 text-right font-medium">− Bs {(Number(v.subtotal) - Number(v.total)).toFixed(2)}</span>
+                      </div>
+                    )}
                   </div>
+                  {v.estado === 'pagado' && (
+                    <button
+                      type="button"
+                      onClick={() => imprimir(v.id)}
+                      disabled={imprimiendo === v.id}
+                      className="mt-3 rounded border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent-soft disabled:opacity-50"
+                    >
+                      {imprimiendo === v.id ? 'Preparando…' : 'Imprimir comprobante'}
+                    </button>
+                  )}
                 </div>
               )}
             </div>

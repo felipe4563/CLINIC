@@ -38,7 +38,7 @@ function Vinetas({ items, oscuro = false }: { items: string[]; oscuro?: boolean 
     <ul className="mt-5 space-y-3">
       {items.map((item) => (
         <li key={item} className="flex gap-3 leading-relaxed">
-          <span aria-hidden="true" className={oscuro ? 'text-manhattan' : 'text-tan'}>✦</span>
+          <span aria-hidden="true" className={oscuro ? 'text-arena' : 'text-tan'}>✦</span>
           <span>{item}</span>
         </li>
       ))}
@@ -109,7 +109,7 @@ export default async function PaginaTratamiento({ params }: Props) {
                 <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {t.beneficios.map((b, i) => (
                     <li key={b} className="flex flex-col gap-3 rounded-2xl bg-cream p-5">
-                      <span aria-hidden="true" className="font-serif text-3xl font-light leading-none text-manhattan">{String(i + 1).padStart(2, '0')}</span>
+                      <span aria-hidden="true" className="font-serif text-3xl font-light leading-none text-tan">{String(i + 1).padStart(2, '0')}</span>
                       <span className="leading-relaxed">{b}</span>
                     </li>
                   ))}
@@ -122,7 +122,7 @@ export default async function PaginaTratamiento({ params }: Props) {
                   <Vinetas items={t.antes} />
                 </section>
                 <section className="rounded-[28px] bg-espresso p-7 text-neutral-cream sm:p-10">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Cuidados</p>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-arena">Cuidados</p>
                   <h2 className="mt-2 font-serif text-[clamp(30px,3vw,44px)] font-light leading-tight text-cream">Después del tratamiento</h2>
                   <Vinetas items={t.despues} oscuro />
                 </section>

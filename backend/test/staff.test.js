@@ -233,6 +233,27 @@ describe('Staff (sistema interno)', () => {
         });
       expect(chocar.status).toBe(409);
     });
+
+    test('el descuento en Bs del tratamiento baja el precio de la cita', async () => {
+      const crear = (datos) =>
+        request(app)
+          .post('/staff/citas')
+          .set('Authorization', `Bearer ${token}`)
+          .send({ pacienteId: paciente.id, profesionalId: profesional.id, servicioId: servicio.id, fecha: '2030-09-12', ...datos });
+
+      expect((await crear({ horaInicio: '11:00', descuento: 150 })).status).toBe(400);
+      expect((await crear({ horaInicio: '11:00', descuento: -5 })).status).toBe(400);
+
+      const conDescuento = await crear({ horaInicio: '11:00', descuento: '20.5', pagada: true });
+      expect(conDescuento.status).toBe(201);
+      expect(Number(conDescuento.body.pago.descuento)).toBe(20.5);
+      expect(Number(conDescuento.body.pago.monto_total)).toBe(79.5);
+      expect(Number(conDescuento.body.pago.monto)).toBe(79.5);
+
+      const mitad = await crear({ horaInicio: '12:00', descuento: 20, porcentajePago: 50 });
+      expect(Number(mitad.body.pago.monto_total)).toBe(80);
+      expect(Number(mitad.body.pago.monto)).toBe(40);
+    });
   });
 
   describe('saldos pendientes y tratamientos', () => {
@@ -421,6 +442,35 @@ describe('Staff (sistema interno)', () => {
       expect(eliminar.status).toBe(204);
     });
 
+    test('lista lo más reciente primero, filtra por tipo y por rango de fechas', async () => {
+      const auth = { Authorization: `Bearer ${token}` };
+      const crear = (datos) => request(app).post('/staff/caja').set(auth).send(datos);
+      await crear({ tipo: 'egreso', concepto: 'Luz', monto: 30, fecha: '2030-01-10' });
+      await crear({ tipo: 'ingreso', concepto: 'Ingreso A', monto: 100, fecha: '2030-01-11' });
+      const ultimo = (await crear({ tipo: 'ingreso', concepto: 'Ingreso B', monto: 20, fecha: '2030-01-11' })).body;
+
+      const dia = await request(app).get('/staff/caja?fecha=2030-01-11').set(auth);
+      expect(dia.body.movimientos.map((m) => m.concepto)).toEqual(['Ingreso B', 'Ingreso A']);
+      expect(dia.body.movimientos[0].origen).toBe('manual');
+
+      const rango = await request(app).get('/staff/caja?desde=2030-01-11&hasta=2030-01-10').set(auth);
+      expect(rango.body).toEqual(expect.objectContaining({ desde: '2030-01-10', hasta: '2030-01-11', totalIngresos: 120, totalEgresos: 30, saldoNeto: 90 }));
+      expect(rango.body.movimientos.map((m) => m.concepto)).toEqual(['Ingreso B', 'Ingreso A', 'Luz']);
+
+      // El filtro achica la lista, pero los totales siguen siendo del periodo.
+      const egresos = await request(app).get('/staff/caja?desde=2030-01-10&hasta=2030-01-11&tipo=egreso').set(auth);
+      expect(egresos.body.movimientos.map((m) => m.concepto)).toEqual(['Luz']);
+      expect(egresos.body.totalIngresos).toBe(120);
+
+      expect((await request(app).get('/staff/caja?tipo=otro').set(auth)).status).toBe(400);
+      expect((await request(app).get('/staff/caja?desde=2030-01-10').set(auth)).status).toBe(400);
+      expect((await request(app).get('/staff/caja?desde=2028-01-01&hasta=2030-01-10').set(auth)).status).toBe(400);
+
+      const detalle = await request(app).get(`/staff/caja/${ultimo.id}/detalle`).set(auth);
+      expect(detalle.body).toEqual(expect.objectContaining({ origen: 'manual', concepto: 'Ingreso B', usuario: expect.any(String) }));
+      expect((await request(app).get('/staff/caja/999999/detalle').set(auth)).status).toBe(404);
+    });
+
     test('rechaza tipo invalido', async () => {
       const res = await request(app)
         .post('/staff/caja')
@@ -590,8 +640,10 @@ describe('Staff (sistema interno)', () => {
       const crear = await request(app)
         .post('/staff/servicios')
         .set('Authorization', `Bearer ${token}`)
-        .send({ nombre: 'Botox', duracion_min: 45, precio: 500 });
+        .send({ nombre: 'Botox', duracion_min: 45, precio: 500, especialidad: 'Medicina Estética', grupo: 'Armonización Facial' });
       expect(crear.status).toBe(201);
+      expect(crear.body.especialidad).toBe('Medicina Estética');
+      expect(crear.body.grupo).toBe('Armonización Facial');
 
       const editar = await request(app)
         .patch(`/staff/servicios/${crear.body.id}`)
@@ -601,11 +653,42 @@ describe('Staff (sistema interno)', () => {
       expect(Number(editar.body.precio)).toBe(550);
     });
 
+    test('el servicio nuevo pide una especialidad y un grupo que le corresponda', async () => {
+      const auth = { Authorization: `Bearer ${token}` };
+      const categorias = await request(app).get('/staff/servicios/categorias').set(auth);
+      expect(categorias.status).toBe(200);
+      expect(categorias.body.map((e) => e.nombre)).toContain('Fisioterapia');
+
+      const sinEspecialidad = await request(app).post('/staff/servicios').set(auth).send({ nombre: 'Sin cat', duracion_min: 30, precio: 10 });
+      expect(sinEspecialidad.status).toBe(400);
+      const grupoAjeno = await request(app)
+        .post('/staff/servicios')
+        .set(auth)
+        .send({ nombre: 'Mal grupo', duracion_min: 30, precio: 10, especialidad: 'Fisioterapia', grupo: 'Plasma Láser' });
+      expect(grupoAjeno.status).toBe(400);
+
+      const ok = await request(app).post('/staff/servicios').set(auth).send({ nombre: 'Masaje', duracion_min: 30, precio: 10, especialidad: 'Fisioterapia' });
+      expect(ok.status).toBe(201);
+      expect(ok.body.grupo).toBeNull();
+
+      // Al cambiar de especialidad sin decir el grupo, el grupo anterior ya no vale.
+      const conGrupo = await request(app)
+        .post('/staff/servicios')
+        .set(auth)
+        .send({ nombre: 'Hilos', duracion_min: 30, precio: 10, especialidad: 'Medicina Estética', grupo: 'Rejuvenecimiento · Lifting' });
+      const mover = await request(app).patch(`/staff/servicios/${conGrupo.body.id}`).set(auth).send({ especialidad: 'Enfermería' });
+      expect(mover.status).toBe(400);
+      const moverBien = await request(app).patch(`/staff/servicios/${conGrupo.body.id}`).set(auth).send({ especialidad: 'Enfermería', grupo: null });
+      expect(moverBien.status).toBe(200);
+      expect(moverBien.body.especialidad).toBe('Enfermería');
+      expect(moverBien.body.grupo).toBeNull();
+    });
+
     test('crea profesional, lo vincula a un servicio y le agrega horario', async () => {
       const crearServicio = await request(app)
         .post('/staff/servicios')
         .set('Authorization', `Bearer ${token}`)
-        .send({ nombre: 'Peeling', duracion_min: 30, precio: 200 });
+        .send({ nombre: 'Peeling', duracion_min: 30, precio: 200, especialidad: 'Medicina Estética' });
 
       const crearProf = await request(app)
         .post('/staff/profesionales')

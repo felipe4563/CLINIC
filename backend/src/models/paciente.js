@@ -9,6 +9,9 @@ const Paciente = sequelize.define('Paciente', {
   carnet_complemento: { type: DataTypes.STRING, allowNull: true },
   carnet_expedido: { type: DataTypes.STRING, allowNull: false },
   fecha_nacimiento: { type: DataTypes.DATEONLY, allowNull: true },
+  // Edad dicha al reservar en la web y el día en que se dijo.
+  edad: { type: DataTypes.INTEGER, allowNull: true },
+  edad_fecha: { type: DataTypes.DATEONLY, allowNull: true },
   puntos_actuales: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   sexo: { type: DataTypes.ENUM('F', 'M'), allowNull: true },
   estado_civil: { type: DataTypes.ENUM('S', 'C', 'D', 'V'), allowNull: true },

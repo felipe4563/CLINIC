@@ -41,6 +41,8 @@ export default function NuevaCitaModal({
   const [slots, setSlots] = useState<Slot[]>([]);
   const [horaInicio, setHoraInicio] = useState('');
   const [pagada, setPagada] = useState(false);
+  // En tratamientos el descuento es en Bs (en Ventas es en %).
+  const [descuento, setDescuento] = useState('');
 
   const [error, setError] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -114,9 +116,13 @@ export default function NuevaCitaModal({
     }
   }
 
+  const precio = Number(servicios.find((s) => String(s.id) === servicioId)?.precio ?? 0);
+  const descuentoBs = Number(descuento) || 0;
+  const descuentoInvalido = descuento !== '' && !(descuentoBs >= 0 && (!servicioId || descuentoBs <= precio));
+
   async function confirmar(e: FormEvent) {
     e.preventDefault();
-    if (!pacienteSeleccionado || !servicioId || !profesionalId || !horaInicio) return;
+    if (!pacienteSeleccionado || !servicioId || !profesionalId || !horaInicio || descuentoInvalido) return;
     setError(null);
     setGuardando(true);
     try {
@@ -127,6 +133,7 @@ export default function NuevaCitaModal({
         fecha,
         horaInicio,
         pagada,
+        descuento: descuentoBs,
       });
       onCreated();
     } catch (err) {
@@ -261,6 +268,32 @@ export default function NuevaCitaModal({
             </div>
           </div>
 
+          <div className="text-sm">
+            <label htmlFor="descuento-cita">Descuento (Bs)</label>
+            <input
+              id="descuento-cita"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              max={precio || undefined}
+              step="any"
+              placeholder="0"
+              value={descuento}
+              onChange={(e) => setDescuento(e.target.value)}
+              className="mt-1 w-full rounded border border-border px-2 py-1.5"
+            />
+            {descuentoInvalido ? (
+              <p className="mt-1 text-xs text-danger">El descuento va de 0 hasta el precio del tratamiento (Bs {precio.toFixed(2)}).</p>
+            ) : (
+              servicioId &&
+              descuentoBs > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Bs {precio.toFixed(2)} − Bs {descuentoBs.toFixed(2)} = <span className="font-medium text-foreground">Bs {(precio - descuentoBs).toFixed(2)}</span>
+                </p>
+              )
+            )}
+          </div>
+
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={pagada} onChange={(e) => setPagada(e.target.checked)} />
             Ya fue pagada (marcar como confirmada)
@@ -268,7 +301,7 @@ export default function NuevaCitaModal({
 
           <button
             type="submit"
-            disabled={guardando || !pacienteSeleccionado || !horaInicio}
+            disabled={guardando || !pacienteSeleccionado || !horaInicio || descuentoInvalido}
             className="mt-1 rounded bg-accent px-4 py-2 text-sm font-medium text-accent-foreground disabled:opacity-50"
           >
             {guardando ? 'Creando…' : 'Crear cita'}

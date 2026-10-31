@@ -8,6 +8,7 @@ export type PagoCita = {
   id: number;
   monto: string;
   monto_total: string;
+  descuento?: string;
   porcentaje: number;
   estado: 'pendiente' | 'pagado' | 'fallido';
   metodo_adelanto: 'qr_banco' | 'qr_fijo' | null;
@@ -187,7 +188,13 @@ export default function DayAgendaCards({
                     Carnet {cita.Paciente.carnet_identidad}
                     {cita.Paciente.carnet_complemento ? `-${cita.Paciente.carnet_complemento}` : ''}
                   </p>
-                  {cita.Servicio.precio && <p className="text-muted-foreground">Bs {cita.Servicio.precio}</p>}
+                  {Number(cita.Pago?.descuento) > 0 ? (
+                    <p className="text-muted-foreground">
+                      Bs {cita.Pago!.monto_total} <span className="text-xs">(descuento Bs {cita.Pago!.descuento})</span>
+                    </p>
+                  ) : (
+                    cita.Servicio.precio && <p className="text-muted-foreground">Bs {cita.Servicio.precio}</p>
+                  )}
                   {mostrarProfesional && <p className="text-muted-foreground">Con {cita.Profesional.nombre}</p>}
 
                   {cita.Pago?.tieneComprobante && (

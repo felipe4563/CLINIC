@@ -13,7 +13,7 @@ import Cinta from '@/components/inicio/Cinta';
 import CartaTratamientos from '@/components/inicio/CartaTratamientos';
 import MasBuscados from '@/components/inicio/MasBuscados';
 import PrimeraVisita from '@/components/inicio/PrimeraVisita';
-import Doctora from '@/components/inicio/Doctora';
+import Equipo from '@/components/inicio/Equipo';
 import PreguntasInicio from '@/components/inicio/PreguntasInicio';
 
 function HomeContent() {
@@ -30,7 +30,7 @@ function HomeContent() {
       <CartaTratamientos />
       <MasBuscados />
       <PrimeraVisita />
-      <Doctora onReservar={reservar} />
+      <Equipo onReservar={reservar} />
       <PreguntasInicio />
       <Contacto onReservar={reservar} />
       <Footer />

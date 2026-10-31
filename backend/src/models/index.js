@@ -18,6 +18,7 @@ const VentaItem = require('./ventaItem');
 const Marca = require('./marca');
 const CategoriaProducto = require('./categoriaProducto');
 const ServicioProducto = require('./servicioProducto');
+const MovimientoStock = require('./movimientoStock');
 const NotificacionAutomatica = require('./notificacionAutomatica');
 const AutomatizacionConfig = require('./automatizacionConfig');
 const RegistroAsistencia = require('./registroAsistencia');
@@ -34,6 +35,7 @@ const CartillaSellos = require('./cartillaSellos');
 const HistoriaClinica = require('./historiaClinica');
 const InventarioLugar = require('./inventarioLugar');
 const InventarioItem = require('./inventarioItem');
+const MantenimientoEquipo = require('./mantenimientoEquipo');
 
 Rol.hasMany(Usuario, { foreignKey: 'rol_id' });
 Usuario.belongsTo(Rol, { foreignKey: 'rol_id' });
@@ -133,6 +135,11 @@ CompraItem.belongsTo(Compra, { foreignKey: 'compra_id' });
 CompraItem.belongsTo(Producto, { foreignKey: { name: 'producto_id', allowNull: false } });
 Producto.hasMany(CompraItem, { foreignKey: 'producto_id' });
 
+MovimientoStock.belongsTo(Producto, { foreignKey: { name: 'producto_id', allowNull: false }, onDelete: 'CASCADE' });
+Producto.hasMany(MovimientoStock, { foreignKey: 'producto_id', onDelete: 'CASCADE' });
+MovimientoStock.belongsTo(Cita, { foreignKey: { name: 'cita_id', allowNull: true }, as: 'Cita', onDelete: 'SET NULL' });
+MovimientoStock.belongsTo(Usuario, { foreignKey: { name: 'usuario_id', allowNull: true }, onDelete: 'SET NULL' });
+
 MovimientoCaja.belongsTo(Compra, { foreignKey: { name: 'compra_id', allowNull: true } });
 Compra.hasOne(MovimientoCaja, { foreignKey: 'compra_id' });
 
@@ -170,10 +177,17 @@ HistoriaClinica.belongsTo(Usuario, { foreignKey: { name: 'actualizado_por_id', a
 InventarioItem.belongsTo(InventarioLugar, { foreignKey: { name: 'lugar_id', allowNull: false }, onDelete: 'CASCADE' });
 InventarioLugar.hasMany(InventarioItem, { foreignKey: 'lugar_id', onDelete: 'CASCADE' });
 
+MantenimientoEquipo.belongsTo(InventarioItem, { foreignKey: { name: 'inventario_item_id', allowNull: false }, onDelete: 'CASCADE' });
+InventarioItem.hasMany(MantenimientoEquipo, { foreignKey: 'inventario_item_id', onDelete: 'CASCADE' });
+MantenimientoEquipo.belongsTo(MovimientoCaja, { foreignKey: { name: 'movimiento_caja_id', allowNull: true }, onDelete: 'SET NULL' });
+MantenimientoEquipo.belongsTo(Usuario, { foreignKey: { name: 'usuario_salida_id', allowNull: true }, as: 'UsuarioSalida' });
+MantenimientoEquipo.belongsTo(Usuario, { foreignKey: { name: 'usuario_regreso_id', allowNull: true }, as: 'UsuarioRegreso' });
+
 module.exports = {
   sequelize,
   InventarioLugar,
   InventarioItem,
+  MantenimientoEquipo,
   Paciente,
   OtpCode,
   Rol,
@@ -193,6 +207,7 @@ module.exports = {
   Marca,
   CategoriaProducto,
   ServicioProducto,
+  MovimientoStock,
   NotificacionAutomatica,
   AutomatizacionConfig,
   RegistroAsistencia,

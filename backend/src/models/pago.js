@@ -3,7 +3,9 @@ const sequelize = require('../config/database');
 
 const Pago = sequelize.define('Pago', {
   monto: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+  // Precio del tratamiento con el descuento ya restado; descuento es cuánto se rebajó (Bs).
   monto_total: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+  descuento: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   porcentaje: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 100 },
   estado: {
     type: DataTypes.ENUM('pendiente', 'pagado', 'fallido'),

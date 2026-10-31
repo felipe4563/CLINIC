@@ -7,7 +7,8 @@ import { CARTA, CONSULTA } from '@/lib/cartaInicio';
 import { normalizarNombre } from '@/lib/servicios';
 import { TRATAMIENTOS } from '@/lib/tratamientos';
 
-// Especialidad de cada servicio según la carta de la portada; lo que no está ahí va a "Otros".
+// Especialidad de cada servicio: la que tiene guardada; si no, la de la carta de la
+// portada; lo que no está en ninguna va a "Otros".
 const ESPECIALIDAD_DE = new Map<string, string>();
 const DESCRIPCION_DE = new Map<string, string>();
 for (const e of CARTA)
@@ -25,11 +26,12 @@ function esConsulta(s: Servicio) {
 }
 
 function especialidad(s: Servicio) {
+  if (s.especialidad) return s.especialidad;
   if (esConsulta(s)) return CARTA[0]?.titulo ?? OTROS; // la consulta es de medicina estética
   return ESPECIALIDAD_DE.get(normalizarNombre(s.nombre)) ?? OTROS;
 }
 
-// En la base la descripción empieza con "Especialidad · Grupo — ": eso ya se ve en la etiqueta.
+// Servicios viejos tenían "Especialidad · Grupo — " al inicio de la descripción: eso ya se ve en la etiqueta.
 function descripcion(s: Servicio) {
   if (esConsulta(s)) return 'La doctora te evalúa, revisa tu historia y te recomienda el tratamiento adecuado.';
   const corta = DESCRIPCION_DE.get(normalizarNombre(s.nombre));

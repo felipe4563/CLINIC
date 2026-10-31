@@ -92,13 +92,19 @@ export default function AgendaPage() {
     try {
       const actualizada = await api.actualizarEstadoCita(cita.id, estado);
       const sello = actualizada?.sello as { servicio: string; sellos: number; requeridos: number; premio: boolean } | null;
-      recargarTodo(
+      // Lo que usa el tratamiento se descontó del inventario; si algo no alcanzó, se avisa.
+      const faltantes = (actualizada?.faltantes || []) as { producto: string; falta: number }[];
+      const avisos = [
         sello
           ? sello.premio
             ? `🎁 ${cita.Paciente.nombre_completo} completó su tarjeta de ${sello.servicio}: ganó una sesión gratis.`
             : `Sello sumado a ${cita.Paciente.nombre_completo}: ${sello.servicio} ${sello.sellos}/${sello.requeridos}.`
           : null,
-      );
+        faltantes.length
+          ? `Inventario: no alcanzó ${faltantes.map((f) => `${f.producto} (faltaron ${f.falta})`).join(', ')}. Quedó en 0; carga lo que llegue en Inventario.`
+          : null,
+      ].filter(Boolean);
+      recargarTodo(avisos.length ? avisos.join(' ') : null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar la cita');
     }

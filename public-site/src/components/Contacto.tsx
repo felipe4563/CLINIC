@@ -3,10 +3,14 @@ import { datosContacto, enlaceWhatsapp, useConfiguracion } from '@/lib/useDatosC
 import MagneticButton from './MagneticButton';
 import Reveal from './Reveal';
 
+// Entrada de la clínica según su ficha de Google Maps (ClinicNovagED). Se usa en lugar
+// de la dirección escrita porque Google la ubicaba en otro edificio.
+const UBICACION = '-17.385845,-66.1550733';
+const ID_LUGAR_GOOGLE = 'ChIJ75tWRAB145MR87OboWVzQq4';
+
 export default function Contacto({ onReservar }: { onReservar: () => void }) {
   const config = useConfiguracion();
   const c = datosContacto(config);
-  const mapa = encodeURIComponent(c.completa);
 
   return (
     <section id="contacto" className="px-4 pb-24 sm:px-8 xl:px-12 md:pb-32">
@@ -15,28 +19,28 @@ export default function Contacto({ onReservar }: { onReservar: () => void }) {
         <div className="relative grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="flex flex-col gap-7">
             <h2 className="font-serif text-[clamp(52px,7vw,112px)] font-light leading-[0.88] text-cream">
-              Te <em className="italic text-manhattan">esperamos</em>
+              Te <em className="italic text-arena">esperamos</em>
             </h2>
             <p className="max-w-md">{c.completa}</p>
             <dl className="grid gap-5 text-[15px] sm:grid-cols-2">
               <div>
-                <dt className="text-[11px] uppercase tracking-[0.2em] text-manhattan">WhatsApp y teléfono</dt>
+                <dt className="text-[11px] uppercase tracking-[0.2em] text-arena">WhatsApp y teléfono</dt>
                 <dd className="mt-1">
                   <a href={`tel:${c.telefono.replace(/\s+/g, '')}`} className="hover:text-cream hover:underline">{c.telefono}</a>
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Correo</dt>
+                <dt className="text-[11px] uppercase tracking-[0.2em] text-arena">Correo</dt>
                 <dd className="mt-1">
                   <a href={`mailto:${c.email}`} className="break-all hover:text-cream hover:underline">{c.email}</a>
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Lunes a viernes</dt>
+                <dt className="text-[11px] uppercase tracking-[0.2em] text-arena">Lunes a viernes</dt>
                 <dd className="mt-1">09:00–13:00 · 14:00–20:00</dd>
               </div>
               <div>
-                <dt className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Sábado</dt>
+                <dt className="text-[11px] uppercase tracking-[0.2em] text-arena">Sábado</dt>
                 <dd className="mt-1">09:00–16:00</dd>
               </div>
             </dl>
@@ -62,16 +66,16 @@ export default function Contacto({ onReservar }: { onReservar: () => void }) {
             <div className="relative aspect-[4/3.4] overflow-hidden rounded-t-full rounded-b-[28px] border border-manhattan/40 bg-espresso-900">
               <iframe
                 title="Ubicación de Clinic NovagED en Google Maps"
-                src={`https://www.google.com/maps?q=${mapa}&output=embed`}
+                src={`https://www.google.com/maps?q=${UBICACION}&z=18&output=embed`}
                 className="absolute inset-0 h-full w-full border-0 grayscale-[85%] sepia-[18%] contrast-[1.05]"
                 loading="lazy"
               />
             </div>
             <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${mapa}`}
+              href={`https://www.google.com/maps/dir/?api=1&destination=${UBICACION}&destination_place_id=${ID_LUGAR_GOOGLE}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 flex min-h-11 items-center justify-center gap-2 text-sm text-manhattan hover:text-cream"
+              className="mt-4 flex min-h-11 items-center justify-center gap-2 text-sm text-arena hover:text-cream"
             >
               Cómo llegar con Google Maps
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>

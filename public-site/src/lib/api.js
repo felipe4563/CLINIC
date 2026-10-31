@@ -29,6 +29,8 @@ export const api = {
   getConfiguracionPublica: () => apiFetch('/configuracion-publica'),
   getServicios: () => apiFetch('/servicios'),
   getProfesionales: (servicioId) => apiFetch(`/profesionales?servicioId=${servicioId}`),
+  getEquipo: () => apiFetch('/equipo'),
+  getMiembroEquipo: (slug) => apiFetch(`/equipo/${encodeURIComponent(slug)}`),
   getDisponibilidad: (profesionalId, servicioId, fecha) =>
     apiFetch(`/disponibilidad?profesionalId=${profesionalId}&servicioId=${servicioId}&fecha=${fecha}`),
   getDisponibilidadMes: (profesionalId, servicioId, mes) =>

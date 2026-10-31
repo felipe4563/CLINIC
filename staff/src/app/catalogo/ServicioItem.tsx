@@ -1,37 +1,46 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
+import ProductosServicioModal, { type ProductoInventario } from './ProductosServicioModal';
+import CategoriaServicio, { etiquetaCategoria, type Especialidad } from './CategoriaServicio';
 
 export type Servicio = {
   id: number;
   nombre: string;
   descripcion: string | null;
+  especialidad: string | null;
+  grupo: string | null;
   duracion_min: number;
   precio: string;
   activo: boolean;
   sellos_requeridos?: number | null;
-  Productos?: { id: number; nombre: string }[];
+  // Con cuánto usa por sesión (se descuenta del inventario al completar la cita).
+  Productos?: { id: number; nombre: string; ServicioProducto?: { cantidad: number } }[];
 };
 
 type ProfesionalMinimo = { id: number; nombre: string; Servicios?: { id: number }[] };
-type ProductoMinimo = { id: number; nombre: string };
 
 export default function ServicioItem({
   servicio,
   todosLosProfesionales,
   todosLosProductos,
+  especialidades,
   onChange,
 }: {
   servicio: Servicio;
   todosLosProfesionales: ProfesionalMinimo[];
-  todosLosProductos: ProductoMinimo[];
+  todosLosProductos: ProductoInventario[];
+  especialidades: Especialidad[];
   onChange: () => void;
 }) {
   const [editando, setEditando] = useState(false);
-  const [expandido, setExpandido] = useState(false);
+  const [productosAbierto, setProductosAbierto] = useState(false);
   const [nombre, setNombre] = useState(servicio.nombre);
   const [descripcion, setDescripcion] = useState(servicio.descripcion || '');
+  const [especialidad, setEspecialidad] = useState(servicio.especialidad || '');
+  const [grupo, setGrupo] = useState(servicio.grupo || '');
   const [duracion, setDuracion] = useState(String(servicio.duracion_min));
   const [precio, setPrecio] = useState(servicio.precio);
   const [sellos, setSellos] = useState(servicio.sellos_requeridos ? String(servicio.sellos_requeridos) : '');
@@ -40,7 +49,6 @@ export default function ServicioItem({
   const [error, setError] = useState('');
 
   const atendidoPor = todosLosProfesionales.filter((p) => (p.Servicios || []).some((s) => s.id === servicio.id));
-  const productosUsadosIds = new Set((servicio.Productos || []).map((p) => p.id));
 
   async function asignarA(profesionalId: number) {
     setVinculando(true);
@@ -54,18 +62,11 @@ export default function ServicioItem({
     }
   }
 
-  async function toggleProducto(productoId: number, usado: boolean) {
-    if (usado) {
-      await api.desvincularProducto(servicio.id, productoId);
-    } else {
-      await api.vincularProducto(servicio.id, productoId);
-    }
-    onChange();
-  }
-
   function empezarEdicion() {
     setNombre(servicio.nombre);
     setDescripcion(servicio.descripcion || '');
+    setEspecialidad(servicio.especialidad || '');
+    setGrupo(servicio.grupo || '');
     setDuracion(String(servicio.duracion_min));
     setPrecio(servicio.precio);
     setSellos(servicio.sellos_requeridos ? String(servicio.sellos_requeridos) : '');
@@ -80,6 +81,8 @@ export default function ServicioItem({
       await api.actualizarServicio(servicio.id, {
         nombre,
         descripcion: descripcion || null,
+        especialidad,
+        grupo: grupo || null,
         duracion_min: Number(duracion),
         precio: Number(precio),
         sellos_requeridos: sellos.trim() ? Number(sellos) : null,
@@ -103,6 +106,15 @@ export default function ServicioItem({
       <div className="rounded-lg border border-accent bg-panel p-3 text-sm">
         <div className="flex flex-col gap-2">
           <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" className="rounded border border-border px-2 py-1.5" />
+          <CategoriaServicio
+            especialidades={especialidades}
+            especialidad={especialidad}
+            grupo={grupo}
+            onCambio={(e, g) => {
+              setEspecialidad(e);
+              setGrupo(g);
+            }}
+          />
           <textarea
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
@@ -142,7 +154,7 @@ export default function ServicioItem({
           <div className="flex gap-2">
             <button
               onClick={guardar}
-              disabled={guardando}
+              disabled={guardando || !especialidad}
               className="rounded bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground disabled:opacity-50"
             >
               {guardando ? 'Guardando…' : 'Guardar'}
@@ -168,6 +180,13 @@ export default function ServicioItem({
             {servicio.duracion_min} min
             {servicio.sellos_requeridos ? ` · 🎁 cada ${servicio.sellos_requeridos} sesiones, 1 gratis` : ''}
           </p>
+          {etiquetaCategoria(servicio.especialidad, servicio.grupo) ? (
+            <span className="mt-1.5 inline-block rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent">
+              {etiquetaCategoria(servicio.especialidad, servicio.grupo)}
+            </span>
+          ) : (
+            <span className="mt-1.5 inline-block rounded-full bg-stat-amber-soft px-2 py-0.5 text-[11px] text-stat-amber">Sin especialidad: edítalo para elegirla</span>
+          )}
           {servicio.descripcion && <p className="mt-1.5 text-xs text-foreground/70">{servicio.descripcion}</p>}
           {!servicio.activo && <span className="mt-2 inline-block rounded-full bg-border px-2 py-0.5 text-[11px] text-muted-foreground">Inactivo</span>}
 
@@ -203,34 +222,18 @@ export default function ServicioItem({
           <button onClick={toggleActivo} className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft">
             {servicio.activo ? 'Desactivar' : 'Activar'}
           </button>
-          <button onClick={() => setExpandido((v) => !v)} className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft">
-            {expandido ? 'Ocultar' : 'Productos'}
+          <button onClick={() => setProductosAbierto(true)} className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft">
+            Productos{(servicio.Productos || []).length ? ` (${(servicio.Productos || []).length})` : ''}
           </button>
         </div>
       </div>
 
-      {expandido && (
-        <div className="border-t border-border p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Productos que usa este tratamiento</p>
-          <div className="flex flex-wrap gap-2">
-            {todosLosProductos.map((p) => {
-              const usado = productosUsadosIds.has(p.id);
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => toggleProducto(p.id, usado)}
-                  className={`rounded-full border px-3 py-1 text-xs ${
-                    usado ? 'border-accent bg-accent-soft text-accent' : 'border-border text-muted-foreground hover:border-accent'
-                  }`}
-                >
-                  {p.nombre}
-                </button>
-              );
-            })}
-            {todosLosProductos.length === 0 && <p className="text-xs text-muted-foreground">No hay productos en el inventario.</p>}
-          </div>
-        </div>
-      )}
+      {/* En el body: la tarjeta se mueve al pasar el mouse y su transform encerraría al modal fijo. */}
+      {productosAbierto &&
+        createPortal(
+          <ProductosServicioModal servicio={servicio} todosLosProductos={todosLosProductos} onClose={() => setProductosAbierto(false)} onCambio={onChange} />,
+          document.body,
+        )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ const express = require('express');
 const ExcelJS = require('exceljs');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
+const { fueraPorItem } = require('./staffMantenimiento');
 
 // Inventario por lugar: el material de la oficina como lo lleva la clínica en
 // sus planillas (consultorio 2, sala, baños...), separado por tipo.
@@ -86,7 +87,13 @@ const conManejo = (fn) => async (req, res) => {
 
 router.get('/staff/inventario/lugares', onlyInventario, async (req, res) => {
   const lugares = await db.InventarioLugar.findAll({ include: [{ model: db.InventarioItem }], order: [...ORDEN, [db.InventarioItem, 'orden', 'ASC'], [db.InventarioItem, 'id', 'ASC']] });
-  res.json(lugares);
+  // Cuántas unidades de cada ítem están ahora en mantenimiento (fuera de la clínica).
+  const fuera = await fueraPorItem();
+  res.json(lugares.map((l) => {
+    const json = l.toJSON();
+    json.InventarioItems = json.InventarioItems.map((i) => ({ ...i, en_mantenimiento: fuera[i.id] || 0 }));
+    return json;
+  }));
 });
 
 router.post('/staff/inventario/lugares', onlyInventario, conManejo(async (req, res) => {
@@ -141,6 +148,9 @@ router.patch('/staff/inventario/items/:id', onlyInventario, conManejo(async (req
 router.delete('/staff/inventario/items/:id', onlyInventario, async (req, res) => {
   const item = await db.InventarioItem.findByPk(req.params.id);
   if (!item) return res.status(404).json({ error: 'No encontrado' });
+  if ((await fueraPorItem([item.id]))[item.id]) {
+    return res.status(409).json({ error: 'Está en mantenimiento: regístralo como recogido antes de borrarlo' });
+  }
   await item.destroy();
   res.status(204).end();
 });

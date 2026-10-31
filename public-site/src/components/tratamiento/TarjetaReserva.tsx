@@ -2,6 +2,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { datosContacto, enlaceWhatsapp, useConfiguracion } from '@/lib/useDatosClinica';
+import { buscarServicioPorNombre } from '@/lib/servicios';
+import { DOCTORA_RESPALDO, fotoSrc, useEquipo } from '@/lib/useEquipo';
 import BotonReservar from './BotonReservar';
 
 // Columna lateral de la página de tratamiento: reserva y quién atiende.
@@ -11,7 +13,7 @@ export default function TarjetaReserva({ nombre }: { nombre: string }) {
   return (
     <div className="flex flex-col gap-4 lg:sticky lg:top-28">
       <div className="rounded-[28px] bg-espresso p-7 text-neutral-cream shadow-[0_40px_80px_-50px_rgba(45,36,30,0.8)]">
-        <p className="text-[11px] uppercase tracking-[0.2em] text-manhattan">Reserva en línea</p>
+        <p className="text-[11px] uppercase tracking-[0.2em] text-arena">Reserva en línea</p>
         <p className="mt-2 font-serif text-3xl font-light leading-tight text-cream">{nombre}</p>
         <p className="mt-3 text-[15px] leading-relaxed">
           Elige día y hora, y asegura tu horario pagando con QR. Antes del tratamiento la doctora te evalúa y te explica todo.
@@ -29,26 +31,47 @@ export default function TarjetaReserva({ nombre }: { nombre: string }) {
         )}
         <dl className="mt-6 grid grid-cols-2 gap-3 border-t border-manhattan/30 pt-5 text-sm">
           <div>
-            <dt className="text-[11px] uppercase tracking-[0.16em] text-manhattan">Lun a vie</dt>
+            <dt className="text-[11px] uppercase tracking-[0.16em] text-arena">Lun a vie</dt>
             <dd className="mt-0.5">09:00–13:00 · 14:00–20:00</dd>
           </div>
           <div>
-            <dt className="text-[11px] uppercase tracking-[0.16em] text-manhattan">Sábado</dt>
+            <dt className="text-[11px] uppercase tracking-[0.16em] text-arena">Sábado</dt>
             <dd className="mt-0.5">09:00–16:00</dd>
           </div>
         </dl>
       </div>
 
-      <Link href="/#doctora" className="group flex items-center gap-4 rounded-[28px] bg-white p-5 transition-shadow hover:shadow-[0_30px_60px_-40px_rgba(45,36,30,0.6)]">
-        <span className="relative h-20 w-16 shrink-0 overflow-hidden rounded-t-full rounded-b-xl bg-neutral-cream">
-          <Image src="/novaged-assets/DraNovaged-CZHbEtUk.jpeg" alt="" fill sizes="64px" className="object-cover object-top" />
-        </span>
-        <span className="min-w-0">
-          <span className="block text-[11px] uppercase tracking-[0.2em] text-tan">Te atiende</span>
-          <span className="mt-1 block font-serif text-xl leading-tight text-espresso">Dra. Maria Noemi Ponce Caisiri</span>
-          <span className="mt-1 block text-sm text-tan">Médico estético · Matriculada en SEDES</span>
-        </span>
-      </Link>
+      <TeAtiende tratamiento={nombre} />
     </div>
+  );
+}
+
+// Quien hace este tratamiento según los servicios asignados en el panel. Mientras no
+// haya perfil publicado que lo atienda, se muestra a la doctora como siempre.
+function TeAtiende({ tratamiento }: { tratamiento: string }) {
+  const equipo = useEquipo();
+  const quien = equipo?.find((m) => buscarServicioPorNombre(m.Servicios, tratamiento));
+  const foto = quien ? fotoSrc(quien.foto_url) : DOCTORA_RESPALDO.foto;
+  return (
+    <Link
+      href={quien ? `/equipo/${quien.slug}` : '/#equipo'}
+      className="group flex items-center gap-4 rounded-[28px] bg-white p-5 transition-shadow hover:shadow-[0_30px_60px_-40px_rgba(45,36,30,0.6)]"
+    >
+      <span className="relative flex h-20 w-16 shrink-0 items-center justify-center overflow-hidden rounded-t-full rounded-b-xl bg-neutral-cream">
+        {foto ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={foto} alt="" className="absolute inset-0 h-full w-full object-cover object-top" />
+        ) : (
+          <Image src="/novaged-assets/isotipo-chocolate.png" alt="" width={20} height={35} className="opacity-40" />
+        )}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[11px] uppercase tracking-[0.2em] text-tan">Te atiende</span>
+        <span className="mt-1 block font-serif text-xl leading-tight text-espresso">{quien ? quien.nombre : DOCTORA_RESPALDO.nombre}</span>
+        <span className="mt-1 block text-sm text-tan">
+          {quien ? quien.cargo || quien.especialidad || 'Clinic NovagED' : 'Médico estético · Matriculada en SEDES'}
+        </span>
+      </span>
+    </Link>
   );
 }

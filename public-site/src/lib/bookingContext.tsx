@@ -8,7 +8,8 @@ export type Step = 'servicio' | 'paciente' | 'horario' | 'confirmar' | 'pago' | 
 
 interface BookingState {
   isOpen: boolean;
-  open: (nombreServicio?: string) => void;
+  // `profesionalId`: quien se elige primero en el paso Horario ("Reservar con …").
+  open: (nombreServicio?: string, profesionalId?: number) => void;
   close: () => void;
   step: Step;
   setStep: (s: Step) => void;
@@ -37,6 +38,7 @@ interface BookingState {
   // Paciente identificado en esta reserva ("ya vine antes" o ficha nueva).
   paciente: { nombre: string } | null;
   setPaciente: (p: { nombre: string } | null) => void;
+  profesionalPreferidoId: number | null;
 }
 
 const BookingContext = createContext<BookingState | null>(null);
@@ -56,11 +58,12 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const [porcentaje, setPorcentaje] = useState<50 | 100>(100);
   const [aceptaPolitica, setAceptaPolitica] = useState(false);
   const [paciente, setPaciente] = useState<{ nombre: string } | null>(null);
+  const [profesionalPreferidoId, setProfesionalPreferidoId] = useState<number | null>(null);
   const aperturaRef = useRef(0);
 
   // `nombreServicio` llega como texto desde las páginas de tratamiento. El Nav y el
   // botón flotante pasan `open` directo a onClick, así que ahí llega un evento: se ignora.
-  function open(nombreServicio?: unknown) {
+  function open(nombreServicio?: unknown, profesionalId?: number) {
     setStep('servicio');
     setServicioId(null);
     setServicio(null);
@@ -73,6 +76,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setPorcentaje(100);
     setAceptaPolitica(false);
     setPaciente(null);
+    setProfesionalPreferidoId(typeof profesionalId === 'number' ? profesionalId : null);
     setIsOpen(true);
     const apertura = ++aperturaRef.current;
     if (typeof nombreServicio !== 'string') return;
@@ -95,7 +99,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
   return (
     <BookingContext.Provider
-      value={{ isOpen, open, close, step, setStep, servicioId, setServicioId, servicio, setServicio, profesionalId, setProfesionalId, profesional, setProfesional, fecha, setFecha, horaInicio, setHoraInicio, citaId, setCitaId, pago, setPago, config, setConfig, porcentaje, setPorcentaje, aceptaPolitica, setAceptaPolitica, paciente, setPaciente }}
+      value={{ isOpen, open, close, step, setStep, servicioId, setServicioId, servicio, setServicio, profesionalId, setProfesionalId, profesional, setProfesional, fecha, setFecha, horaInicio, setHoraInicio, citaId, setCitaId, pago, setPago, config, setConfig, porcentaje, setPorcentaje, aceptaPolitica, setAceptaPolitica, paciente, setPaciente, profesionalPreferidoId }}
     >
       {children}
     </BookingContext.Provider>

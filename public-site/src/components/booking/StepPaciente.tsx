@@ -3,7 +3,6 @@ import { useState, type ReactNode } from 'react';
 import { api } from '@/lib/api';
 import { useBooking } from '@/lib/bookingContext';
 import { mensajeError } from '@/lib/types';
-import { hoyTexto } from './fechas';
 
 const EXPEDIDO = [
   ['CB', 'Cochabamba'], ['LP', 'La Paz'], ['SC', 'Santa Cruz'], ['OR', 'Oruro'], ['PT', 'Potosí'],
@@ -16,8 +15,8 @@ const PAISES = [
 const COMO_NOS_CONOCIO = ['Instagram', 'Facebook', 'TikTok', 'Google', 'Recomendación de alguien', 'Pasé por la clínica', 'Otro'];
 
 const FICHA_VACIA = {
-  carnet: '', expedido: 'CB', complemento: '', nombre: '', apellidos: '', sexo: '', nacimiento: '',
-  pais: '591', telefono: '', email: '', direccion: '', conocio: '',
+  carnet: '', expedido: 'CB', complemento: '', nombre: '', apellidos: '', sexo: '', edad: '',
+  pais: '591', telefono: '', conocio: '',
 };
 
 export default function StepPaciente() {
@@ -63,6 +62,11 @@ export default function StepPaciente() {
       setError('Revisa tu número de teléfono.');
       return;
     }
+    const edad = Number(f.edad);
+    if (!Number.isInteger(edad) || edad < 0 || edad > 120) {
+      setError('Revisa tu edad.');
+      return;
+    }
     setCargando(true);
     try {
       const { token, nombre } = await api.registro({
@@ -72,9 +76,7 @@ export default function StepPaciente() {
         carnet_complemento: f.complemento.trim() || null,
         carnet_expedido: f.expedido,
         sexo: f.sexo,
-        fecha_nacimiento: f.nacimiento,
-        email: f.email.trim(),
-        direccion: f.direccion.trim(),
+        edad,
         como_nos_conocio: f.conocio,
       });
       api.setToken(token);
@@ -167,8 +169,8 @@ export default function StepPaciente() {
                 <option value="M">Masculino</option>
               </select>
             </Campo>
-            <Campo etiqueta="Fecha de nacimiento *">
-              <input required type="date" max={hoyTexto()} autoComplete="bday" {...campo('nacimiento')} className={INPUT} />
+            <Campo etiqueta="Edad *">
+              <input required type="number" inputMode="numeric" min={0} max={120} step={1} placeholder="Ej: 32" {...campo('edad')} className={INPUT} />
             </Campo>
             <Campo etiqueta="Teléfono (WhatsApp) *">
               <div className="grid grid-cols-[150px_1fr] gap-2">
@@ -177,12 +179,6 @@ export default function StepPaciente() {
                 </select>
                 <input required type="tel" inputMode="tel" autoComplete="tel-national" placeholder="Ej: 71234567" {...campo('telefono')} className={INPUT} />
               </div>
-            </Campo>
-            <Campo etiqueta="Email *">
-              <input required type="email" autoComplete="email" {...campo('email')} className={INPUT} />
-            </Campo>
-            <Campo etiqueta="Dirección *">
-              <input required autoComplete="street-address" {...campo('direccion')} className={INPUT} />
             </Campo>
             <Campo etiqueta="¿Cómo nos conociste? *">
               <select required {...campo('conocio')} className={INPUT}>
@@ -230,7 +226,7 @@ function Opcion({ activa, onClick, titulo, texto, icono }: { activa: boolean; on
       </span>
       <span>
         <span className="block font-serif text-[28px] leading-tight sm:text-[34px]">{titulo}</span>
-        <span className={`mt-1 block text-[15px] leading-relaxed ${activa ? 'text-manhattan' : 'text-tan'}`}>{texto}</span>
+        <span className={`mt-1 block text-[15px] leading-relaxed ${activa ? 'text-arena' : 'text-tan'}`}>{texto}</span>
       </span>
       {activa && (
         <span className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-cream text-espresso">

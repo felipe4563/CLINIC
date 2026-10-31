@@ -7,12 +7,12 @@ import ProveedorManager, { type Proveedor } from './ProveedorManager';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
-type Acapite = 'ventas' | 'activos' | 'mantenimiento';
-// Lo comprado suma al acápite del producto (Ventas, Activos o Mantenimiento).
+type Acapite = 'insumos' | 'activos' | 'ventas';
+// Lo comprado suma a la caja del producto en el inventario (Insumos, Activos o Ventas).
 const ACAPITES: { clave: Acapite; texto: string }[] = [
-  { clave: 'ventas', texto: 'Ventas' },
+  { clave: 'insumos', texto: 'Insumos' },
   { clave: 'activos', texto: 'Activos' },
-  { clave: 'mantenimiento', texto: 'Mantenimiento' },
+  { clave: 'ventas', texto: 'Ventas' },
 ];
 
 type Producto = {
@@ -303,7 +303,7 @@ export default function ComprasPage() {
               );
             })}
             {productosFiltrados.length === 0 && (
-              <p className="col-span-full text-sm text-muted-foreground">Sin productos. Créalos en Ventas → Ventas, Activos o Mantenimiento.</p>
+              <p className="col-span-full text-sm text-muted-foreground">Sin productos. Créalos en Inventario → Insumos, Activos o Ventas.</p>
             )}
           </div>
         </div>

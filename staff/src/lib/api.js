@@ -145,6 +145,8 @@ export const api = {
     params.set('pagina', String(pagina));
     return apiFetch(`/staff/tratamientos?${params.toString()}`);
   },
+  getTratamientosPorPaciente: (q, pagina = 1) =>
+    apiFetch(`/staff/tratamientos/pacientes?${new URLSearchParams({ ...(q ? { q } : {}), pagina: String(pagina) }).toString()}`),
   getTratamientosPaciente: (pacienteId) => apiFetch(`/staff/pacientes/${pacienteId}/tratamientos`),
 
   getPaquetesPaciente: (pacienteId) => apiFetch(`/staff/pacientes/${pacienteId}/paquetes`),
@@ -185,6 +187,9 @@ export const api = {
   eliminarTratamiento: (id) => apiFetch(`/staff/tratamientos/${id}`, { method: 'DELETE' }),
 
   getCaja: (fecha) => apiFetch(`/staff/caja${fecha ? `?fecha=${fecha}` : ''}`),
+  // filtros: { fecha } o { desde, hasta }, y opcional { tipo: 'ingreso' | 'egreso' }
+  getCajaFiltrada: (filtros) => apiFetch(`/staff/caja?${new URLSearchParams(Object.entries(filtros).filter(([, v]) => v)).toString()}`),
+  getDetalleMovimientoCaja: (id) => apiFetch(`/staff/caja/${id}/detalle`),
   crearMovimientoCaja: (datos) => apiFetch('/staff/caja', { method: 'POST', body: JSON.stringify(datos) }),
   eliminarMovimientoCaja: (id) => apiFetch(`/staff/caja/${id}`, { method: 'DELETE' }),
 
@@ -210,18 +215,22 @@ export const api = {
     apiFetch(`/staff/categorias-producto/${id}`, { method: 'PATCH', body: JSON.stringify({ nombre }) }),
   eliminarCategoriaProducto: (id) => apiFetch(`/staff/categorias-producto/${id}`, { method: 'DELETE' }),
 
-  vincularProducto: (servicioId, productoId) =>
-    apiFetch(`/staff/servicios/${servicioId}/productos`, { method: 'POST', body: JSON.stringify({ productoId }) }),
+  // Qué usa cada tratamiento y cuánto por sesión (se descuenta al completar la cita).
+  vincularProducto: (servicioId, productoId, cantidad = 1) =>
+    apiFetch(`/staff/servicios/${servicioId}/productos`, { method: 'POST', body: JSON.stringify({ productoId, cantidad }) }),
+  cantidadProductoServicio: (servicioId, productoId, cantidad) =>
+    apiFetch(`/staff/servicios/${servicioId}/productos/${productoId}`, { method: 'PATCH', body: JSON.stringify({ cantidad }) }),
   desvincularProducto: (servicioId, productoId) =>
     apiFetch(`/staff/servicios/${servicioId}/productos/${productoId}`, { method: 'DELETE' }),
 
   // Inventario por lugar (planillas de la clínica).
-  // Ventas por acápites (ventas, activos, mantenimiento).
+  // Productos de las 3 cajas del inventario (insumos, activos, ventas).
   getProductosVenta: () => apiFetch('/staff/ventas/productos'),
   crearProductoVenta: (datos) => apiFetch('/staff/ventas/productos', { method: 'POST', body: JSON.stringify(datos) }),
   actualizarProductoVenta: (id, datos) => apiFetch(`/staff/ventas/productos/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
   movimientoProductoVenta: (id, datos) => apiFetch(`/staff/ventas/productos/${id}/movimiento`, { method: 'POST', body: JSON.stringify(datos) }),
   borrarProductoVenta: (id) => apiFetch(`/staff/ventas/productos/${id}`, { method: 'DELETE' }),
+  historialProducto: (id) => apiFetch(`/staff/ventas/productos/${id}/historial`),
   getInventarioLugares: () => apiFetch('/staff/inventario/lugares'),
   crearInventarioLugar: (nombre) => apiFetch('/staff/inventario/lugares', { method: 'POST', body: JSON.stringify({ nombre }) }),
   renombrarInventarioLugar: (id, nombre) => apiFetch(`/staff/inventario/lugares/${id}`, { method: 'PATCH', body: JSON.stringify({ nombre }) }),
@@ -245,6 +254,13 @@ export const api = {
   getVentas: (fecha) => apiFetch(`/staff/ventas${fecha ? `?fecha=${fecha}` : ''}`),
   crearVenta: (datos) => apiFetch('/staff/ventas', { method: 'POST', body: JSON.stringify(datos) }),
   estadoVentaQR: (id) => apiFetch(`/staff/ventas/${id}/estado`),
+  getMantenimientos: () => apiFetch('/staff/mantenimientos'),
+  getEquiposMantenimiento: () => apiFetch('/staff/mantenimientos/equipos'),
+  mandarMantenimiento: (datos) => apiFetch('/staff/mantenimientos', { method: 'POST', body: JSON.stringify(datos) }),
+  regresoMantenimiento: (id, datos) => apiFetch(`/staff/mantenimientos/${id}/regreso`, { method: 'POST', body: JSON.stringify(datos) }),
+  borrarMantenimiento: (id) => apiFetch(`/staff/mantenimientos/${id}`, { method: 'DELETE' }),
+  getComprobanteVenta: (id) => apiFetch(`/staff/ventas/${id}/comprobante`),
+  confirmarVentaQR: (id) => apiFetch(`/staff/ventas/${id}/confirmar-qr`, { method: 'POST' }),
   cancelarVenta: (id) => apiFetch(`/staff/ventas/${id}`, { method: 'DELETE' }),
 
   getProveedores: () => apiFetch('/staff/proveedores'),
@@ -324,6 +340,7 @@ export const api = {
     apiFetch(`/disponibilidad?profesionalId=${profesionalId}&servicioId=${servicioId}&fecha=${fecha}`),
 
   getServiciosStaff: () => apiFetch('/staff/servicios'),
+  getCategoriasServicio: () => apiFetch('/staff/servicios/categorias'),
   crearServicio: (datos) => apiFetch('/staff/servicios', { method: 'POST', body: JSON.stringify(datos) }),
   actualizarServicio: (id, datos) =>
     apiFetch(`/staff/servicios/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
@@ -332,6 +349,12 @@ export const api = {
   crearProfesional: (datos) => apiFetch('/staff/profesionales', { method: 'POST', body: JSON.stringify(datos) }),
   actualizarProfesional: (id, datos) =>
     apiFetch(`/staff/profesionales/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
+  subirFotoProfesional: (id, archivo) => {
+    const formData = new FormData();
+    formData.append('foto', archivo);
+    return apiFetch(`/staff/profesionales/${id}/foto`, { method: 'POST', body: formData });
+  },
+  eliminarFotoProfesional: (id) => apiFetch(`/staff/profesionales/${id}/foto`, { method: 'DELETE' }),
   vincularServicio: (profesionalId, servicioId) =>
     apiFetch(`/staff/profesionales/${profesionalId}/servicios`, {
       method: 'POST',

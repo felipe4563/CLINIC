@@ -7,7 +7,7 @@ import MagneticButton from './MagneticButton';
 const ENLACES = [
   { href: '/#especialidades', texto: 'Especialidades' },
   { href: '/#destacados', texto: 'Tratamientos' },
-  { href: '/#doctora', texto: 'La doctora' },
+  { href: '/#equipo', texto: 'Equipo' },
   { href: '/#preguntas', texto: 'Preguntas' },
   { href: '/#contacto', texto: 'Contacto' },
 ];
@@ -54,7 +54,7 @@ export default function Nav({ onReservar, solido = false }: { onReservar: () => 
 
         <nav aria-label="Principal" className="hidden items-center gap-1 lg:flex">
           {ENLACES.map((e) => (
-            <Link key={e.href} href={e.href} className="rounded-full px-4 py-2 text-[15px] text-ink transition-colors hover:bg-white/60 hover:text-espresso">
+            <Link key={e.href} href={e.href} className="rounded-full px-4 py-2 text-[12.5px] uppercase tracking-[0.16em] text-ink transition-colors hover:bg-white/60 hover:text-espresso">
               {e.texto}
             </Link>
           ))}

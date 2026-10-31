@@ -6,6 +6,8 @@ const { otorgarPuntosPorGasto } = require('../services/fidelizacion');
 
 const router = express.Router();
 const onlyVentas = requirePermiso('ventas');
+// Los productos (las 3 cajas) se manejan desde Inventario y se venden desde Ventas.
+const productosPermiso = requirePermiso(['inventario', 'ventas']);
 
 function hoyISO() {
   const d = new Date();
@@ -23,9 +25,47 @@ async function registrarIngresoCaja(venta, usuarioId) {
   });
 }
 
-// --- Productos por acápite (pedido de la doctora: solo qué producto y cuántos hay) ---
+// Pasa la venta de pendiente a pagado una sola vez (el panel consulta cada pocos
+// segundos y las consultas pueden cruzarse): solo esa registra la caja y los puntos.
+async function marcarPagada(venta) {
+  const [cambiadas] = await db.Venta.update({ estado: 'pagado' }, { where: { id: venta.id, estado: 'pendiente' } });
+  if (cambiadas !== 1) return;
+  venta.estado = 'pagado';
+  await registrarIngresoCaja(venta, venta.usuario_id);
+  if (venta.paciente_id) {
+    await otorgarPuntosPorGasto({
+      pacienteId: venta.paciente_id,
+      monto: venta.total,
+      motivo: `Venta #${venta.id}`,
+      ventaId: venta.id,
+    });
+  }
+}
 
-const ACAPITES = ['ventas', 'activos', 'mantenimiento'];
+async function anularVenta(venta) {
+  const items = await db.VentaItem.findAll({ where: { venta_id: venta.id } });
+  for (const item of items) {
+    const producto = await db.Producto.findByPk(item.producto_id);
+    if (producto) {
+      producto.stock += item.cantidad;
+      await producto.save();
+    }
+  }
+  await db.VentaItem.destroy({ where: { venta_id: venta.id } });
+  await venta.destroy();
+}
+
+// El QR del cobro sigue la configuración: QR del banco (se confirma solo) o el QR
+// fijo de la clínica (el personal confirma que llegó el pago).
+function modoQR(config) {
+  if (config.metodo_pago_online === 'qr_banco') return 'banco';
+  if (config.qr_fijo_url) return 'fijo';
+  return null;
+}
+
+// --- Productos de las 3 cajas del inventario: insumos, activos y ventas ---
+
+const ACAPITES = ['insumos', 'activos', 'ventas'];
 
 class ErrorDato extends Error {}
 
@@ -38,7 +78,7 @@ function datosProducto(body, { parcial = false } = {}) {
     d.nombre = nombre;
   }
   if (body.acapite !== undefined || !parcial) {
-    if (!ACAPITES.includes(body.acapite)) throw new ErrorDato('acapite debe ser ventas, activos o mantenimiento');
+    if (!ACAPITES.includes(body.acapite)) throw new ErrorDato('acapite debe ser insumos, activos o ventas');
     d.acapite = body.acapite;
   }
   if (body.codigo !== undefined) {
@@ -56,6 +96,12 @@ function datosProducto(body, { parcial = false } = {}) {
     if (!Number.isInteger(stock) || stock < 0 || stock > 1000000) throw new ErrorDato('cantidad inválida');
     d.stock = stock;
   }
+  // Desde cuántos se avisa que se está acabando.
+  if (body.stock_minimo !== undefined) {
+    const minimo = body.stock_minimo === null || body.stock_minimo === '' ? 0 : Number(body.stock_minimo);
+    if (!Number.isInteger(minimo) || minimo < 0 || minimo > 1000000) throw new ErrorDato('mínimo inválido');
+    d.stock_minimo = minimo;
+  }
   return d;
 }
 
@@ -70,17 +116,17 @@ const conManejo = (fn) => async (req, res) => {
 
 const ATRIBUTOS_PRODUCTO = ['id', 'nombre', 'codigo', 'acapite', 'stock', 'stock_minimo', 'precio_venta', 'imagen_url', 'activo'];
 
-router.get('/staff/ventas/productos', onlyVentas, async (req, res) => {
+router.get('/staff/ventas/productos', productosPermiso, async (req, res) => {
   const productos = await db.Producto.findAll({ attributes: ATRIBUTOS_PRODUCTO, include: [{ model: db.Marca, attributes: ['nombre'] }], order: [['nombre', 'ASC']] });
   res.json(productos);
 });
 
-router.post('/staff/ventas/productos', onlyVentas, conManejo(async (req, res) => {
+router.post('/staff/ventas/productos', productosPermiso, conManejo(async (req, res) => {
   const producto = await db.Producto.create({ ...datosProducto(req.body), unidad: 'unidad' });
   res.status(201).json(producto);
 }));
 
-router.patch('/staff/ventas/productos/:id', onlyVentas, conManejo(async (req, res) => {
+router.patch('/staff/ventas/productos/:id', productosPermiso, conManejo(async (req, res) => {
   const producto = await db.Producto.findByPk(req.params.id);
   if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
   await producto.update(datosProducto(req.body, { parcial: true }));
@@ -89,7 +135,7 @@ router.patch('/staff/ventas/productos/:id', onlyVentas, conManejo(async (req, re
 
 // Ingreso (llegó mercadería) o uso (se gastó en la clínica). El ingreso queda
 // registrado como compra sin costo, para saber cuándo y cuánto entró.
-router.post('/staff/ventas/productos/:id/movimiento', onlyVentas, async (req, res) => {
+router.post('/staff/ventas/productos/:id/movimiento', productosPermiso, async (req, res) => {
   const { tipo } = req.body;
   const cantidad = Number(req.body.cantidad);
   if (!['ingreso', 'uso'].includes(tipo)) return res.status(400).json({ error: 'tipo debe ser ingreso o uso' });
@@ -100,6 +146,7 @@ router.post('/staff/ventas/productos/:id/movimiento', onlyVentas, async (req, re
     if (tipo === 'uso') {
       if (producto.stock < cantidad) return { status: 409, error: `Solo hay ${producto.stock} de "${producto.nombre}"` };
       producto.stock -= cantidad;
+      await db.MovimientoStock.create({ producto_id: producto.id, tipo: 'uso', cantidad, usuario_id: req.usuarioId, fecha: hoyISO() }, { transaction });
     } else {
       const compra = await db.Compra.create({ fecha: hoyISO(), total: 0, nota: 'Ingreso', usuario_id: req.usuarioId }, { transaction });
       await db.CompraItem.create({ compra_id: compra.id, producto_id: producto.id, cantidad, costo_unitario: 0, subtotal: 0 }, { transaction });
@@ -112,11 +159,77 @@ router.post('/staff/ventas/productos/:id/movimiento', onlyVentas, async (req, re
   res.json(resultado.producto);
 });
 
+// Historial de un producto: lo que llegó (compras e ingresos), lo vendido, lo usado
+// a mano y lo que descontaron los tratamientos; lo más reciente primero.
+router.get('/staff/ventas/productos/:id/historial', productosPermiso, async (req, res) => {
+  const producto = await db.Producto.findByPk(req.params.id, { attributes: ATRIBUTOS_PRODUCTO });
+  if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
+
+  const compras = await db.CompraItem.findAll({
+    where: { producto_id: producto.id },
+    include: [{ model: db.Compra, attributes: ['id', 'fecha', 'nota', 'createdAt'], include: [{ model: db.Proveedor, attributes: ['nombre'] }, { model: db.Usuario, attributes: ['nombre'] }] }],
+  });
+  // Desde la venta: Sequelize nombra "Ventum" a la venta vista desde su ítem.
+  const ventas = await db.Venta.findAll({
+    where: { estado: 'pagado' },
+    attributes: ['id', 'fecha', 'cliente_nombre', 'createdAt'],
+    include: [
+      { model: db.VentaItem, where: { producto_id: producto.id }, attributes: ['cantidad'] },
+      { model: db.Paciente, attributes: ['nombre_completo'] },
+      { model: db.Usuario, attributes: ['nombre'] },
+    ],
+  });
+  const usos = await db.MovimientoStock.findAll({
+    where: { producto_id: producto.id },
+    include: [
+      { model: db.Cita, as: 'Cita', attributes: ['id', 'fecha'], include: [{ model: db.Paciente, attributes: ['nombre_completo'] }, { model: db.Servicio, attributes: ['nombre'] }] },
+      { model: db.Usuario, attributes: ['nombre'] },
+    ],
+  });
+
+  const movimientos = [
+    ...compras.map((c) => {
+      const esIngreso = !c.Compra.Proveedor && c.Compra.nota === 'Ingreso';
+      return {
+        tipo: esIngreso ? 'ingreso' : 'compra',
+        cantidad: c.cantidad,
+        fecha: c.Compra.fecha,
+        momento: c.Compra.createdAt,
+        detalle: esIngreso ? 'Llegaron' : `Compra${c.Compra.Proveedor ? ` a ${c.Compra.Proveedor.nombre}` : ''}${c.lote ? ` · lote ${c.lote}` : ''}`,
+        usuario: c.Compra.Usuario?.nombre || null,
+      };
+    }),
+    ...ventas.map((v) => ({
+      tipo: 'venta',
+      cantidad: -v.VentaItems.reduce((acc, i) => acc + i.cantidad, 0),
+      fecha: v.fecha,
+      momento: v.createdAt,
+      detalle: `Venta #${v.id} · ${v.Paciente?.nombre_completo || v.cliente_nombre || 'Cliente mostrador'}`,
+      usuario: v.Usuario?.nombre || null,
+    })),
+    ...usos.map((u) => ({
+      tipo: u.tipo,
+      cantidad: u.tipo === 'cita_revertida' ? u.cantidad : -u.cantidad,
+      fecha: u.fecha,
+      momento: u.createdAt,
+      detalle:
+        u.tipo === 'uso'
+          ? 'Se usaron'
+          : `${u.tipo === 'cita' ? 'Tratamiento' : 'Devuelto'}${u.Cita ? `: ${u.Cita.Servicio?.nombre || 'cita'} · ${u.Cita.Paciente?.nombre_completo || ''}` : ''}${u.nota ? ` · ${u.nota}` : ''}`,
+      usuario: u.Usuario?.nombre || null,
+    })),
+  ].sort((a, b) => b.fecha.localeCompare(a.fecha) || new Date(b.momento) - new Date(a.momento));
+
+  res.json({ producto, movimientos: movimientos.slice(0, 300) });
+});
+
 // Solo se borra un producto sin ventas ni ingresos; si los tiene, se desactiva.
-router.delete('/staff/ventas/productos/:id', onlyVentas, async (req, res) => {
+router.delete('/staff/ventas/productos/:id', productosPermiso, async (req, res) => {
   const producto = await db.Producto.findByPk(req.params.id);
   if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
-  const usado = (await db.VentaItem.count({ where: { producto_id: producto.id } })) + (await db.CompraItem.count({ where: { producto_id: producto.id } }));
+  const usado = (await db.VentaItem.count({ where: { producto_id: producto.id } }))
+    + (await db.CompraItem.count({ where: { producto_id: producto.id } }))
+    + (await db.MovimientoStock.count({ where: { producto_id: producto.id } }));
   if (usado) {
     producto.activo = false;
     await producto.save();
@@ -141,11 +254,22 @@ router.get('/staff/ventas', onlyVentas, async (req, res) => {
 
 router.post('/staff/ventas', onlyVentas, async (req, res) => {
   const { items, metodoPago, clienteNombre, pacienteId } = req.body;
+  // En Ventas el descuento es solo en %, sobre toda la venta.
+  const descuentoPorcentaje = req.body.descuentoPorcentaje === undefined || req.body.descuentoPorcentaje === '' ? 0 : Number(req.body.descuentoPorcentaje);
+  if (!Number.isFinite(descuentoPorcentaje) || descuentoPorcentaje < 0 || descuentoPorcentaje > 100) {
+    return res.status(400).json({ error: 'El descuento debe ser un porcentaje entre 0 y 100' });
+  }
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'items es requerido y debe tener al menos un producto' });
   }
   if (!['efectivo', 'qr'].includes(metodoPago)) {
     return res.status(400).json({ error: 'metodoPago debe ser efectivo o qr' });
+  }
+
+  const config = await db.ConfiguracionClinica.obtenerConfig();
+  const modo = metodoPago === 'qr' ? modoQR(config) : null;
+  if (metodoPago === 'qr' && !modo) {
+    return res.status(400).json({ error: 'No hay un QR configurado. Sube el QR de la clínica en Configuración o cobra en efectivo.' });
   }
 
   const productos = await db.Producto.findAll({ where: { id: items.map((i) => i.productoId) } });
@@ -162,10 +286,17 @@ router.post('/staff/ventas', onlyVentas, async (req, res) => {
     }
   }
 
-  const total = items.reduce((acc, item) => acc + Number(porId[item.productoId].precio_venta) * item.cantidad, 0);
+  const subtotal = items.reduce((acc, item) => acc + Number(porId[item.productoId].precio_venta) * item.cantidad, 0);
+  const porcentaje = Math.round(descuentoPorcentaje * 100) / 100;
+  const total = Math.round((subtotal - (subtotal * porcentaje) / 100) * 100) / 100;
+  if (metodoPago === 'qr' && !(total > 0)) {
+    return res.status(400).json({ error: 'Con el 100% de descuento no hay nada que cobrar con QR' });
+  }
 
   const venta = await db.Venta.create({
     fecha: hoyISO(),
+    subtotal,
+    descuento_porcentaje: porcentaje,
     total,
     metodo_pago: metodoPago,
     estado: metodoPago === 'efectivo' ? 'pagado' : 'pendiente',
@@ -201,15 +332,27 @@ router.post('/staff/ventas', onlyVentas, async (req, res) => {
     return res.status(201).json({ venta: ventaCompleta });
   }
 
-  const { qrId, qrImageBase64 } = await generarQR({
-    monto: total,
-    transactionId: `VENTA-${venta.id}-${Date.now()}`,
-    descripcion: `Venta #${venta.id}`,
-  });
-  venta.referencia_qr = qrId;
+  if (modo === 'fijo') {
+    return res.status(201).json({ venta, modo, qrFijo: { url: config.qr_fijo_url, datos: config.qr_fijo_datos } });
+  }
+
+  let qr;
+  try {
+    qr = await generarQR({
+      monto: total,
+      transactionId: `VENTA-${venta.id}-${Date.now()}`,
+      descripcion: `Venta #${venta.id}`,
+    });
+  } catch (err) {
+    // Sin QR no hay cobro: se devuelve el stock y la venta no queda colgada.
+    console.error('No se pudo generar el QR de la venta', venta.id, err.message);
+    await anularVenta(venta);
+    return res.status(502).json({ error: 'El banco no generó el QR. Intenta de nuevo o cobra en efectivo.' });
+  }
+  venta.referencia_qr = qr.qrId;
   await venta.save();
 
-  res.status(201).json({ venta, qrImageBase64, referencia: qrId });
+  res.status(201).json({ venta, modo, qrImageBase64: qr.qrImageBase64, referencia: qr.qrId });
 });
 
 router.get('/staff/ventas/:id/estado', onlyVentas, async (req, res) => {
@@ -220,23 +363,37 @@ router.get('/staff/ventas/:id/estado', onlyVentas, async (req, res) => {
   if (!venta.referencia_qr) return res.json({ pagado: false });
 
   const { pagado } = await consultarEstadoQR(venta.referencia_qr);
-  // Solo la consulta que pasa la venta de pendiente a pagado registra la caja
-  // y los puntos (el panel consulta cada pocos segundos y pueden cruzarse).
-  const [cambiadas] = pagado ? await db.Venta.update({ estado: 'pagado' }, { where: { id: venta.id, estado: 'pendiente' } }) : [0];
-  if (cambiadas === 1) {
-    venta.estado = 'pagado';
-    await registrarIngresoCaja(venta, venta.usuario_id);
-    if (venta.paciente_id) {
-      await otorgarPuntosPorGasto({
-        pacienteId: venta.paciente_id,
-        monto: venta.total,
-        motivo: `Venta #${venta.id}`,
-        ventaId: venta.id,
-      });
-    }
-  }
+  if (pagado) await marcarPagada(venta);
 
   res.json({ pagado });
+});
+
+// Datos del comprobante (ticket de 80 mm): la venta cobrada y los datos de la clínica.
+router.get('/staff/ventas/:id/comprobante', onlyVentas, async (req, res) => {
+  const venta = await db.Venta.findByPk(req.params.id, {
+    include: [
+      { model: db.Usuario, attributes: ['nombre'] },
+      { model: db.Paciente, attributes: ['nombre_completo', 'codigo_paciente'] },
+      { model: db.VentaItem, include: [{ model: db.Producto, attributes: ['nombre', 'codigo'] }] },
+    ],
+  });
+  if (!venta) return res.status(404).json({ error: 'Venta no encontrada' });
+  if (venta.estado !== 'pagado') return res.status(409).json({ error: 'La venta todavía no está pagada' });
+
+  const config = await db.ConfiguracionClinica.obtenerConfig();
+  const { nombre_consultorio, nit, direccion, ciudad, telefono, logo_url, pie_pdf } = config;
+  res.json({ venta, clinica: { nombre_consultorio, nit, direccion, ciudad, telefono, logo_url, pie: pie_pdf } });
+});
+
+// Con el QR fijo nadie avisa del pago: el personal lo ve en su celular y lo confirma.
+router.post('/staff/ventas/:id/confirmar-qr', onlyVentas, async (req, res) => {
+  const venta = await db.Venta.findByPk(req.params.id);
+  if (!venta) return res.status(404).json({ error: 'Venta no encontrada' });
+  if (venta.metodo_pago !== 'qr' || venta.referencia_qr) {
+    return res.status(400).json({ error: 'Esta venta se confirma sola con el banco' });
+  }
+  await marcarPagada(venta);
+  res.json({ pagado: true });
 });
 
 router.delete('/staff/ventas/:id', onlyVentas, async (req, res) => {
@@ -246,15 +403,7 @@ router.delete('/staff/ventas/:id', onlyVentas, async (req, res) => {
     return res.status(400).json({ error: 'No se puede cancelar una venta ya pagada' });
   }
 
-  for (const item of venta.VentaItems) {
-    const producto = await db.Producto.findByPk(item.producto_id);
-    if (producto) {
-      producto.stock += item.cantidad;
-      await producto.save();
-    }
-  }
-
-  await venta.destroy();
+  await anularVenta(venta);
   res.status(204).end();
 });
 

@@ -3,13 +3,26 @@ export interface Servicio {
   nombre: string;
   precio: number | string;
   descripcion?: string | null;
+  especialidad?: string | null;
+  grupo?: string | null;
 }
 
 export interface Profesional {
   id: number;
   nombre: string;
+  slug?: string | null;
   especialidad?: string | null;
+  cargo?: string | null;
   foto_url?: string | null;
+}
+
+// Perfil público de "Nuestro equipo" (se carga en el panel, Catálogo → Profesionales).
+export interface MiembroEquipo extends Profesional {
+  slug: string;
+  registro_profesional?: string | null;
+  biografia: string;
+  formacion: { titulo: string; detalle: string }[];
+  Servicios: { id: number; nombre: string }[];
 }
 
 export interface Pago {

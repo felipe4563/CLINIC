@@ -166,6 +166,30 @@ describe('Registro directo (sin OTP)', () => {
     expect(p.como_nos_conocio).toBe('Instagram');
   });
 
+  test('la web manda la edad en vez de la fecha de nacimiento', async () => {
+    const res = await request(app).post('/auth/registro').send({
+      telefono: '59170000065', nombre_completo: 'Edad Dicha', carnet_identidad: '6667778', carnet_expedido: 'CB', sexo: 'F', edad: 34, como_nos_conocio: 'Google',
+    });
+    expect(res.status).toBe(200);
+    const p = await db.Paciente.findOne({ where: { telefono: '59170000065' } });
+    expect(p.edad).toBe(34);
+    expect(p.edad_fecha).toBe(new Date().toISOString().slice(0, 10));
+    expect(p.fecha_nacimiento).toBeNull();
+
+    const { edadA } = require('../src/services/historiaClinicaDocumento');
+    expect(edadA(null, '2028-01-01', 34, '2026-10-31')).toBe('35');
+    expect(edadA(null, '2026-11-01', 34, '2026-10-31')).toBe('34');
+    expect(edadA('1990-05-12', '2026-10-31', 34, '2026-10-31')).toBe('36');
+  });
+
+  test('una edad fuera de rango no se guarda', async () => {
+    await request(app).post('/auth/registro').send({
+      telefono: '59170000066', nombre_completo: 'Edad Rara', carnet_identidad: '7778889', carnet_expedido: 'CB', edad: 300,
+    });
+    const p = await db.Paciente.findOne({ where: { telefono: '59170000066' } });
+    expect(p.edad).toBeNull();
+  });
+
   test('un telefono ya registrado con otro carnet no entra a esa ficha', async () => {
     await request(app).post('/auth/registro').send({
       telefono: '59170000064', nombre_completo: 'Duena Real', carnet_identidad: '1112223', carnet_expedido: 'CB',
