@@ -7,10 +7,13 @@ process.env.PRIVADO_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'privado-'));
 
 jest.mock('../src/services/whatsapp', () => ({
   enviarPlantillaWhatsApp: jest.fn().mockResolvedValue(undefined),
+  whatsappConfigurado: () => true,
+  normalizarTelefono: (t) => t,
 }));
 
 const request = require('supertest');
 const db = require('../src/models');
+const { fechaLegible } = require('../src/services/textosCita');
 const app = require('../src/app');
 const { enviarPlantillaWhatsApp } = require('../src/services/whatsapp');
 const { proximoLunes } = require('./helpers/fechas');
@@ -125,7 +128,7 @@ describe('POST /citas según el modo de pago', () => {
     expect(Number(res.body.pago.monto)).toBe(100);
     expect(res.body.avisoWhatsApp).toBe('enviado');
     expect(archivosGuardados()).toBe(antes + 1);
-    expect(enviarPlantillaWhatsApp).toHaveBeenCalledWith('59170000030', 'cita_confirmada', [lunes, '10:00']);
+    expect(enviarPlantillaWhatsApp).toHaveBeenCalledWith('59170000030', 'cita_confirmada', [expect.any(String), expect.any(String), fechaLegible(lunes), '10:00']);
 
     const pago = await db.Pago.findByPk(res.body.pago.id);
     expect(fs.existsSync(path.join(DIR_COMPROBANTES, pago.comprobante_archivo))).toBe(true);

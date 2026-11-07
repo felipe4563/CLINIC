@@ -1,5 +1,7 @@
 jest.mock('../src/services/whatsapp', () => ({
   enviarPlantillaWhatsApp: jest.fn().mockResolvedValue(undefined),
+  whatsappConfigurado: () => true,
+  normalizarTelefono: (t) => t,
 }));
 jest.mock('../src/services/bancoEconomico', () => ({
   generarQR: jest.fn().mockResolvedValue({ qrId: 'QR-123', qrImageBase64: 'FAKE_BASE64' }),

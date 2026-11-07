@@ -1,5 +1,7 @@
 jest.mock('../src/services/whatsapp', () => ({
   enviarPlantillaWhatsApp: jest.fn().mockResolvedValue(undefined),
+  whatsappConfigurado: () => true,
+  normalizarTelefono: (t) => t,
 }));
 
 const bcrypt = require('bcryptjs');

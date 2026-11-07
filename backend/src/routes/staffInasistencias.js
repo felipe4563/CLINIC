@@ -89,7 +89,9 @@ router.patch('/staff/citas/:id/reprogramar', onlyAgenda, async (req, res) => {
     });
   });
 
-  const avisoWhatsApp = await enviarConfirmacionCita(cita.Paciente.telefono, fecha, slot.hora_inicio);
+  const avisoWhatsApp = await enviarConfirmacionCita({
+    telefono: cita.Paciente.telefono, nombre: cita.Paciente.nombre_completo, servicio: cita.Servicio.nombre, fecha, hora: slot.hora_inicio,
+  });
   res.json({ cita: conPolitica(await citaCompleta(cita.id)), avisoWhatsApp });
 });
 

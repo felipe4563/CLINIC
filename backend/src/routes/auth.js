@@ -88,7 +88,7 @@ router.post('/otp/request', otpRequestLimiter, async (req, res) => {
     usado: false,
   });
 
-  await enviarPlantillaWhatsApp(telefono, process.env.WHATSAPP_OTP_TEMPLATE, [codigo]);
+  await enviarPlantillaWhatsApp(telefono, process.env.WHATSAPP_OTP_TEMPLATE, [codigo], { boton: codigo });
 
   res.json({ ok: true });
 });

@@ -7,6 +7,8 @@ process.env.PRIVADO_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'privado-'));
 
 jest.mock('../src/services/whatsapp', () => ({
   enviarPlantillaWhatsApp: jest.fn().mockResolvedValue(undefined),
+  whatsappConfigurado: () => true,
+  normalizarTelefono: (t) => t,
 }));
 
 const bcrypt = require('bcryptjs');

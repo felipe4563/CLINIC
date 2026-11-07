@@ -92,7 +92,7 @@ router.post('/citas', crearCitaLimiter, requirePaciente, recibirArchivo('comprob
   let avisoWhatsApp;
   if (metodo === 'qr_fijo') {
     const paciente = await db.Paciente.findByPk(req.pacienteId);
-    avisoWhatsApp = await enviarConfirmacionCita(paciente.telefono, fecha, slot.hora_inicio);
+    avisoWhatsApp = await enviarConfirmacionCita({ telefono: paciente.telefono, nombre: paciente.nombre_completo, servicio: servicio.nombre, fecha, hora: slot.hora_inicio });
   }
 
   const pagoJSON = pago.toJSON();

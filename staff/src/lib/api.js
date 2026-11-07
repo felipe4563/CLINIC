@@ -157,10 +157,11 @@ export const api = {
     return imprimirPDF(`/staff/agenda/pdf?${params.toString()}`);
   },
 
-  getPacientes: (q, pagina = 1) => {
+  getPacientes: (q, pagina = 1, porPagina) => {
     const params = new URLSearchParams();
     if (q) params.set('q', q);
     params.set('pagina', String(pagina));
+    if (porPagina) params.set('porPagina', String(porPagina));
     return apiFetch(`/staff/pacientes?${params.toString()}`);
   },
   getPaciente: (id) => apiFetch(`/staff/pacientes/${id}`),
@@ -314,6 +315,7 @@ export const api = {
   getAutomatizacion: () => apiFetch('/staff/automatizacion'),
   actualizarAutomatizacion: (datos) =>
     apiFetch('/staff/automatizacion', { method: 'PATCH', body: JSON.stringify(datos) }),
+  probarWhatsApp: (telefono) => apiFetch('/staff/automatizacion/prueba', { method: 'POST', body: JSON.stringify({ telefono }) }),
 
   getAsistenciaHoy: () => apiFetch('/staff/asistencia/hoy'),
   marcarAsistencia: (ubicacion = {}) =>

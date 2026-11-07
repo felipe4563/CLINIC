@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../models');
 const { requirePaciente } = require('./auth.middleware');
 const { generarQR, consultarEstadoQR } = require('../services/bancoEconomico');
-const { enviarPlantillaWhatsApp } = require('../services/whatsapp');
+const { enviarConfirmacionCita } = require('../services/avisosCita');
 const { crearLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
@@ -21,7 +21,10 @@ async function confirmarPago(pago) {
   await pago.Cita.save();
 
   const paciente = await db.Paciente.findByPk(pago.Cita.paciente_id);
-  await enviarPlantillaWhatsApp(paciente.telefono, 'cita_confirmada', [pago.Cita.fecha, pago.Cita.hora_inicio]);
+  const servicio = await db.Servicio.findByPk(pago.Cita.servicio_id);
+  await enviarConfirmacionCita({
+    telefono: paciente.telefono, nombre: paciente.nombre_completo, servicio: servicio ? servicio.nombre : '', fecha: pago.Cita.fecha, hora: pago.Cita.hora_inicio,
+  });
 }
 
 router.post('/pagos/:citaId/qr', qrLimiter, requirePaciente, async (req, res) => {

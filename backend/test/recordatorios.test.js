@@ -1,10 +1,13 @@
 jest.mock('../src/services/whatsapp', () => ({
   enviarPlantillaWhatsApp: jest.fn().mockResolvedValue(undefined),
+  whatsappConfigurado: () => true,
+  normalizarTelefono: (t) => t,
 }));
 
 const db = require('../src/models');
 const { enviarPlantillaWhatsApp } = require('../src/services/whatsapp');
 const { ejecutarRecordatorios } = require('../src/jobs/recordatorios');
+const { fechaLegible } = require('../src/services/textosCita');
 
 function pad(n) {
   return String(n).padStart(2, '0');
@@ -60,7 +63,7 @@ describe('job de recordatorios automaticos', () => {
     expect(enviarPlantillaWhatsApp).toHaveBeenCalledWith(
       paciente.telefono,
       'recordatorio_24h',
-      [cita.fecha, objetivo.hora.slice(0, 5)],
+      [paciente.nombre_completo, servicio.nombre, fechaLegible(cita.fecha), objetivo.hora.slice(0, 5)],
     );
   });
 

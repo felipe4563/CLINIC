@@ -18,6 +18,19 @@ function iniciales(nombre: string) {
   return ((partes[0]?.[0] || '') + (partes[1]?.[0] || '')).toUpperCase();
 }
 
+// 5 filas de 3 en pantalla grande.
+const POR_PAGINA = 15;
+
+// Números de página a mostrar: la primera, la última y las vecinas de la actual; null = "…".
+function paginasVisibles(actual: number, total: number): (number | null)[] {
+  const salida: (number | null)[] = [];
+  for (let n = 1; n <= total; n += 1) {
+    if (n === 1 || n === total || Math.abs(n - actual) <= 1) salida.push(n);
+    else if (salida[salida.length - 1] !== null) salida.push(null);
+  }
+  return salida;
+}
+
 const VACIO = {
   nombre_completo: '',
   telefono: '',
@@ -45,7 +58,7 @@ export default function PacientesPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.getPacientes(texto, paginaBuscar);
+      const res = await api.getPacientes(texto, paginaBuscar, POR_PAGINA);
       setPacientes(res.pacientes);
       setPagina(res.pagina);
       setTotalPaginas(res.totalPaginas);
@@ -208,27 +221,46 @@ export default function PacientesPage() {
         )}
       </div>
 
-      {!loading && total > 0 && (
-        <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+      {total > 0 && (
+        <div className="mt-4 flex flex-col items-center justify-between gap-3 text-xs text-muted-foreground sm:flex-row">
           <span>
-            {total} paciente{total === 1 ? '' : 's'} · página {pagina} de {totalPaginas}
+            {(pagina - 1) * POR_PAGINA + 1}–{Math.min(pagina * POR_PAGINA, total)} de {total} paciente{total === 1 ? '' : 's'}
           </span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => buscar(q, pagina - 1)}
-              disabled={pagina <= 1}
-              className="rounded border border-border px-3 py-1.5 font-medium hover:bg-accent-soft disabled:opacity-40"
-            >
-              Anterior
-            </button>
-            <button
-              onClick={() => buscar(q, pagina + 1)}
-              disabled={pagina >= totalPaginas}
-              className="rounded border border-border px-3 py-1.5 font-medium hover:bg-accent-soft disabled:opacity-40"
-            >
-              Siguiente
-            </button>
-          </div>
+          {totalPaginas > 1 && (
+            <nav className="flex flex-wrap items-center gap-1" aria-label="Páginas">
+              <button
+                onClick={() => buscar(q, pagina - 1)}
+                disabled={pagina <= 1 || loading}
+                className="rounded border border-border px-3 py-1.5 font-medium hover:bg-accent-soft disabled:opacity-40"
+              >
+                ‹ Anterior
+              </button>
+              {paginasVisibles(pagina, totalPaginas).map((n, i) =>
+                n === null ? (
+                  <span key={`hueco-${i}`} className="px-1">…</span>
+                ) : (
+                  <button
+                    key={n}
+                    onClick={() => buscar(q, n)}
+                    disabled={loading}
+                    aria-current={n === pagina ? 'page' : undefined}
+                    className={`min-w-8 rounded border px-2.5 py-1.5 font-medium ${
+                      n === pagina ? 'border-accent bg-accent text-accent-foreground' : 'border-border hover:bg-accent-soft'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ),
+              )}
+              <button
+                onClick={() => buscar(q, pagina + 1)}
+                disabled={pagina >= totalPaginas || loading}
+                className="rounded border border-border px-3 py-1.5 font-medium hover:bg-accent-soft disabled:opacity-40"
+              >
+                Siguiente ›
+              </button>
+            </nav>
+          )}
         </div>
       )}
     </div>

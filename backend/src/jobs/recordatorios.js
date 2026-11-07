@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const db = require('../models');
 const { enviarSiCorresponde } = require('../services/notificacionesAutomaticas');
+const { fechaLegible, horaCorta } = require('../services/textosCita');
 
 // Las columnas fecha/hora_inicio de Cita se guardan como hora local "de pared"
 // (igual que el resto de la agenda), sin conversion de zona horaria. Por eso
@@ -40,7 +41,7 @@ async function enviarRecordatoriosVentana({ tipo, template, minutosAntes, ventan
       estado: 'confirmada',
       [Op.and]: [db.sequelize.where(timestampCombinado(), { [Op.between]: [desde, hasta] })],
     },
-    include: [db.Paciente],
+    include: [db.Paciente, db.Servicio],
   });
 
   for (const cita of citas) {
@@ -49,7 +50,7 @@ async function enviarRecordatoriosVentana({ tipo, template, minutosAntes, ventan
         tipo,
         telefono: cita.Paciente.telefono,
         template: process.env[`WHATSAPP_${tipo.toUpperCase()}_TEMPLATE`],
-        parametros: [cita.fecha, cita.hora_inicio.slice(0, 5)],
+        parametros: [cita.Paciente.nombre_completo, cita.Servicio ? cita.Servicio.nombre : 'tu tratamiento', fechaLegible(cita.fecha), horaCorta(cita.hora_inicio)],
         citaId: cita.id,
       });
     } catch (err) {

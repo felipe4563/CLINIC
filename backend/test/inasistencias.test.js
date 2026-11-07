@@ -6,11 +6,14 @@ process.env.PRIVADO_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'privado-'));
 
 jest.mock('../src/services/whatsapp', () => ({
   enviarPlantillaWhatsApp: jest.fn().mockResolvedValue(undefined),
+  whatsappConfigurado: () => true,
+  normalizarTelefono: (t) => t,
 }));
 
 const bcrypt = require('bcryptjs');
 const request = require('supertest');
 const db = require('../src/models');
+const { fechaLegible } = require('../src/services/textosCita');
 const app = require('../src/app');
 const { enviarPlantillaWhatsApp } = require('../src/services/whatsapp');
 const { PERMISOS_POR_DEFECTO } = require('../src/config/permisos');
@@ -124,7 +127,7 @@ describe('Inasistencia: justificación y reprogramación', () => {
     expect(res.body.cita.reprogramacion_usada).toBe(true);
     expect(res.body.cita.Pago.estado).toBe('pagado');
     expect(res.body.avisoWhatsApp).toBe('enviado');
-    expect(enviarPlantillaWhatsApp).toHaveBeenCalledWith('59170000050', 'cita_confirmada', [lunesSiguiente, '10:30']);
+    expect(enviarPlantillaWhatsApp).toHaveBeenCalledWith('59170000050', 'cita_confirmada', [expect.any(String), expect.any(String), fechaLegible(lunesSiguiente), '10:30']);
   });
 
   test('reprogramar borra los avisos automáticos de la fecha anterior', async () => {
