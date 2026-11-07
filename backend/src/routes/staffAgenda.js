@@ -4,7 +4,7 @@ const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { getSlotsDisponibles } = require('../services/disponibilidad');
 const { enviarSiCorresponde } = require('../services/notificacionesAutomaticas');
-const { crearReportePDF, dibujarTabla, formatoFecha, COLOR } = require('../services/pdf');
+const { generarAgendaPDF } = require('../services/agendaPdf');
 const { otorgarPuntosPorGasto } = require('../services/fidelizacion');
 const { conPolitica } = require('../services/politicaInasistencia');
 const { descontarPorCita, revertirPorCita } = require('../services/consumoTratamiento');
@@ -102,14 +102,6 @@ router.get('/staff/citas', requirePermiso('agenda'), async (req, res) => {
   res.json(citas.map(conPolitica));
 });
 
-const ESTADO_LABEL = {
-  pendiente_pago: 'Pendiente de pago',
-  confirmada: 'Confirmada',
-  cancelada: 'Cancelada',
-  completada: 'Completada',
-  no_asistio: 'No asistió',
-};
-
 function pad(n) {
   return String(n).padStart(2, '0');
 }
@@ -135,61 +127,14 @@ router.get('/staff/agenda/pdf', requirePermiso('agenda'), async (req, res) => {
   });
 
   const config = await db.ConfiguracionClinica.obtenerConfig();
-  const nombreArchivo = esRango
-    ? `agenda-${fechaDesde}_${fechaHasta}.pdf`
-    : `agenda-${fechaDesde}.pdf`;
-
-  const doc = crearReportePDF(res, config, {
-    titulo: esRango ? 'Agenda de Citas' : 'Agenda del Día',
-    nombreArchivo,
-    desde: esRango ? fechaDesde : null,
-    hasta: esRango ? fechaHasta : null,
+  const profesional = profesionalId ? await db.Profesional.findByPk(profesionalId, { attributes: ['nombre'] }) : null;
+  generarAgendaPDF(res, config, {
+    citas,
+    desde: fechaDesde,
+    hasta: fechaHasta,
+    profesional: profesional ? profesional.nombre : null,
+    nombreArchivo: esRango ? `agenda-${fechaDesde}_${fechaHasta}.pdf` : `agenda-${fechaDesde}.pdf`,
   });
-
-  if (!esRango) {
-    doc.font('Helvetica-Bold').fontSize(10).fillColor(COLOR.tan).text(formatoFecha(fechaDesde), { continued: false });
-    doc.moveDown(0.5);
-    doc.fillColor(COLOR.ink);
-  }
-
-  const columnaEstado = { titulo: 'Estado', ancho: 95 };
-
-  const columnas = esRango
-    ? [
-        { titulo: 'Fecha', ancho: 65 },
-        { titulo: 'Hora', ancho: 50 },
-        { titulo: 'Paciente', ancho: 115 },
-        { titulo: 'Servicio', ancho: 100 },
-        { titulo: 'Profesional', ancho: 90 },
-        columnaEstado,
-      ]
-    : [
-        { titulo: 'Hora', ancho: 50 },
-        { titulo: 'Paciente', ancho: 125 },
-        { titulo: 'Servicio', ancho: 105 },
-        { titulo: 'Profesional', ancho: 100 },
-        { titulo: 'Teléfono', ancho: 70 },
-        columnaEstado,
-      ];
-
-  const filas = citas.map((c) => {
-    const base = esRango ? [formatoFecha(c.fecha), c.hora_inicio.slice(0, 5)] : [c.hora_inicio.slice(0, 5)];
-    const comunes = [
-      c.Paciente ? c.Paciente.nombre_completo : 'Sin paciente',
-      c.Servicio ? c.Servicio.nombre : 'Sin servicio',
-      c.Profesional ? c.Profesional.nombre : 'Sin profesional',
-    ];
-    const estadoTexto = ESTADO_LABEL[c.estado] || c.estado;
-    const cola = esRango ? [estadoTexto] : [c.Paciente ? c.Paciente.telefono : '', estadoTexto];
-    return [...base, ...comunes, ...cola];
-  });
-
-  dibujarTabla(doc, { columnas, filas });
-
-  doc.moveDown(0.6);
-  doc.font('Helvetica-Bold').fontSize(10).fillColor(COLOR.ink).text(`Total de citas: ${citas.length}`);
-
-  doc.end();
 });
 
 const TEMPLATE_POR_ESTADO = {

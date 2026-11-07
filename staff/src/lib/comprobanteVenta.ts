@@ -53,63 +53,77 @@ export function htmlComprobante({ venta, clinica }: DatosComprobante) {
   const cliente = venta.Paciente?.nombre_completo || venta.cliente_nombre || 'Cliente mostrador';
   const lugar = [clinica.direccion, clinica.ciudad?.trim()].filter(Boolean).join(', ');
 
+  const unidades = venta.VentaItems.reduce((n, it) => n + it.cantidad, 0);
+
   const filas = venta.VentaItems.map((it) => {
     const precio = Number(it.precio_unitario);
-    return `<tr><td colspan="3" class="prod">${esc(it.Producto.nombre)}</td></tr>
-      <tr><td>${it.cantidad} x ${bs(precio)}</td><td></td><td class="der">${bs(it.cantidad * precio)}</td></tr>`;
+    return `<div class="item">
+      <div class="prod">${esc(it.Producto.nombre)}</div>
+      <div class="fila"><span class="gris">${it.cantidad} × ${bs(precio)}</span><span class="importe">${bs(it.cantidad * precio)}</span></div>
+    </div>`;
   }).join('');
 
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Comprobante ${venta.id}</title>
 <style>
   @page { size: 80mm auto; margin: 0; }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { margin: 0; padding: 0; background: #fff; color: #000; }
-  body { width: 72mm; margin: 0 auto; padding: 3mm 0 6mm; font: 12px/1.35 Arial, Helvetica, sans-serif; }
+  /* Ancho fluido: se ajusta al área imprimible de la impresora sin cortar el borde derecho. */
+  body { width: 100%; max-width: 76mm; margin: 0 auto; padding: 4mm 4mm 8mm; font: 11.5px/1.35 Arial, Helvetica, sans-serif; font-variant-numeric: tabular-nums; }
   .centro { text-align: center; }
-  .der { text-align: right; white-space: nowrap; }
-  .logo { display: block; max-width: 40mm; max-height: 22mm; margin: 0 auto 2mm; object-fit: contain; filter: grayscale(1); }
-  .nombre { font-size: 15px; font-weight: 700; }
-  .chico { font-size: 10.5px; }
-  .linea { border-top: 1px dashed #000; margin: 2.5mm 0; }
-  .titulo { font-size: 13px; font-weight: 700; letter-spacing: .5px; }
-  table { width: 100%; border-collapse: collapse; font: inherit; }
-  td { padding: .4mm 0; vertical-align: top; }
-  .prod { font-weight: 600; padding-top: 1.2mm; }
-  .total td { font-size: 15px; font-weight: 700; padding-top: 1mm; }
-  .dato { display: flex; justify-content: space-between; gap: 2mm; }
-  .dato span:last-child { text-align: right; }
+  .chico { font-size: 10px; }
+  .gris { color: #222; }
+  .logo { display: block; max-width: 30mm; max-height: 20mm; margin: 0 auto 2mm; object-fit: contain; filter: grayscale(1); }
+  .nombre { font-size: 16px; font-weight: 700; letter-spacing: .3px; }
+  .contacto { font-size: 10px; margin-top: .8mm; }
+  .linea { border-top: 1px dashed #000; margin: 3mm 0; }
+  .banda { background: #000; color: #fff; text-align: center; font-weight: 700; font-size: 12px; letter-spacing: 1.5px; padding: 1.4mm 0; margin-top: 3mm; }
+  .numero { text-align: center; font-size: 15px; font-weight: 700; margin: 1.5mm 0 0; letter-spacing: 1px; }
+  .fila { display: flex; justify-content: space-between; align-items: baseline; gap: 3mm; }
+  .fila > span:last-child { text-align: right; overflow-wrap: anywhere; }
+  .rotulo { font-size: 9.5px; text-transform: uppercase; letter-spacing: .6px; white-space: nowrap; }
+  .datos .fila { padding: .3mm 0; }
+  .cabecera { font-size: 9.5px; text-transform: uppercase; letter-spacing: .6px; border-bottom: 1px solid #000; padding-bottom: 1mm; margin-bottom: .5mm; }
+  .item { padding: 1.6mm 0; border-bottom: 1px dotted #000; }
+  .item:last-child { border-bottom: 0; }
+  .prod { font-weight: 700; }
+  .importe { font-weight: 700; white-space: nowrap; }
+  .totales .fila { padding: .4mm 0; }
+  .total { border-top: 2px solid #000; border-bottom: 2px solid #000; margin: 1.5mm 0; padding: 1.5mm 0 !important; font-size: 17px; font-weight: 700; }
+  .pago { display: inline-block; border: 1.5px solid #000; border-radius: 1mm; padding: 0 2mm; font-weight: 700; }
+  .gracias { font-size: 13px; font-weight: 700; margin-bottom: .8mm; }
 </style></head><body>
   ${logo ? `<img class="logo" src="${esc(logo)}" alt="">` : ''}
   <div class="centro">
     <div class="nombre">${esc(clinica.nombre_consultorio)}</div>
-    ${clinica.nit ? `<div class="chico">NIT ${esc(clinica.nit)}</div>` : ''}
-    ${lugar ? `<div class="chico">${esc(lugar)}</div>` : ''}
-    ${clinica.telefono ? `<div class="chico">Tel. ${esc(clinica.telefono)}</div>` : ''}
+    ${clinica.nit ? `<div class="contacto">NIT ${esc(clinica.nit)}</div>` : ''}
+    ${lugar ? `<div class="contacto">${esc(lugar)}</div>` : ''}
+    ${clinica.telefono ? `<div class="contacto">Tel. ${esc(clinica.telefono)}</div>` : ''}
+  </div>
+  <div class="banda">COMPROBANTE DE VENTA</div>
+  <div class="numero">N° ${String(venta.id).padStart(6, '0')}</div>
+  <div class="linea"></div>
+  <div class="datos">
+    <div class="fila"><span class="rotulo">Fecha</span><span>${esc(fechaHora(venta))}</span></div>
+    <div class="fila"><span class="rotulo">Cliente</span><span>${esc(cliente)}</span></div>
+    ${venta.Paciente?.codigo_paciente ? `<div class="fila"><span class="rotulo">Código</span><span>${esc(venta.Paciente.codigo_paciente)}</span></div>` : ''}
+    ${venta.Usuario ? `<div class="fila"><span class="rotulo">Atendió</span><span>${esc(venta.Usuario.nombre)}</span></div>` : ''}
   </div>
   <div class="linea"></div>
-  <div class="centro titulo">COMPROBANTE DE VENTA</div>
-  <div class="centro">N° ${String(venta.id).padStart(6, '0')}</div>
+  <div class="fila cabecera"><span>Detalle (Bs)</span><span>Importe</span></div>
+  <div>${filas}</div>
   <div class="linea"></div>
-  <div class="dato"><span>Fecha</span><span>${esc(fechaHora(venta))}</span></div>
-  <div class="dato"><span>Cliente</span><span>${esc(cliente)}</span></div>
-  ${venta.Paciente?.codigo_paciente ? `<div class="dato"><span>Código</span><span>${esc(venta.Paciente.codigo_paciente)}</span></div>` : ''}
-  ${venta.Usuario ? `<div class="dato"><span>Atendió</span><span>${esc(venta.Usuario.nombre)}</span></div>` : ''}
+  <div class="totales">
+    <div class="fila chico"><span>${unidades} ${unidades === 1 ? 'artículo' : 'artículos'}</span><span></span></div>
+    ${porcentaje > 0 ? `<div class="fila"><span>Subtotal</span><span>Bs ${bs(subtotal)}</span></div>
+    <div class="fila"><span>Descuento ${esc(porcentaje)} %</span><span>- Bs ${bs(subtotal - total)}</span></div>` : ''}
+    <div class="fila total"><span>TOTAL</span><span>Bs ${bs(total)}</span></div>
+    <div class="fila"><span>Forma de pago</span><span class="pago">${venta.metodo_pago === 'qr' ? 'QR' : 'EFECTIVO'}</span></div>
+  </div>
   <div class="linea"></div>
-  <table>
-    <tr class="chico"><td>Cant. x P/U (Bs)</td><td></td><td class="der">Importe</td></tr>
-    ${filas}
-  </table>
-  <div class="linea"></div>
-  <table>
-    ${porcentaje > 0 ? `<tr><td>Subtotal</td><td class="der">Bs ${bs(subtotal)}</td></tr>
-    <tr><td>Descuento ${esc(porcentaje)} %</td><td class="der">- Bs ${bs(subtotal - total)}</td></tr>` : ''}
-    <tr class="total"><td>TOTAL</td><td class="der">Bs ${bs(total)}</td></tr>
-    <tr><td>Pago</td><td class="der">${venta.metodo_pago === 'qr' ? 'QR' : 'Efectivo'}</td></tr>
-  </table>
-  <div class="linea"></div>
-  <div class="centro">¡Gracias por su compra!</div>
-  ${clinica.pie ? `<div class="centro chico">${esc(clinica.pie)}</div>` : ''}
-  <div class="centro chico" style="margin-top:2mm">Este comprobante no es una factura.</div>
+  <div class="centro gracias">¡Gracias por su compra!</div>
+  ${clinica.pie ? `<div class="centro chico" style="letter-spacing:1px">${esc(clinica.pie)}</div>` : ''}
+  <div class="centro chico" style="margin-top:2.5mm">Este comprobante no es una factura.</div>
 </body></html>`;
 }
 

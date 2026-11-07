@@ -110,7 +110,7 @@ function Inventario() {
         ))}
       </div>
 
-      {(tab === 'insumos' || tab === 'activos' || tab === 'ventas') && <ProductosCaja acapite={tab} productos={productos} onCambio={cargar} />}
+      {(tab === 'insumos' || tab === 'activos' || tab === 'ventas') && <ProductosCaja acapite={tab} productos={productos} onCambio={cargar} buscarInicial={searchParams.get('buscar') || ''} />}
       {tab === 'lugar' && <InventarioPorLugar />}
       {tab === 'mantenimiento' && <MantenimientoEquipos />}
     </div>

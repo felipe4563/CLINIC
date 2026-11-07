@@ -38,6 +38,35 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
+// Abre el PDF en un iframe oculto y llama al diálogo de impresión, sin descargarlo.
+async function imprimirPDF(path) {
+  const token = getToken();
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (res.status === 401) {
+    limpiarSesionYRedirigir();
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Error ${res.status}`);
+  }
+  const url = URL.createObjectURL(new Blob([await res.blob()], { type: 'application/pdf' }));
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+  iframe.src = url;
+  iframe.onload = () => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    // Se quita después: si se borra enseguida, algunos navegadores cancelan la impresión.
+    setTimeout(() => {
+      iframe.remove();
+      URL.revokeObjectURL(url);
+    }, 60000);
+  };
+  document.body.appendChild(iframe);
+}
+
 async function descargarPDF(path) {
   const token = getToken();
   const res = await fetch(`${API_URL}${path}`, {
@@ -121,6 +150,12 @@ export const api = {
     if (profesionalId) params.set('profesionalId', profesionalId);
     return descargarPDF(`/staff/agenda/pdf?${params.toString()}`);
   },
+  imprimirAgendaPDF: (fecha, profesionalId) => {
+    const params = new URLSearchParams();
+    if (fecha) params.set('fecha', fecha);
+    if (profesionalId) params.set('profesionalId', profesionalId);
+    return imprimirPDF(`/staff/agenda/pdf?${params.toString()}`);
+  },
 
   getPacientes: (q, pagina = 1) => {
     const params = new URLSearchParams();
@@ -181,6 +216,11 @@ export const api = {
   quitarDocumentoFirmado: (id) => apiFetch(`/staff/historias/${id}/documento-firmado`, { method: 'DELETE' }),
   descargarHistoriaPdf: (id) => descargarPDF(`/staff/historias/${id}/pdf`),
   descargarHistoriaWord: (id) => descargarPDF(`/staff/historias/${id}/word`),
+  imprimirHistoria: (id) => imprimirPDF(`/staff/historias/${id}/pdf`),
+  // Solo el consentimiento, para imprimirlo y firmarlo aparte.
+  descargarConsentimientoPdf: (id) => descargarPDF(`/staff/historias/${id}/pdf?solo=consentimiento`),
+  descargarConsentimientoWord: (id) => descargarPDF(`/staff/historias/${id}/word?solo=consentimiento`),
+  imprimirConsentimiento: (id) => imprimirPDF(`/staff/historias/${id}/pdf?solo=consentimiento`),
   descargarHistoriaEnBlanco: (formato) => descargarPDF(`/staff/historia-clinica/en-blanco.${formato}`),
   actualizarTratamiento: (id, datos) =>
     apiFetch(`/staff/tratamientos/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
@@ -251,7 +291,7 @@ export const api = {
   },
   eliminarImagenActivo: (id) => apiFetch(`/staff/activos/${id}/imagen`, { method: 'DELETE' }),
 
-  getVentas: (fecha) => apiFetch(`/staff/ventas${fecha ? `?fecha=${fecha}` : ''}`),
+  getVentas: (desde, hasta) => apiFetch(`/staff/ventas?desde=${desde}&hasta=${hasta || desde}`),
   crearVenta: (datos) => apiFetch('/staff/ventas', { method: 'POST', body: JSON.stringify(datos) }),
   estadoVentaQR: (id) => apiFetch(`/staff/ventas/${id}/estado`),
   getMantenimientos: () => apiFetch('/staff/mantenimientos'),
@@ -332,6 +372,10 @@ export const api = {
     const qs = new URLSearchParams(params);
     return descargarPDF(`/staff/reportes/${tipo}/pdf${qs.toString() ? `?${qs.toString()}` : ''}`);
   },
+  imprimirReporte: (tipo, params = {}) => {
+    const qs = new URLSearchParams(params);
+    return imprimirPDF(`/staff/reportes/${tipo}/pdf${qs.toString() ? `?${qs.toString()}` : ''}`);
+  },
 
   getServiciosPublico: () => apiFetch('/servicios'),
   getProfesionalesPublico: (servicioId) =>
@@ -341,6 +385,8 @@ export const api = {
 
   getServiciosStaff: () => apiFetch('/staff/servicios'),
   getCategoriasServicio: () => apiFetch('/staff/servicios/categorias'),
+  crearEspecialidad: (nombre) => apiFetch('/staff/servicios/categorias', { method: 'POST', body: JSON.stringify({ nombre }) }),
+  borrarEspecialidad: (id) => apiFetch(`/staff/servicios/categorias/${id}`, { method: 'DELETE' }),
   crearServicio: (datos) => apiFetch('/staff/servicios', { method: 'POST', body: JSON.stringify(datos) }),
   actualizarServicio: (id, datos) =>
     apiFetch(`/staff/servicios/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),

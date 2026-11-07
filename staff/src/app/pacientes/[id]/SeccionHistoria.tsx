@@ -61,12 +61,6 @@ export default function SeccionHistoria({ pacienteId, onAlerta }: { pacienteId: 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-semibold">Historia clínica</h2>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => descargar(() => api.descargarHistoriaEnBlanco('pdf'))} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft">
-            Formulario en blanco (PDF)
-          </button>
-          <button onClick={() => descargar(() => api.descargarHistoriaEnBlanco('docx'))} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft">
-            En blanco (Word)
-          </button>
           <button onClick={nueva} disabled={ocupado} className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground disabled:opacity-50">
             {ocupado ? 'Creando…' : '+ Nueva evaluación'}
           </button>
@@ -93,6 +87,7 @@ export default function SeccionHistoria({ pacienteId, onAlerta }: { pacienteId: 
               <Link href={`/pacientes/${pacienteId}/historia/${h.id}`} className="rounded border border-border px-2.5 py-1 text-xs hover:bg-accent-soft">
                 Ver / editar
               </Link>
+              <button onClick={() => descargar(() => api.imprimirHistoria(h.id))} className="rounded border border-border px-2.5 py-1 text-xs hover:bg-accent-soft">Imprimir</button>
               <button onClick={() => descargar(() => api.descargarHistoriaPdf(h.id))} className="rounded border border-border px-2.5 py-1 text-xs hover:bg-accent-soft">PDF</button>
               <button onClick={() => descargar(() => api.descargarHistoriaWord(h.id))} className="rounded border border-border px-2.5 py-1 text-xs hover:bg-accent-soft">Word</button>
             </div>

@@ -73,6 +73,23 @@ describe('Ventas por acápites', () => {
     expect(r2.body.error).toMatch(/no tiene precio/);
   });
 
+  test('el historial filtra por rango de fechas (ambos días incluidos)', async () => {
+    const p = (await crear({ acapite: 'ventas', nombre: 'Fotoprotector rango', stock: 10, precio_venta: 10 })).body;
+    const vender = async (fecha) => {
+      const r = await request(app).post('/staff/ventas').set(auth()).send({ items: [{ productoId: p.id, cantidad: 1 }], metodoPago: 'efectivo' });
+      await db.Venta.update({ fecha }, { where: { id: r.body.venta.id } });
+    };
+    await vender('2026-03-01');
+    await vender('2026-03-05');
+    await vender('2026-03-09');
+    const lista = (q) => request(app).get(`/staff/ventas?${q}`).set(auth());
+    const rango = await lista('desde=2026-03-01&hasta=2026-03-05');
+    expect(rango.body.ventas.map((v) => v.fecha)).toEqual(['2026-03-05', '2026-03-01']);
+    expect(rango.body.totalDia).toBe(20);
+    expect((await lista('fecha=2026-03-09')).body.ventas).toHaveLength(1);
+    expect((await lista('desde=2026-03-09&hasta=2026-03-01')).body.ventas).toHaveLength(1);
+  });
+
   test('el pago con QR entra a la caja una sola vez aunque se consulte varias veces', async () => {
     const p = (await crear({ acapite: 'ventas', nombre: 'Repaskin SPF50', stock: 5, precio_venta: 200 })).body;
     const venta = await request(app).post('/staff/ventas').set(auth()).send({ items: [{ productoId: p.id, cantidad: 2 }], metodoPago: 'qr' });

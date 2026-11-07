@@ -121,11 +121,15 @@ export default function EditorHistoria() {
     if (sucio && !window.confirm('Tienes cambios sin guardar. ¿Salir sin guardar?')) e.preventDefault();
   }
 
-  async function descargar(formato: 'pdf' | 'word') {
+  async function descargar(formato: 'pdf' | 'word' | 'imprimir', soloConsentimiento = false) {
     if (!historia) return;
     setError(null);
     try {
-      await (formato === 'pdf' ? api.descargarHistoriaPdf(historia.id) : api.descargarHistoriaWord(historia.id));
+      if (soloConsentimiento) {
+        if (formato === 'imprimir') await api.imprimirConsentimiento(historia.id);
+        else await (formato === 'pdf' ? api.descargarConsentimientoPdf(historia.id) : api.descargarConsentimientoWord(historia.id));
+      } else if (formato === 'imprimir') await api.imprimirHistoria(historia.id);
+      else await (formato === 'pdf' ? api.descargarHistoriaPdf(historia.id) : api.descargarHistoriaWord(historia.id));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo descargar el documento');
     }
@@ -233,6 +237,7 @@ export default function EditorHistoria() {
           {sucio && <span className="text-xs text-stat-amber">Tienes cambios sin guardar</span>}
           {aviso && !sucio && <span className="text-xs text-stat-green">{aviso}</span>}
           {error && <span role="alert" className="max-w-xs text-xs text-danger">{error}</span>}
+          <button onClick={() => descargar('imprimir')} disabled={sucio} title={sucio ? 'Guarda primero' : undefined} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">Imprimir</button>
           <button onClick={() => descargar('pdf')} disabled={sucio} title={sucio ? 'Guarda primero' : undefined} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">PDF</button>
           <button onClick={() => descargar('word')} disabled={sucio} title={sucio ? 'Guarda primero' : undefined} className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50">Word</button>
           <button onClick={guardar} disabled={guardando || !sucio} className="rounded-lg bg-accent px-4 py-1.5 text-sm font-medium text-accent-foreground disabled:opacity-60">
@@ -380,7 +385,21 @@ export default function EditorHistoria() {
               <input value={historia.procedimiento_autorizado ?? ''} onChange={(e) => cambiar('procedimiento_autorizado', e.target.value)} maxLength={255} className="mt-1 block w-full rounded border border-border px-2.5 py-1.5 text-sm text-foreground" />
             </label>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">Descarga el PDF o el Word, imprímelo y fírmenlo. Después sube aquí la foto o el escaneo firmado.</p>
+          <p className="mt-3 text-xs text-muted-foreground">Imprime o descarga solo el consentimiento, que lo firmen y después sube aquí la foto o el escaneo firmado.</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {(['imprimir', 'pdf', 'word'] as const).map((formato) => (
+              <button
+                key={formato}
+                type="button"
+                onClick={() => descargar(formato, true)}
+                disabled={sucio}
+                title={sucio ? 'Guarda primero' : undefined}
+                className="rounded border border-border px-3 py-1.5 text-xs hover:bg-accent-soft disabled:opacity-50"
+              >
+                {formato === 'imprimir' ? 'Imprimir consentimiento' : formato === 'pdf' ? 'Consentimiento PDF' : 'Consentimiento Word'}
+              </button>
+            ))}
+          </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <input ref={inputFirmado} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={subirFirmado} className="hidden" />
             <button type="button" onClick={() => inputFirmado.current?.click()} className="rounded border border-border px-3 py-1.5 text-xs hover:bg-accent-soft">

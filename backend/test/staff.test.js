@@ -150,6 +150,29 @@ describe('Staff (sistema interno)', () => {
       expect(res.body.some((c) => c.fecha === '2030-09-10')).toBe(true);
     });
 
+    test('imprime la agenda del día, de un rango y de un día sin citas en PDF', async () => {
+      const pdf = (url) =>
+        request(app)
+          .get(url)
+          .set('Authorization', `Bearer ${token}`)
+          .buffer(true)
+          .parse((r, cb) => {
+            const partes = [];
+            r.on('data', (c) => partes.push(c));
+            r.on('end', () => cb(null, Buffer.concat(partes)));
+          });
+      for (const url of [
+        `/staff/agenda/pdf?fecha=2030-09-10&profesionalId=${profesional.id}`,
+        '/staff/agenda/pdf?desde=2030-09-01&hasta=2030-09-30',
+        '/staff/agenda/pdf?fecha=2030-09-11',
+      ]) {
+        const res = await pdf(url);
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toBe('application/pdf');
+        expect(res.body.subarray(0, 4).toString()).toBe('%PDF');
+      }
+    });
+
     test('actualiza estado de una cita', async () => {
       const cita = await db.Cita.findOne({ where: { paciente_id: paciente.id } });
       const res = await request(app)
@@ -682,6 +705,29 @@ describe('Staff (sistema interno)', () => {
       expect(moverBien.status).toBe(200);
       expect(moverBien.body.especialidad).toBe('Enfermería');
       expect(moverBien.body.grupo).toBeNull();
+    });
+
+    test('se pueden agregar especialidades nuevas, sin repetir, y quitarlas si nadie las usa', async () => {
+      const auth = { Authorization: `Bearer ${token}` };
+      const nueva = await request(app).post('/staff/servicios/categorias').set(auth).send({ nombre: '  Nutrición  ' });
+      expect(nueva.status).toBe(201);
+      expect(nueva.body).toEqual({ id: expect.any(Number), nombre: 'Nutrición', grupos: [] });
+      expect((await request(app).post('/staff/servicios/categorias').set(auth).send({ nombre: 'nutricion' })).status).toBe(409);
+      expect((await request(app).post('/staff/servicios/categorias').set(auth).send({ nombre: 'enfermeria' })).status).toBe(409);
+      expect((await request(app).post('/staff/servicios/categorias').set(auth).send({ nombre: 'x' })).status).toBe(400);
+
+      const lista = await request(app).get('/staff/servicios/categorias').set(auth);
+      expect(lista.body.at(-1).nombre).toBe('Nutrición');
+
+      const servicio = await request(app).post('/staff/servicios').set(auth).send({ nombre: 'Plan nutricional', duracion_min: 40, precio: 150, especialidad: 'Nutrición' });
+      expect(servicio.status).toBe(201);
+      expect((await request(app).post('/staff/servicios').set(auth).send({ nombre: 'Con grupo', duracion_min: 40, precio: 1, especialidad: 'Nutrición', grupo: 'Plasma Láser' })).status).toBe(400);
+
+      const enUso = await request(app).delete(`/staff/servicios/categorias/${nueva.body.id}`).set(auth);
+      expect(enUso.status).toBe(409);
+      await request(app).patch(`/staff/servicios/${servicio.body.id}`).set(auth).send({ especialidad: 'Enfermería' });
+      expect((await request(app).delete(`/staff/servicios/categorias/${nueva.body.id}`).set(auth)).status).toBe(204);
+      expect((await request(app).get('/staff/servicios/categorias').set(auth)).body.map((e) => e.nombre)).not.toContain('Nutrición');
     });
 
     test('crea profesional, lo vincula a un servicio y le agrega horario', async () => {

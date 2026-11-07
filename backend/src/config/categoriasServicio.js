@@ -12,8 +12,9 @@ const ESPECIALIDADES = [
 ];
 
 // Devuelve { especialidad, grupo } válidos, o { error } si no corresponden.
-function leerCategoria(especialidad, grupo) {
-  const e = ESPECIALIDADES.find((x) => x.nombre === especialidad);
+// `lista`: las fijas más las que se agregaron desde el Catálogo.
+function leerCategoria(especialidad, grupo, lista = ESPECIALIDADES) {
+  const e = lista.find((x) => x.nombre === especialidad);
   if (!e) return { error: 'Elige una especialidad de la lista' };
   if (!grupo) return { especialidad: e.nombre, grupo: null };
   if (!e.grupos.includes(grupo)) return { error: `El grupo no corresponde a ${e.nombre}` };

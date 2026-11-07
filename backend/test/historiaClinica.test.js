@@ -98,10 +98,9 @@ describe('Historia clínica: definición y validación', () => {
     expect(titulos('analisis_estetico')).toEqual([
       'Fototipo Fitzpatrick', 'Escala de Glogau', 'Biotipo de piel', 'Grado de deshidratación', 'Grosor de piel',
       'Evaluación de la piel', 'Cicatrices', 'Tipo facial', 'Ubicación de grasa corporal',
-      'Arrugas', 'Líneas de expresión', 'Clínica cutánea', 'Acné',
     ]);
-    const semiologia = SECCIONES.find((s) => s.clave === 'analisis_estetico').grupos.filter((g) => g.apartado === 'Semiología cutánea');
-    expect(semiologia.map((g) => g.titulo)).toEqual(['Arrugas', 'Líneas de expresión', 'Clínica cutánea', 'Acné']);
+    // La doctora quitó la semiología cutánea (arrugas, líneas de expresión, clínica cutánea y acné).
+    expect(SECCIONES.find((s) => s.clave === 'analisis_estetico').grupos.some((g) => g.apartado)).toBe(false);
   });
 
   test('cambios de la doctora (audios del 15/10): etiquetas, orden y campos quitados', () => {
@@ -113,7 +112,7 @@ describe('Historia clínica: definición y validación', () => {
     expect(patologicos).not.toContain('Odontológica');
     expect(etiquetas('datos_clinicos', 'Antecedentes ginecológicos')).toEqual([
       'Fórmula obstétrica', 'Gestas', 'Partos', 'Cesáreas', 'Abortos', 'Menopausia', 'Planificación familiar (método)', 'Ciclo menstrual',
-      'Fecha de última menstruación (FUM)',
+      'Fecha de última menstruación (FUM)', 'Suplementos / hormonas',
     ]);
     expect(etiquetas('datos_clinicos', 'Hábitos de vida').slice(0, 7)).toEqual([
       'Tabaco', 'Alcohol', 'Drogas', 'Cafeína', 'Actividad física', 'Calidad de sueño', 'Cantidad de agua al día',
@@ -123,8 +122,15 @@ describe('Historia clínica: definición y validación', () => {
     expect(etiquetas('analisis_estetico', 'Evaluación de la piel').slice(0, 7)).toEqual([
       'Mácula', 'Nevus', 'Hiperpigmentación', 'Hipopigmentación', 'Efélides', 'Melasma', 'Léntigos solares',
     ]);
-    expect(grupo('analisis_estetico', 'Acné').campos[0].opciones.map((op) => op.etiqueta)).toEqual(['Grado 1', 'Grado 2', 'Grado 3', 'Grado 4']);
-    expect(grupo('analisis_estetico', 'Escala de Glogau').campos[0].opciones.map((op) => op.clave)).toEqual(['I', 'II', 'III', 'IV']);
+    expect(etiquetas('analisis_estetico', 'Evaluación de la piel').slice(7)).toEqual([
+      'Rosácea', 'Comedones', 'Quistes', 'Pústulas', 'Arrugas', 'Flacidez',
+      'Tiempo de aparición', 'Causa', 'Localización', 'Observación', 'Poros', 'Visibles', 'Dilatados', 'Obstruidos',
+    ]);
+    // Rosácea, quistes, pústulas y poros vienen de la antigua "Clínica cutánea" con la misma clave.
+    expect(validarSeccion('analisis_estetico', { pat_rosacea: true, pat_poros: true, poros_dilatados: true }))
+      .toEqual({ pat_rosacea: true, pat_poros: true, poros_dilatados: true });
+    expect(validarSeccion('analisis_estetico', { pat_eritema: true, acne_grado: 'II', arr_profundas: true })).toEqual({});
+    expect(grupo('analisis_estetico', 'Escala de Glogau').campos[0].opciones.map((op) => op.clave)).toEqual(['I', 'II', 'III', 'IV', 'V']);
     // Datos guardados con claves de antes siguen valiendo; los quitados se descartan.
     expect(validarSeccion('analisis_estetico', { hiper_mancha: true, piel_asfictica: true, flacidez_grado: 'I', hipo_vitiligo: true, glogau: 'III' }))
       .toEqual({ hiper_mancha: true, glogau: 'III' });
@@ -474,7 +480,7 @@ describe('Historia clínica: API', () => {
     const titulos = doc.bloques.filter((b) => b.tipo === 'seccion').map((b) => b.titulo);
     expect(titulos.slice(-5)).toEqual(['5. Iconografía', '6. Diagnóstico', '7. Tratamiento', '8. Seguimiento', '9. Consentimiento']);
     expect(doc.bloques.some((b) => b.tipo === 'grupo' && /Protocolo/.test(b.titulo))).toBe(false);
-    expect(doc.bloques.filter((b) => b.tipo === 'apartado').map((b) => b.titulo)).toEqual(['Semiología cutánea']);
+    expect(doc.bloques.some((b) => b.tipo === 'apartado')).toBe(false);
     expect(doc.bloques.filter((b) => b.tipo === 'etiqueta').map((b) => b.texto)).toContain('Fórmula obstétrica');
     const consentimiento = doc.bloques.find((b) => b.tipo === 'consentimiento');
     expect(consentimiento.titulo).toBe('Consentimiento informado general – Medicina estética');
@@ -521,7 +527,6 @@ describe('Historia clínica: API', () => {
     expect(cons.find((b) => b.tipo === 'firmas').firmantes).toEqual([
       { titulo: 'Firma del paciente', lineas: ['Ana Pérez', 'C.I.: 1234567 CB'] },
       { titulo: 'Firma y sello del médico', lineas: ['Dra. Noemí'] },
-      { titulo: 'Testigo (si corresponde)', lineas: ['Nombre:', 'C.I.:'] },
     ]);
   });
 
@@ -530,12 +535,20 @@ describe('Historia clínica: API', () => {
     const cons = doc.bloques.slice(doc.bloques.findIndex((b) => b.tipo === 'consentimiento'));
     expect(cons.filter((b) => b.tipo === 'campo').every((b) => b.valor === '')).toBe(true);
     expect(cons.filter((b) => b.tipo === 'texto').map((b) => b.texto)).toContain('Procedimiento indicado: ____________________.');
-    expect(cons.find((b) => b.tipo === 'firmas').firmantes.map((x) => x.lineas)).toEqual([['C.I.:'], [], ['Nombre:', 'C.I.:']]);
+    expect(cons.find((b) => b.tipo === 'firmas').firmantes.map((x) => x.lineas)).toEqual([['C.I.:'], []]);
   });
 
   test('sin consentimientos marcados sale el general', () => {
     const doc = armarDocumento({ config: {}, paciente: {}, historia: { fecha: '2026-10-01', consentimientos: [] } });
     expect(doc.bloques.filter((b) => b.tipo === 'consentimiento')).toHaveLength(1);
+  });
+
+  test('solo el consentimiento: sin la historia, con sus firmas', () => {
+    const doc = armarDocumento({ config: {}, paciente: { nombre_completo: 'Ana' }, historia: { fecha: '2026-10-01', consentimientos: [] }, soloConsentimiento: true });
+    expect(doc.soloConsentimiento).toBe(true);
+    expect(doc.bloques[0].tipo).toBe('consentimiento');
+    expect(doc.bloques.some((b) => b.tipo === 'seccion' || b.tipo === 'fotos' || b.tipo === 'tabla')).toBe(false);
+    expect(doc.bloques.at(-1).tipo).toBe('firmas');
   });
 
   test('armarDocumento en blanco: sin valores y con filas vacías para llenar a mano', () => {
@@ -578,6 +591,12 @@ describe('Historia clínica: API', () => {
     expect(res.headers['content-type']).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     expect(res.headers['content-disposition']).toContain('historia-clinica-P-0001-2026-10-03.docx');
     expect(res.body.subarray(0, 2).toString()).toBe('PK');
+    res = await request(app).get(`/staff/historias/${h.id}/word?solo=consentimiento`).set(auth()).buffer(true).parse(binario);
+    expect(res.headers['content-disposition']).toContain('consentimiento-P-0001-2026-10-03.docx');
+    expect(res.body.subarray(0, 2).toString()).toBe('PK');
+    res = await request(app).get(`/staff/historias/${h.id}/pdf?solo=consentimiento`).set(auth()).buffer(true).parse(binario);
+    expect(res.headers['content-disposition']).toContain('consentimiento-P-0001-2026-10-03.pdf');
+    expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
     res = await request(app).get('/staff/historia-clinica/en-blanco.docx').set(auth()).buffer(true).parse(binario);
     expect(res.status).toBe(200);
     expect(res.body.subarray(0, 2).toString()).toBe('PK');

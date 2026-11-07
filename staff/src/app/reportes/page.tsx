@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { IconBarChart, IconBox, IconCalendar, IconChevronDown, IconDownload, IconTruck, IconUsers, IconWallet } from '@/components/icons';
+import { IconBarChart, IconBox, IconCalendar, IconChevronDown, IconDownload, IconPrinter, IconTruck, IconUsers, IconWallet } from '@/components/icons';
 import ReportePersonal, { type Personal } from './ReportePersonal';
 
 type Financiero = {
@@ -134,7 +134,7 @@ function Reportes() {
   const [personal, setPersonal] = useState<Personal | null>(null);
 
   const [cargando, setCargando] = useState(false);
-  const [descargando, setDescargando] = useState(false);
+  const [descargando, setDescargando] = useState<'imprimir' | 'descargar' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
@@ -176,15 +176,16 @@ function Reportes() {
     setHasta(r.hasta);
   }
 
-  async function descargarPDF(tipo: string) {
-    setDescargando(true);
+  // Descarga el PDF o lo manda directo a la impresora (mismo PDF).
+  async function usarPDF(tipo: string, imprimir: boolean) {
+    setDescargando(imprimir ? 'imprimir' : 'descargar');
     setError(null);
     try {
-      await api.descargarReportePDF(tipo, { desde, hasta });
+      await (imprimir ? api.imprimirReporte(tipo, { desde, hasta }) : api.descargarReportePDF(tipo, { desde, hasta }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo descargar el PDF');
+      setError(err instanceof Error ? err.message : imprimir ? 'No se pudo imprimir' : 'No se pudo descargar el PDF');
     } finally {
-      setDescargando(false);
+      setDescargando(null);
     }
   }
 
@@ -198,7 +199,10 @@ function Reportes() {
           </h1>
           <p className="text-sm text-muted-foreground">Resumen operativo de la clínica, exportable en PDF.</p>
         </div>
-        <BotonPDF opciones={PDFS[tab]} descargando={descargando} deshabilitado={rangoInvalido} onDescargar={descargarPDF} />
+        <div className="flex shrink-0 gap-2">
+          <BotonPDF imprimir opciones={PDFS[tab]} ocupado={descargando === 'imprimir'} deshabilitado={rangoInvalido || descargando !== null} onElegir={(tipo) => usarPDF(tipo, true)} />
+          <BotonPDF opciones={PDFS[tab]} ocupado={descargando === 'descargar'} deshabilitado={rangoInvalido || descargando !== null} onElegir={(tipo) => usarPDF(tipo, false)} />
+        </div>
       </div>
 
       <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-panel p-3 lg:flex-row lg:items-center lg:justify-between">
@@ -375,14 +379,16 @@ function Reportes() {
 
 function BotonPDF({
   opciones,
-  descargando,
+  imprimir = false,
+  ocupado,
   deshabilitado,
-  onDescargar,
+  onElegir,
 }: {
   opciones: { tipo: string; label: string }[];
-  descargando: boolean;
+  imprimir?: boolean;
+  ocupado: boolean;
   deshabilitado: boolean;
-  onDescargar: (tipo: string) => void;
+  onElegir: (tipo: string) => void;
 }) {
   const [abierto, setAbierto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -408,15 +414,17 @@ function BotonPDF({
     <div ref={ref} className="relative">
       <button
         type="button"
-        disabled={descargando || deshabilitado}
-        onClick={() => (varias ? setAbierto((v) => !v) : onDescargar(opciones[0].tipo))}
+        disabled={deshabilitado}
+        onClick={() => (varias ? setAbierto((v) => !v) : onElegir(opciones[0].tipo))}
         aria-haspopup={varias ? 'menu' : undefined}
         aria-expanded={varias ? abierto : undefined}
         className={clases}
       >
-        <IconDownload className="h-4 w-4" />
-        {descargando ? (
-          <span>Generando…</span>
+        {imprimir ? <IconPrinter className="h-4 w-4" /> : <IconDownload className="h-4 w-4" />}
+        {ocupado ? (
+          <span>{imprimir ? 'Abriendo…' : 'Generando…'}</span>
+        ) : imprimir ? (
+          <span>Imprimir</span>
         ) : (
           <span>
             <span className="hidden sm:inline">Descargar </span>PDF
@@ -433,7 +441,7 @@ function BotonPDF({
               role="menuitem"
               onClick={() => {
                 setAbierto(false);
-                onDescargar(o.tipo);
+                onElegir(o.tipo);
               }}
               className="block w-full px-3 py-2 text-left text-sm hover:bg-accent-soft"
             >

@@ -16,6 +16,7 @@ const ActivoClinica = require('./activoClinica');
 const Venta = require('./venta');
 const VentaItem = require('./ventaItem');
 const Marca = require('./marca');
+const Especialidad = require('./especialidad');
 const CategoriaProducto = require('./categoriaProducto');
 const ServicioProducto = require('./servicioProducto');
 const MovimientoStock = require('./movimientoStock');
@@ -205,6 +206,7 @@ module.exports = {
   Venta,
   VentaItem,
   Marca,
+  Especialidad,
   CategoriaProducto,
   ServicioProducto,
   MovimientoStock,

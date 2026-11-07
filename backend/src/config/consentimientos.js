@@ -109,7 +109,6 @@ const CONSENTIMIENTOS = [
     firmas: [
       { titulo: 'Firma del paciente', lineas: ['{paciente}', 'C.I.: {ci}'] },
       { titulo: 'Firma y sello del médico', lineas: ['{especialista}'] },
-      { titulo: 'Testigo (si corresponde)', lineas: ['Nombre:', 'C.I.:'] },
     ],
   },
 ];

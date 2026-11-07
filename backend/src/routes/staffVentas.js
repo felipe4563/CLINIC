@@ -1,4 +1,5 @@
 const express = require('express');
+const { Op } = require('sequelize');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { generarQR, consultarEstadoQR } = require('../services/bancoEconomico');
@@ -240,16 +241,21 @@ router.delete('/staff/ventas/productos/:id', productosPermiso, async (req, res) 
   res.status(204).end();
 });
 
+// Historial: ?desde=&hasta= (YYYY-MM-DD, ambos incluidos); ?fecha= sigue sirviendo para un solo día.
 router.get('/staff/ventas', onlyVentas, async (req, res) => {
-  const fecha = req.query.fecha || hoyISO();
+  const esFecha = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+  const desde = esFecha(req.query.desde) ? req.query.desde : esFecha(req.query.fecha) ? req.query.fecha : hoyISO();
+  let hasta = esFecha(req.query.hasta) ? req.query.hasta : desde;
+  if (hasta < desde) hasta = desde;
+  const fecha = desde;
   const ventas = await db.Venta.findAll({
-    where: { fecha },
+    where: { fecha: { [Op.between]: [desde, hasta] } },
     include: [db.Usuario, db.Paciente, { model: db.VentaItem, include: [db.Producto] }],
-    order: [['id', 'DESC']],
+    order: [['fecha', 'DESC'], ['id', 'DESC']],
   });
 
   const totalDia = ventas.filter((v) => v.estado === 'pagado').reduce((acc, v) => acc + Number(v.total), 0);
-  res.json({ fecha, ventas, totalDia });
+  res.json({ fecha, desde, hasta, ventas, totalDia });
 });
 
 router.post('/staff/ventas', onlyVentas, async (req, res) => {

@@ -218,7 +218,8 @@ function Catalogo() {
                 especialidades={especialidades}
                 especialidad={nuevoServicio.especialidad}
                 grupo={nuevoServicio.grupo}
-                onCambio={(especialidad, grupo) => setNuevoServicio({ ...nuevoServicio, especialidad, grupo })}
+                onCambio={(especialidad, grupo) => setNuevoServicio((n) => ({ ...n, especialidad, grupo }))}
+                onEspecialidades={setEspecialidades}
                 className="sm:col-span-2"
               />
               <textarea
@@ -298,6 +299,7 @@ function Catalogo() {
                       todosLosProfesionales={profesionales}
                       todosLosProductos={productos}
                       especialidades={especialidades}
+                      onEspecialidades={setEspecialidades}
                       onChange={cargar}
                     />
                   ))}

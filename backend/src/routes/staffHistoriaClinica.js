@@ -311,10 +311,13 @@ router.delete('/staff/historias/:id/fotos/:archivo', onlyHistoria, async (req, r
   });
 });
 
-async function documentoDe(historia) {
+// ?solo=consentimiento: solo el consentimiento, para imprimirlo y firmarlo aparte.
+async function documentoDe(historia, query = {}) {
+  const soloConsentimiento = query.solo === 'consentimiento';
   const [config, tratamientos] = await Promise.all([db.ConfiguracionClinica.obtenerConfig(), calcularTratamientos(historia)]);
-  const documento = armarDocumento({ config, paciente: historia.Paciente, historia, tratamientos });
-  return { config, documento, base: `historia-clinica-${historia.Paciente.codigo_paciente}-${historia.fecha}` };
+  const documento = armarDocumento({ config, paciente: historia.Paciente, historia, tratamientos, soloConsentimiento });
+  const tipo = soloConsentimiento ? 'consentimiento' : 'historia-clinica';
+  return { config, documento, base: `${tipo}-${historia.Paciente.codigo_paciente}-${historia.fecha}` };
 }
 
 router.get('/staff/historia-clinica/en-blanco.pdf', onlyHistoria, async (req, res) => {
@@ -325,7 +328,7 @@ router.get('/staff/historia-clinica/en-blanco.pdf', onlyHistoria, async (req, re
 router.get('/staff/historias/:id/pdf', onlyHistoria, async (req, res) => {
   const historia = await cargarCompleta(req.params.id);
   if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
-  const { config, documento, base } = await documentoDe(historia);
+  const { config, documento, base } = await documentoDe(historia, req.query);
   enviarHistoriaPdf(res, documento, config, `${base}.pdf`);
 });
 
@@ -345,7 +348,7 @@ router.get('/staff/historia-clinica/en-blanco.docx', onlyHistoria, async (req, r
 router.get('/staff/historias/:id/word', onlyHistoria, async (req, res) => {
   const historia = await cargarCompleta(req.params.id);
   if (!historia) return res.status(404).json({ error: 'Evaluación no encontrada' });
-  const { config, documento, base } = await documentoDe(historia);
+  const { config, documento, base } = await documentoDe(historia, req.query);
   enviarWord(res, await generarHistoriaWord(documento, config), `${base}.docx`);
 });
 

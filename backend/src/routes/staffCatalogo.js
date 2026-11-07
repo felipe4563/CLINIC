@@ -12,9 +12,38 @@ const onlyAdmin = requirePermiso('catalogo');
 
 // --- Servicios ---
 
+// Las fijas de la carta de la web y, después, las que se agregaron desde el Catálogo.
+async function listarEspecialidades() {
+  const extra = await db.Especialidad.findAll({ order: [['nombre', 'ASC']] });
+  return [...ESPECIALIDADES, ...extra.map((e) => ({ id: e.id, nombre: e.nombre, grupos: [] }))];
+}
+
 // Las especialidades y grupos que se pueden elegir al crear o editar un servicio.
-router.get('/staff/servicios/categorias', onlyAdmin, (req, res) => {
-  res.json(ESPECIALIDADES);
+router.get('/staff/servicios/categorias', onlyAdmin, async (req, res) => {
+  res.json(await listarEspecialidades());
+});
+
+const plano = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+router.post('/staff/servicios/categorias', onlyAdmin, async (req, res) => {
+  const nombre = String(req.body.nombre || '').trim().replace(/\s+/g, ' ');
+  if (nombre.length < 3 || nombre.length > 80) return res.status(400).json({ error: 'El nombre debe tener entre 3 y 80 letras' });
+  // "Enfermeria" y "enfermería" son la misma: no se repite.
+  if ((await listarEspecialidades()).some((e) => plano(e.nombre) === plano(nombre))) {
+    return res.status(409).json({ error: 'Esa especialidad ya existe' });
+  }
+  const especialidad = await db.Especialidad.create({ nombre });
+  res.status(201).json({ id: especialidad.id, nombre: especialidad.nombre, grupos: [] });
+});
+
+// Solo se borra si ningún servicio la usa; las fijas de la web no se borran.
+router.delete('/staff/servicios/categorias/:id', onlyAdmin, async (req, res) => {
+  const especialidad = await db.Especialidad.findByPk(req.params.id);
+  if (!especialidad) return res.status(404).json({ error: 'Especialidad no encontrada' });
+  const usos = await db.Servicio.count({ where: { especialidad: especialidad.nombre } });
+  if (usos > 0) return res.status(409).json({ error: `La usan ${usos} ${usos === 1 ? 'servicio' : 'servicios'}: cámbialos de especialidad primero` });
+  await especialidad.destroy();
+  res.status(204).end();
 });
 
 router.get('/staff/servicios', onlyAdmin, async (req, res) => {
@@ -79,7 +108,7 @@ router.post('/staff/servicios', onlyAdmin, async (req, res) => {
   }
   const sellos = leerSellosRequeridos(req.body.sellos_requeridos);
   if (sellos === false) return res.status(400).json({ error: SELLOS_INVALIDOS });
-  const categoria = leerCategoria(req.body.especialidad, req.body.grupo);
+  const categoria = leerCategoria(req.body.especialidad, req.body.grupo, await listarEspecialidades());
   if (categoria.error) return res.status(400).json({ error: categoria.error });
   const servicio = await db.Servicio.create({
     nombre, descripcion, duracion_min, precio, activo, sellos_requeridos: sellos ?? null, especialidad: categoria.especialidad, grupo: categoria.grupo,
@@ -101,6 +130,7 @@ router.patch('/staff/servicios/:id', onlyAdmin, async (req, res) => {
     const categoria = leerCategoria(
       req.body.especialidad !== undefined ? req.body.especialidad : servicio.especialidad,
       req.body.grupo !== undefined ? req.body.grupo : servicio.grupo,
+      await listarEspecialidades(),
     );
     if (categoria.error) return res.status(400).json({ error: categoria.error });
     servicio.especialidad = categoria.especialidad;

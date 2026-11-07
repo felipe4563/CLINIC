@@ -1,7 +1,7 @@
 const path = require('path');
 const { SECCIONES, DIR_GUIAS, etapaDeFoto } = require('../config/historiaClinica');
 const { CONSENTIMIENTOS } = require('../config/consentimientos');
-const { formatoFecha } = require('./pdf');
+const { formatoFecha, telefonoLegible } = require('./pdf');
 const { rutaArchivo } = require('./archivosPrivados');
 
 // Convierte definición + datos en bloques neutros que dibujan igual el PDF y
@@ -80,7 +80,7 @@ function bloquesDeGrupo(grupo, datos, anterior) {
   return bloques;
 }
 
-function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamientos = { filas: [] }, enBlanco = false }) {
+function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamientos = { filas: [] }, enBlanco = false, soloConsentimiento = false }) {
   const p = enBlanco ? {} : paciente;
   const h = enBlanco ? {} : historia;
   const especialista = h.Profesional ? h.Profesional.nombre : '';
@@ -99,7 +99,7 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
     { tipo: 'campo', etiqueta: 'Dirección', valor: p.direccion || '' },
     { tipo: 'campo', etiqueta: 'Ocupación', valor: p.ocupacion || '' },
     { tipo: 'campo', etiqueta: 'E-mail', valor: p.email || '' },
-    { tipo: 'campo', etiqueta: 'Teléfono', valor: p.telefono || '' },
+    { tipo: 'campo', etiqueta: 'Teléfono', valor: telefonoLegible(p.telefono) || '' },
     { tipo: 'campo', etiqueta: 'Contacto de emergencia', valor: p.contacto_emergencia || '' },
     { tipo: 'campo', etiqueta: 'Parentesco', valor: p.parentesco_emergencia || '' },
     { tipo: 'parrafo', etiqueta: 'Motivo de la consulta', valor: h.motivo_consulta || '' },
@@ -133,7 +133,7 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
     paciente: p.nombre_completo || '',
     ci: carnet(p),
     fecha_nacimiento: p.fecha_nacimiento ? formatoFecha(p.fecha_nacimiento) : '',
-    telefono: p.telefono || '',
+    telefono: telefonoLegible(p.telefono) || '',
     motivo: h.motivo_consulta || '',
     procedimiento: h.procedimiento_autorizado || '',
   };
@@ -171,7 +171,17 @@ function armarDocumento({ config = {}, paciente = {}, historia = {}, tratamiento
     ...aImprimir.flatMap(bloquesConsentimiento)
   );
 
-  return { fecha: h.fecha ? formatoFecha(h.fecha) : '', emitido: hoyEnBolivia(), numero: p.codigo_paciente || '', bloques };
+  return {
+    fecha: h.fecha ? formatoFecha(h.fecha) : '',
+    emitido: hoyEnBolivia(),
+    numero: p.codigo_paciente || '',
+    paciente: p.nombre_completo || '',
+    especialista,
+    enBlanco,
+    // Solo el consentimiento: para imprimirlo y firmarlo aparte de la historia.
+    soloConsentimiento,
+    bloques: soloConsentimiento ? aImprimir.flatMap(bloquesConsentimiento) : bloques,
+  };
 }
 
 module.exports = { armarDocumento, edadA };

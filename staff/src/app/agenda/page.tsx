@@ -39,6 +39,7 @@ export default function AgendaPage() {
   const [error, setError] = useState<string | null>(null);
   const [mostrarNueva, setMostrarNueva] = useState(false);
   const [descargando, setDescargando] = useState(false);
+  const [imprimiendo, setImprimiendo] = useState(false);
   const [porRevisar, setPorRevisar] = useState<Cita[]>([]);
   const [verPorRevisar, setVerPorRevisar] = useState(false);
   // Si ya no quedan comprobantes, se vuelve solo a la agenda del día.
@@ -122,6 +123,18 @@ export default function AgendaPage() {
     }
   }
 
+  async function imprimir() {
+    setImprimiendo(true);
+    setError(null);
+    try {
+      await api.imprimirAgendaPDF(fecha, profesionalId || undefined);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo imprimir la agenda');
+    } finally {
+      setImprimiendo(false);
+    }
+  }
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -152,11 +165,11 @@ export default function AgendaPage() {
           <h1 className="min-w-0 truncate text-base font-semibold capitalize sm:text-lg">{fmtFechaLarga(fecha)}</h1>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
+        <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
           <select
             value={profesionalId}
             onChange={(e) => setProfesionalId(e.target.value)}
-            className="col-span-2 w-full min-w-0 rounded-lg border border-border bg-panel px-3 py-2 text-sm sm:w-auto sm:py-1.5"
+            className="col-span-3 w-full min-w-0 rounded-lg border border-border bg-panel px-3 py-2 text-sm sm:w-auto sm:py-1.5"
           >
             <option value="">Todos los profesionales</option>
             {profesionales.map((p) => (
@@ -165,6 +178,18 @@ export default function AgendaPage() {
               </option>
             ))}
           </select>
+          <button
+            onClick={imprimir}
+            disabled={imprimiendo}
+            className="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-border bg-panel px-4 py-2 text-sm font-medium hover:bg-accent-soft disabled:opacity-60"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9V3h12v6" />
+              <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+              <path d="M6 14h12v7H6z" />
+            </svg>
+            {imprimiendo ? 'Abriendo…' : 'Imprimir'}
+          </button>
           <button
             onClick={descargarPDF}
             disabled={descargando}

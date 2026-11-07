@@ -71,11 +71,11 @@ function FotoProducto({ producto, accion }: { producto: ProductoVenta; accion: (
   );
 }
 
-export default function ProductosCaja({ acapite, productos, onCambio }: {
-  acapite: Acapite; productos: ProductoVenta[]; onCambio: () => Promise<void> | void;
+export default function ProductosCaja({ acapite, productos, onCambio, buscarInicial = '' }: {
+  acapite: Acapite; productos: ProductoVenta[]; onCambio: () => Promise<void> | void; buscarInicial?: string;
 }) {
   const conPrecio = acapite === 'ventas';
-  const [buscar, setBuscar] = useState('');
+  const [buscar, setBuscar] = useState(buscarInicial);
   const [soloAcaban, setSoloAcaban] = useState(false);
   const [agregando, setAgregando] = useState(false);
   const [nuevo, setNuevo] = useState({ nombre: '', stock: '', minimo: '', precio: '', codigo: '' });

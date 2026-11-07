@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import MagneticButton from '../MagneticButton';
 import Reveal from '../Reveal';
-import { parrafos, separarNombre } from '@/lib/equipo';
+import { parrafos } from '@/lib/equipo';
 import { DOCTORA_RESPALDO, fotoSrc, useEquipo } from '@/lib/useEquipo';
 import type { MiembroEquipo } from '@/lib/types';
 
@@ -54,7 +54,6 @@ export default function Equipo({ onReservar }: { onReservar: () => void }) {
         slug: principal.slug as string | null,
       }
     : { ...DOCTORA_RESPALDO, slug: null };
-  const [inicio, final] = separarNombre(datos.nombre);
 
   return (
     <section id="equipo" className="relative overflow-hidden bg-espresso-900 px-4 py-24 text-neutral-cream sm:px-8 xl:px-12 md:py-32">
@@ -81,9 +80,7 @@ export default function Equipo({ onReservar }: { onReservar: () => void }) {
 
           <Reveal delay={0.1} className="flex flex-col gap-6">
             <div>
-              <h3 className="font-serif text-[clamp(40px,4.6vw,72px)] font-light leading-[0.95] text-cream">
-                {inicio} {final && <em className="italic text-arena">{final}</em>}
-              </h3>
+              <h3 className="font-serif text-[clamp(40px,4.6vw,72px)] font-semibold leading-[0.95] text-manhattan">{datos.nombre}</h3>
               {datos.cargo && <p className="mt-3 text-[13px] uppercase tracking-[0.18em] text-arena">{datos.cargo}</p>}
             </div>
             <div className="flex flex-col gap-4 text-[16.5px] leading-relaxed">

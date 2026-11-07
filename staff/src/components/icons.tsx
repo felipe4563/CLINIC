@@ -28,6 +28,8 @@ import {
   Building2,
   Pencil,
   CreditCard,
+  Search,
+  Printer,
 } from 'lucide-react';
 
 type IconProps = { className?: string };
@@ -205,6 +207,14 @@ export function IconAlertCircle({ className = base }: IconProps) {
 
 export function IconShoppingCart({ className = base }: IconProps) {
   return <ShoppingCart className={className} strokeWidth={1.8} />;
+}
+
+export function IconSearch({ className = base }: IconProps) {
+  return <Search className={className} strokeWidth={1.8} />;
+}
+
+export function IconPrinter({ className = base }: IconProps) {
+  return <Printer className={className} strokeWidth={1.8} />;
 }
 
 export function IconPhoto({ className = base }: IconProps) {

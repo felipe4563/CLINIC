@@ -3,7 +3,7 @@ import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { CARTA, TOTAL_TRATAMIENTOS } from '@/lib/cartaInicio';
+import { CARTA } from '@/lib/cartaInicio';
 import Reveal from '../Reveal';
 
 // Foto y frase de cada especialidad, en el orden de CARTA.
@@ -38,13 +38,14 @@ export default function CartaTratamientos() {
       <div className="mx-auto max-w-sitio">
         <Reveal className="mb-12 grid items-end gap-6 md:mb-16 lg:grid-cols-2">
           <div>
-            <p className="text-sm uppercase tracking-[0.22em] text-espresso">Carta de tratamientos</p>
-            <h2 className="mt-5 font-serif text-[clamp(36px,5vw,76px)] font-light uppercase leading-[0.98] text-espresso">
-              Cinco especialidades, <em className="italic">un solo lugar</em>
+            <p className="text-sm uppercase tracking-[0.22em] text-espresso">Explora nuestra carta de cuidado integral</p>
+            <h2 className="mt-5 font-serif text-[clamp(32px,4.2vw,64px)] font-light uppercase leading-[0.98] text-espresso">
+              Expertos en belleza y salud <em className="italic">para tu bienestar global</em>
             </h2>
           </div>
           <p className="max-w-md lg:justify-self-end">
-            {TOTAL_TRATAMIENTOS} tratamientos con la misma médica y la misma historia clínica. Elige una especialidad para ver su carta completa.
+            Descubre nuestra selección de tratamientos avanzados. Cada uno diseñado para realzar tu belleza y cuidar tu salud, guiados por la misma
+            médica y con un enfoque integral. Elige una especialidad para ver sus detalles.
           </p>
         </Reveal>
 

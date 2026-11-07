@@ -27,12 +27,14 @@ export default function ServicioItem({
   todosLosProfesionales,
   todosLosProductos,
   especialidades,
+  onEspecialidades,
   onChange,
 }: {
   servicio: Servicio;
   todosLosProfesionales: ProfesionalMinimo[];
   todosLosProductos: ProductoInventario[];
   especialidades: Especialidad[];
+  onEspecialidades: (lista: Especialidad[]) => void;
   onChange: () => void;
 }) {
   const [editando, setEditando] = useState(false);
@@ -114,6 +116,7 @@ export default function ServicioItem({
               setEspecialidad(e);
               setGrupo(g);
             }}
+            onEspecialidades={onEspecialidades}
           />
           <textarea
             value={descripcion}
@@ -173,7 +176,7 @@ export default function ServicioItem({
       <div className="flex h-full flex-col justify-between gap-3 p-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <p className="truncate font-semibold">{servicio.nombre}</p>
+            <p className="truncate font-semibold uppercase">{servicio.nombre}</p>
             <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">Bs {servicio.precio}</span>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">

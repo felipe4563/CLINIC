@@ -3,7 +3,7 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const { requirePermiso } = require('./auth.middleware');
 const { plazos } = require('../services/politicaInasistencia');
-const { crearReportePDF, dibujarTabla, formatoMoneda, formatoFecha } = require('../services/pdf');
+const { crearReportePDF, dibujarTabla, dibujarResumen, dibujarSubtitulo, formatoMoneda, formatoFecha } = require('../services/pdf');
 
 const router = express.Router();
 const onlyReportes = requirePermiso('reportes');
@@ -97,13 +97,14 @@ router.get('/staff/reportes/financiero/pdf', onlyReportes, async (req, res) => {
     hasta,
   });
 
-  doc.font('Helvetica-Bold').fontSize(11);
-  doc.text(`Total ingresos: ${formatoMoneda(datos.totalIngresos)}`);
-  doc.text(`Total egresos: ${formatoMoneda(datos.totalEgresos)}`);
-  doc.text(`Saldo neto: ${formatoMoneda(datos.neto)}`);
-  doc.moveDown(0.8);
+  dibujarResumen(doc, [
+    { etiqueta: 'Ingresos', valor: formatoMoneda(datos.totalIngresos) },
+    { etiqueta: 'Egresos', valor: formatoMoneda(datos.totalEgresos) },
+    { etiqueta: 'Movimientos', valor: datos.movimientos.length },
+    { etiqueta: 'Saldo neto', valor: formatoMoneda(datos.neto), destacado: true },
+  ]);
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Resumen por día');
+  dibujarSubtitulo(doc, 'Resumen por día');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Fecha', ancho: 150 },
@@ -117,9 +118,10 @@ router.get('/staff/reportes/financiero/pdf', onlyReportes, async (req, res) => {
       formatoMoneda(d.egresos),
       formatoMoneda(d.ingresos - d.egresos),
     ]),
+    pie: ['Total', formatoMoneda(datos.totalIngresos), formatoMoneda(datos.totalEgresos), formatoMoneda(datos.neto)],
   });
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Resumen por concepto');
+  dibujarSubtitulo(doc, 'Resumen por concepto');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Concepto', ancho: 220 },
@@ -135,7 +137,7 @@ router.get('/staff/reportes/financiero/pdf', onlyReportes, async (req, res) => {
     ]),
   });
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Detalle de movimientos');
+  dibujarSubtitulo(doc, 'Detalle de movimientos', `${datos.movimientos.length} ${datos.movimientos.length === 1 ? 'movimiento' : 'movimientos'}`);
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Fecha', ancho: 100 },
@@ -217,10 +219,12 @@ router.get('/staff/reportes/citas/pdf', onlyReportes, async (req, res) => {
     hasta,
   });
 
-  doc.font('Helvetica-Bold').fontSize(11).text(`Total de citas: ${datos.total}`);
-  doc.font('Helvetica').fontSize(10).text(`Tasa de inasistencia: ${datos.noShowRate.toFixed(1)}%`);
-  doc.font('Helvetica').fontSize(10).text(`Montos retenidos por inasistencia: Bs ${datos.montoRetenido.toFixed(2)} (${datos.citasConMontoRetenido} citas)`);
-  doc.moveDown(0.8);
+  dibujarResumen(doc, [
+    { etiqueta: 'Total de citas', valor: datos.total, destacado: true },
+    { etiqueta: 'Completadas', valor: datos.porEstado.completada || 0 },
+    { etiqueta: 'Inasistencia', valor: `${datos.noShowRate.toFixed(1)} %`, detalle: `${datos.porEstado.no_asistio || 0} no asistieron` },
+    { etiqueta: 'Monto retenido', valor: formatoMoneda(datos.montoRetenido), detalle: `por inasistencia · ${datos.citasConMontoRetenido} ${datos.citasConMontoRetenido === 1 ? 'cita' : 'citas'}` },
+  ]);
 
   const ETIQUETAS_ESTADO = {
     pendiente_pago: 'Pendiente de pago',
@@ -229,19 +233,20 @@ router.get('/staff/reportes/citas/pdf', onlyReportes, async (req, res) => {
     completada: 'Completada',
     no_asistio: 'No asistió',
   };
-  doc.font('Helvetica-Bold').fontSize(11).text('Por estado');
+  dibujarSubtitulo(doc, 'Por estado');
   dibujarTabla(doc, {
     columnas: [{ titulo: 'Estado', ancho: 300 }, { titulo: 'Cantidad', ancho: 300, align: 'right' }],
     filas: Object.entries(datos.porEstado).map(([estado, cantidad]) => [ETIQUETAS_ESTADO[estado] || estado, cantidad]),
+    pie: ['Total', datos.total],
   });
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Por profesional');
+  dibujarSubtitulo(doc, 'Por profesional');
   dibujarTabla(doc, {
     columnas: [{ titulo: 'Profesional', ancho: 300 }, { titulo: 'Citas', ancho: 300, align: 'right' }],
     filas: datos.porProfesional.map((p) => [p.profesional, p.cantidad]),
   });
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Por servicio');
+  dibujarSubtitulo(doc, 'Por servicio');
   dibujarTabla(doc, {
     columnas: [{ titulo: 'Servicio', ancho: 300 }, { titulo: 'Citas', ancho: 300, align: 'right' }],
     filas: datos.porServicio.map((s) => [s.servicio, s.cantidad]),
@@ -310,18 +315,20 @@ router.get('/staff/reportes/pacientes/pdf', onlyReportes, async (req, res) => {
     hasta,
   });
 
-  doc.font('Helvetica-Bold').fontSize(11);
-  doc.text(`Pacientes nuevos: ${datos.pacientesNuevos}`);
-  doc.text(`Pacientes atendidos: ${datos.pacientesConCita}`);
-  doc.text(`Pacientes recurrentes: ${datos.pacientesRecurrentes}`);
-  doc.moveDown(0.8);
+  dibujarResumen(doc, [
+    { etiqueta: 'Pacientes nuevos', valor: datos.pacientesNuevos },
+    { etiqueta: 'Pacientes atendidos', valor: datos.pacientesConCita },
+    { etiqueta: 'Recurrentes', valor: datos.pacientesRecurrentes },
+    { etiqueta: 'Saldos pendientes', valor: formatoMoneda(datos.totalSaldoPendiente), destacado: true },
+  ]);
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Saldos pendientes');
+  dibujarSubtitulo(doc, 'Saldos pendientes por paciente');
   dibujarTabla(doc, {
     columnas: [{ titulo: 'Paciente', ancho: 350 }, { titulo: 'Saldo', ancho: 150, align: 'right' }],
     filas: datos.saldosPendientes.map((s) => [s.paciente, formatoMoneda(s.monto)]),
+    pie: ['Total', formatoMoneda(datos.totalSaldoPendiente)],
+    vacio: 'Nadie tiene saldo pendiente.',
   });
-  doc.font('Helvetica-Bold').fontSize(11).text(`Total saldos pendientes: ${formatoMoneda(datos.totalSaldoPendiente)}`);
 
   doc.end();
 });
@@ -385,13 +392,14 @@ router.get('/staff/reportes/ventas/pdf', onlyReportes, async (req, res) => {
     hasta,
   });
 
-  doc.font('Helvetica-Bold').fontSize(11);
-  doc.text(`Total vendido: ${formatoMoneda(datos.totalVentas)}`);
-  doc.text(`Cantidad de ventas: ${datos.cantidadVentas}`);
-  doc.text(`Valorización de inventario activo: ${formatoMoneda(datos.valorizacionInventario)}`);
-  doc.moveDown(0.8);
+  dibujarResumen(doc, [
+    { etiqueta: 'Total vendido', valor: formatoMoneda(datos.totalVentas), destacado: true },
+    { etiqueta: 'Ventas', valor: datos.cantidadVentas },
+    { etiqueta: 'Inventario', valor: formatoMoneda(datos.valorizacionInventario), detalle: 'valorizado (activo)' },
+    { etiqueta: 'Con stock bajo', valor: datos.stockBajo.length, detalle: datos.stockBajo.length === 1 ? 'producto' : 'productos' },
+  ]);
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Productos más vendidos');
+  dibujarSubtitulo(doc, 'Productos más vendidos');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Producto', ancho: 250 },
@@ -401,7 +409,7 @@ router.get('/staff/reportes/ventas/pdf', onlyReportes, async (req, res) => {
     filas: datos.topProductos.map((p) => [p.producto, p.cantidad, formatoMoneda(p.subtotal)]),
   });
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Stock bajo');
+  dibujarSubtitulo(doc, 'Stock bajo');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Producto', ancho: 250 },
@@ -409,6 +417,7 @@ router.get('/staff/reportes/ventas/pdf', onlyReportes, async (req, res) => {
       { titulo: 'Stock mínimo', ancho: 125, align: 'right' },
     ],
     filas: datos.stockBajo.map((p) => [p.producto, p.stock, p.stockMinimo]),
+    vacio: 'Ningún producto está por debajo de su mínimo.',
   });
 
   doc.end();
@@ -470,12 +479,13 @@ router.get('/staff/reportes/compras/pdf', onlyReportes, async (req, res) => {
     hasta,
   });
 
-  doc.font('Helvetica-Bold').fontSize(11);
-  doc.text(`Total comprado: ${formatoMoneda(datos.totalCompras)}`);
-  doc.text(`Cantidad de compras: ${datos.cantidadCompras}`);
-  doc.moveDown(0.8);
+  dibujarResumen(doc, [
+    { etiqueta: 'Total comprado', valor: formatoMoneda(datos.totalCompras), destacado: true },
+    { etiqueta: 'Compras', valor: datos.cantidadCompras },
+    { etiqueta: 'Proveedores', valor: datos.porProveedor.length },
+  ]);
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Gasto por proveedor');
+  dibujarSubtitulo(doc, 'Gasto por proveedor');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Proveedor', ancho: 250 },
@@ -483,9 +493,10 @@ router.get('/staff/reportes/compras/pdf', onlyReportes, async (req, res) => {
       { titulo: 'Total', ancho: 125, align: 'right' },
     ],
     filas: datos.porProveedor.map((p) => [p.proveedor, p.cantidad, formatoMoneda(p.total)]),
+    pie: ['Total', datos.cantidadCompras, formatoMoneda(datos.totalCompras)],
   });
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Productos más comprados');
+  dibujarSubtitulo(doc, 'Productos más comprados');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Producto', ancho: 250 },
@@ -634,14 +645,14 @@ router.get('/staff/reportes/personal/pdf', onlyReportes, async (req, res) => {
     hasta,
   });
 
-  doc.font('Helvetica-Bold').fontSize(11);
-  doc.text(`Horas totales: ${datos.resumen.horasTotales}`);
-  doc.text(`Días trabajados: ${datos.resumen.diasTrabajados}`);
-  doc.text(`Días de ausencia aprobados: ${datos.resumen.diasAusencia}`);
-  doc.text(`Alertas: ${datos.resumen.alertas}`);
-  doc.moveDown(0.8);
+  dibujarResumen(doc, [
+    { etiqueta: 'Horas totales', valor: datos.resumen.horasTotales, destacado: true },
+    { etiqueta: 'Días trabajados', valor: datos.resumen.diasTrabajados },
+    { etiqueta: 'Días de ausencia', valor: datos.resumen.diasAusencia, detalle: 'aprobados' },
+    { etiqueta: 'Alertas', valor: datos.resumen.alertas },
+  ]);
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Resumen por empleado');
+  dibujarSubtitulo(doc, 'Resumen por empleado');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Empleado', ancho: 170 },
@@ -668,7 +679,7 @@ router.get('/staff/reportes/personal/pdf', onlyReportes, async (req, res) => {
   );
   alertas.sort((a, b) => a.fecha.localeCompare(b.fecha));
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Alertas de asistencia');
+  dibujarSubtitulo(doc, 'Alertas de asistencia');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Fecha', ancho: 100 },
@@ -680,6 +691,7 @@ router.get('/staff/reportes/personal/pdf', onlyReportes, async (req, res) => {
       usuario,
       [dia.sinSalida && 'Sin salida marcada', dia.dentroRango === false && 'Marcación fuera de la clínica'].filter(Boolean).join(' · '),
     ]),
+    vacio: 'Sin alertas en este período.',
   });
 
   const ausencias = datos.porEmpleado.flatMap((e) =>
@@ -692,7 +704,7 @@ router.get('/staff/reportes/personal/pdf', onlyReportes, async (req, res) => {
     ])
   );
 
-  doc.font('Helvetica-Bold').fontSize(11).text('Ausencias del periodo');
+  dibujarSubtitulo(doc, 'Ausencias del período');
   dibujarTabla(doc, {
     columnas: [
       { titulo: 'Empleado', ancho: 150 },
@@ -702,6 +714,7 @@ router.get('/staff/reportes/personal/pdf', onlyReportes, async (req, res) => {
       { titulo: 'Estado', ancho: 90 },
     ],
     filas: ausencias,
+    vacio: 'Sin ausencias en este período.',
   });
 
   doc.end();

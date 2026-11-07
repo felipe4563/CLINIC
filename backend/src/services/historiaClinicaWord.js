@@ -88,11 +88,11 @@ function firmas(firmantes) {
       cantSplit: true,
       children: firmantes.map((fi) => new TableCell({
         width: { size: Math.floor(100 / firmantes.length), type: WidthType.PERCENTAGE },
-        margins: { left: 200, right: 200 },
+        margins: { left: 400, right: 400 },
         borders: { top: sin, bottom: sin, left: sin, right: sin },
         children: [
-          new Paragraph({ border: { top: linea }, children: [new TextRun({ text: fi.titulo, bold: true, size: TAM })] }),
-          ...fi.lineas.map((l) => new Paragraph({ children: [new TextRun({ text: l, size: TAM })] })),
+          new Paragraph({ alignment: AlignmentType.CENTER, border: { top: linea }, children: [new TextRun({ text: fi.titulo, bold: true, size: TAM })] }),
+          ...fi.lineas.map((l) => new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: l, size: TAM })] })),
         ],
       })),
     })],
@@ -137,7 +137,7 @@ function cuadriculaFotos(fotos) {
 
 async function generarHistoriaWord(documento, config) {
   const cuerpo = [
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: 'HISTORIA CLÍNICA', bold: true, size: 32 })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: documento.soloConsentimiento ? 'CONSENTIMIENTO INFORMADO' : 'HISTORIA CLÍNICA', bold: true, size: 32 })] }),
     new Paragraph({ children: [new TextRun({ text: `Fecha: ${documento.fecha || '____/____/______'}      Emitido: ${documento.emitido}      N° de historia: ${documento.numero || '__________'}`, size: TAM })] }),
   ];
 
@@ -187,9 +187,10 @@ async function generarHistoriaWord(documento, config) {
       // keepNext encadena el último apartado con las firmas (misma hoja).
       cuerpo.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, keepNext: Boolean(b.juntoAFirmas), keepLines: true, children: [new TextRun({ text: b.texto, size: TAM })] }));
     } else if (b.tipo === 'firmas') {
-      cuerpo.push(new Paragraph({ keepNext: true, spacing: { before: 1200 }, children: [] }));
+      // Fecha y hora a mano arriba de las firmas, a la derecha.
+      cuerpo.push(new Paragraph({ keepNext: true, alignment: AlignmentType.RIGHT, spacing: { before: 360 }, children: [new TextRun({ text: 'Fecha: ____/____/______      Hora: ________', size: TAM })] }));
+      cuerpo.push(new Paragraph({ keepNext: true, spacing: { before: 960 }, children: [] }));
       cuerpo.push(firmas(b.firmantes));
-      cuerpo.push(new Paragraph({ spacing: { before: 240 }, children: [new TextRun({ text: 'Fecha: ____/____/______      Hora: ________', size: TAM })] }));
     }
   }
 
