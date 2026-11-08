@@ -757,6 +757,32 @@ describe('Staff (sistema interno)', () => {
         .send({ dia_semana: 1, hora_inicio: '09:00:00', hora_fin: '17:00:00' });
       expect(horario.status).toBe(201);
     });
+
+    test('elimina un profesional solo si no tiene pacientes ni tratamientos asignados', async () => {
+      const auth = { Authorization: `Bearer ${token}` };
+      const servicio = await request(app).post('/staff/servicios').set(auth).send({ nombre: 'Drenaje', duracion_min: 30, precio: 100, especialidad: 'Fisioterapia' });
+      const prof = await request(app).post('/staff/profesionales').set(auth).send({ nombre: 'Lic. Borrable' });
+      await request(app).post(`/staff/profesionales/${prof.body.id}/servicios`).set(auth).send({ servicioId: servicio.body.id });
+      await request(app).post(`/staff/profesionales/${prof.body.id}/horarios`).set(auth).send({ dia_semana: 2, hora_inicio: '09:00:00', hora_fin: '12:00:00' });
+
+      const conServicio = await request(app).delete(`/staff/profesionales/${prof.body.id}`).set(auth);
+      expect(conServicio.status).toBe(409);
+      expect(conServicio.body.error).toMatch(/tratamiento\(s\) asignado/);
+
+      // Con una cita de un paciente ya no se puede, aunque se le quiten los tratamientos.
+      const paciente = await db.Paciente.create({ codigo_paciente: 'P-DEL1', nombre_completo: 'Paciente Cita', telefono: '70000099', carnet_identidad: '99', carnet_expedido: 'CB' });
+      const cita = await db.Cita.create({ paciente_id: paciente.id, servicio_id: servicio.body.id, profesional_id: prof.body.id, fecha: '2026-11-10', hora_inicio: '09:00:00', hora_fin: '09:30:00', estado: 'confirmada' });
+      await request(app).delete(`/staff/profesionales/${prof.body.id}/servicios/${servicio.body.id}`).set(auth);
+      const conCita = await request(app).delete(`/staff/profesionales/${prof.body.id}`).set(auth);
+      expect(conCita.status).toBe(409);
+      expect(conCita.body.error).toMatch(/1 cita\(s\)/);
+
+      await cita.destroy();
+      expect((await request(app).delete(`/staff/profesionales/${prof.body.id}`).set(auth)).status).toBe(204);
+      expect(await db.Profesional.findByPk(prof.body.id)).toBeNull();
+      expect(await db.HorarioDisponible.count({ where: { profesional_id: prof.body.id } })).toBe(0);
+      expect((await request(app).delete(`/staff/profesionales/${prof.body.id}`).set(auth)).status).toBe(404);
+    });
   });
 
   describe('dashboard', () => {

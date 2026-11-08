@@ -397,6 +397,7 @@ export const api = {
   crearProfesional: (datos) => apiFetch('/staff/profesionales', { method: 'POST', body: JSON.stringify(datos) }),
   actualizarProfesional: (id, datos) =>
     apiFetch(`/staff/profesionales/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
+  eliminarProfesional: (id) => apiFetch(`/staff/profesionales/${id}`, { method: 'DELETE' }),
   subirFotoProfesional: (id, archivo) => {
     const formData = new FormData();
     formData.append('foto', archivo);

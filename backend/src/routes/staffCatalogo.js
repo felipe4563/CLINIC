@@ -238,6 +238,43 @@ router.patch('/staff/profesionales/:id', onlyAdmin, async (req, res) => {
   res.json(profesional);
 });
 
+// Solo se puede eliminar un profesional que no quedó ligado a ningún paciente
+// (citas, notas, historias clínicas) ni tiene tratamientos asignados. Si ya
+// trabajó con pacientes, se desactiva para no perder ese historial.
+router.delete('/staff/profesionales/:id', onlyAdmin, async (req, res) => {
+  const profesional = await db.Profesional.findByPk(req.params.id);
+  if (!profesional) return res.status(404).json({ error: 'Profesional no encontrado' });
+
+  const where = { profesional_id: profesional.id };
+  const [citas, notas, historias, servicios] = await Promise.all([
+    db.Cita.count({ where }),
+    db.NotaClinica.count({ where }),
+    db.HistoriaClinica.count({ where }),
+    db.ServicioProfesional.count({ where }),
+  ]);
+  const vinculos = [];
+  if (citas) vinculos.push(`${citas} cita(s)`);
+  if (notas) vinculos.push(`${notas} nota(s) clínica(s)`);
+  if (historias) vinculos.push(`${historias} historia(s) clínica(s)`);
+  if (citas || notas || historias) {
+    return res.status(409).json({
+      error: `No se puede eliminar: tiene ${vinculos.join(', ')} con pacientes. Desactívalo para que deje de aparecer.`,
+    });
+  }
+  if (servicios) {
+    return res.status(409).json({
+      error: `No se puede eliminar: tiene ${servicios} tratamiento(s) asignado(s). Quítalos primero en "Servicios y horario".`,
+    });
+  }
+
+  await db.sequelize.transaction(async (transaction) => {
+    await db.HorarioDisponible.destroy({ where, transaction });
+    await profesional.destroy({ transaction });
+  });
+  borrarFoto(profesional.foto_url);
+  res.status(204).end();
+});
+
 router.post('/staff/profesionales/:id/foto', onlyAdmin, async (req, res) => {
   const profesional = await db.Profesional.findByPk(req.params.id);
   if (!profesional) return res.status(404).json({ error: 'Profesional no encontrado' });

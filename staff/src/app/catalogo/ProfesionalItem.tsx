@@ -78,6 +78,23 @@ export default function ProfesionalItem({
     onChange();
   }
 
+  const [eliminando, setEliminando] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState('');
+  const asignados = (profesional.Servicios || []).length;
+
+  async function eliminar() {
+    if (!window.confirm(`¿Eliminar a ${profesional.nombre}? Esta acción no se puede deshacer.`)) return;
+    setEliminando(true);
+    setErrorEliminar('');
+    try {
+      await api.eliminarProfesional(profesional.id);
+      onChange();
+    } catch (err) {
+      setErrorEliminar(err instanceof Error ? err.message : 'No se pudo eliminar');
+      setEliminando(false);
+    }
+  }
+
   if (editando) {
     return (
       <div className="rounded-lg border border-accent bg-panel p-3 text-sm">
@@ -156,7 +173,16 @@ export default function ProfesionalItem({
           <button onClick={() => setDetallesAbierto(true)} className="rounded border border-border px-2 py-1 text-xs hover:bg-accent-soft">
             Servicios y horario
           </button>
+          <button
+            onClick={eliminar}
+            disabled={eliminando}
+            title={asignados ? 'Primero quita sus tratamientos asignados en "Servicios y horario"' : undefined}
+            className="rounded border border-danger/40 px-2 py-1 text-xs text-danger hover:bg-danger/10 disabled:opacity-50"
+          >
+            {eliminando ? 'Eliminando…' : 'Eliminar'}
+          </button>
         </div>
+        {errorEliminar && <p className="text-xs text-danger">{errorEliminar}</p>}
       </div>
 
       {/* En el body: la tarjeta se mueve al pasar el mouse y su transform encerraría a los modales fijos. */}

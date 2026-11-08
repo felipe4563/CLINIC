@@ -47,12 +47,18 @@ const PRECAUCIONES_MASAJE = [
   'Si tuviste una lesión aguda o una cirugía en las últimas 48 horas, Cleveland Clinic indica hablarlo antes con tu médico.',
 ];
 
+const DIFERENCIA_MASAJES = {
+  pregunta: '¿Cuál es la diferencia entre el masaje descontracturante y el relajante?',
+  respuesta: 'El descontracturante se enfoca principalmente en aliviar la tensión muscular localizada y las molestias asociadas. El relajante busca proporcionar relajación física y bienestar general.',
+};
+
 export const fisioterapia: Tratamiento[] = [
   {
     slug: 'masajes-relajantes',
     nombre: 'Masajes relajantes',
     resumen: 'Masaje de tejidos blandos para aliviar la tensión y favorecer el bienestar; la evidencia para condiciones específicas es limitada.',
     queEs: [
+      'Es una técnica manual que utiliza movimientos suaves, rítmicos y continuos para favorecer la relajación muscular, disminuir la sensación de estrés y tensión, y proporcionar una sensación general de bienestar y descanso.',
       'El masaje terapéutico es la manipulación de los tejidos blandos del cuerpo para ayudar a manejar una condición de salud o favorecer el bienestar. El masaje sueco o clásico es la forma más común en los países occidentales, según el NCCIH, la agencia de los Institutos Nacionales de Salud de EE. UU.',
       'Las fuentes consultadas tienen matices. Cleveland Clinic menciona beneficios como menos dolor, menos ansiedad y menos tensión muscular, mientras que el NCCIH señala que, para varias condiciones concretas, la evidencia es débil o los beneficios pueden ser de corta duración. Por eso conviene verlo como un apoyo para el bienestar y no como un sustituto de tu tratamiento médico.',
     ],
@@ -82,6 +88,7 @@ export const fisioterapia: Tratamiento[] = [
       'Si la presión te resulta incómoda o dolorosa, avísale de inmediato al terapeuta (Cleveland Clinic).',
     ],
     preguntas: [
+      DIFERENCIA_MASAJES,
       {
         pregunta: '¿Cuánto dura una sesión?',
         respuesta: 'Cleveland Clinic indica que una sesión de masaje terapéutico dura generalmente unos 50 minutos.',
@@ -102,6 +109,7 @@ export const fisioterapia: Tratamiento[] = [
     nombre: 'Masajes descontracturantes',
     resumen: 'Masaje terapéutico más profundo para zonas tensas o contracturadas; puede dejar sensibilidad y tiene precauciones que conviene conocer.',
     queEs: [
+      'Es una técnica manual terapéutica que utiliza maniobras específicas y presiones controladas sobre los músculos para disminuir la tensión muscular, aliviar contracturas y reducir las molestias, favoreciendo la movilidad y el bienestar físico.',
       'Un masaje descontracturante es un masaje terapéutico orientado a aliviar zonas de tensión muscular. Cleveland Clinic explica que el masaje terapéutico puede sentirse más profundo que uno de relajación y dejar cierta sensibilidad, y lo menciona entre las opciones usadas en casos de dolor de espalda, hombro congelado, dolores de cabeza, latigazo cervical, distensiones musculares, trastornos de la articulación temporomandibular y tendinitis.',
       'Cleveland Clinic también lista el masaje entre los remedios para los puntos gatillo, esos nudos dolorosos del músculo, que suelen tratarse junto con fisioterapia. La evidencia depende de la condición: el NCCIH describe pruebas débiles o de corto plazo para varias de ellas.',
     ],
@@ -130,6 +138,7 @@ export const fisioterapia: Tratamiento[] = [
       'En el embarazo, consulta siempre antes con tu ginecólogo u obstetra (Cleveland Clinic).',
     ],
     preguntas: [
+      DIFERENCIA_MASAJES,
       {
         pregunta: '¿Duele un masaje descontracturante?',
         respuesta: 'Puede sentirse más profundo que un masaje de relajación y dejar cierta sensibilidad, según Cleveland Clinic. Si la presión es incómoda o dolorosa, avisa al terapeuta de inmediato.',
@@ -150,8 +159,9 @@ export const fisioterapia: Tratamiento[] = [
     nombre: 'Rehabilitación',
     resumen: 'Programa de fisioterapia para recuperar movimiento y funciones perdidas tras una lesión o enfermedad, con objetivos definidos contigo.',
     queEs: [
-      'La rehabilitación busca ayudar a recuperar funciones del cuerpo que se perdieron o disminuyeron por una enfermedad o una lesión, como el movimiento. MedlinePlus la describe como una especialidad médica en la que, según el caso, participan médicos y distintos terapeutas, entre ellos fisioterapeutas.',
-      'En fisioterapia suele comenzar con una evaluación: el fisioterapeuta pregunta por tus síntomas y tu historia de salud, te examina y, junto contigo, fija objetivos y un plan de tratamiento. Ese plan se revisa a lo largo del proceso.',
+      'La rehabilitación en fisioterapia es un proceso terapéutico integral, individualizado y basado en la evidencia científica, cuyo propósito es prevenir, recuperar, mejorar y mantener las capacidades físicas y funcionales de las personas que presentan alteraciones o limitaciones como consecuencia de lesiones, enfermedades, cirugías o condiciones que afectan su movimiento y desempeño físico.',
+      'A través de la valoración, planificación e intervención fisioterapéutica, se emplean estrategias terapéuticas orientadas a mejorar la movilidad, fuerza muscular, equilibrio, coordinación, control motor y funcionalidad, favoreciendo la recuperación de la autonomía, la independencia y la calidad de vida del paciente.',
+      'Su objetivo principal no es únicamente aliviar el dolor o recuperar el movimiento, sino lograr que cada persona alcance su máximo potencial funcional y pueda desenvolverse de manera segura y activa en sus actividades de la vida diaria.',
     ],
     beneficios: [
       'El objetivo principal es que puedas valerte lo más posible por ti en las actividades cotidianas; en algunos casos, el objetivo es recuperar toda la función de una parte del cuerpo (MedlinePlus).',
@@ -176,6 +186,7 @@ export const fisioterapia: Tratamiento[] = [
       'Si un ejercicio te causa dolor o te preocupa, díselo al fisioterapeuta: revisa tu respuesta y ajusta el tratamiento (APTA).',
     ],
     preguntas: [
+      DIFERENCIA_MASAJES,
       {
         pregunta: '¿Qué diferencia hay entre fisioterapia y rehabilitación?',
         respuesta: 'MedlinePlus define la rehabilitación como una especialidad médica que busca recuperar funciones perdidas, con un equipo que puede incluir a fisioterapeutas. La fisioterapia es una de las herramientas con las que se trabaja.',
