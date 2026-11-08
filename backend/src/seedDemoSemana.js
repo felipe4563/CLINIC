@@ -50,9 +50,11 @@ const NOTAS_EJEMPLOS = [
 ];
 
 async function main() {
-  const citasExistentes = await db.Cita.count();
-  if (citasExistentes > 0) {
-    console.log('Ya existen citas en la base de datos: se omite el seed de datos de demo.');
+  // Solo en una base nueva: si ya hay pacientes, citas, productos o ventas
+  // (aunque se hayan borrado los pacientes), no se mete nada.
+  const [citas, pacientes, productos, ventas] = await Promise.all([db.Cita.count(), db.Paciente.count(), db.Producto.count(), db.Venta.count()]);
+  if (citas + pacientes + productos + ventas > 0) {
+    console.log('La base ya tiene datos: se omite el seed de datos de demo.');
     await db.sequelize.close();
     return;
   }
