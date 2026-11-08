@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { CATEGORIAS, ubicarTratamiento } from './categorias.ts';
-import { CREDITOS } from './creditos.ts';
+import { CREDITOS, FOTOS_CLINICA } from './creditos.ts';
 import { faciales } from './contenido/faciales.ts';
 import { armonizacion } from './contenido/armonizacion.ts';
 import { rejuvenecimiento } from './contenido/rejuvenecimiento.ts';
@@ -130,10 +130,16 @@ test('cada foto registrada existe, pesa ≤ 350 KB y tiene licencia válida', ()
 });
 
 test('cada tratamiento tiene su propia foto, sin repetir', () => {
-  const sinFoto = slugsDeCategorias().filter((s) => !CREDITOS[s]);
+  const sinFoto = slugsDeCategorias().filter((s) => !CREDITOS[s] && !FOTOS_CLINICA.has(s));
   assert.deepEqual(sinFoto, [], `sin foto propia: ${sinFoto.join(', ')}`);
   const vistos = new Map();
-  for (const [slug, c] of Object.entries(CREDITOS)) {
+  for (const slug of FOTOS_CLINICA) {
+    assert.ok(!CREDITOS[slug], `${slug}: es foto de la clínica y además tiene crédito`);
+    const archivo = new URL(`${slug}.jpg`, CARPETA_FOTOS);
+    assert.ok(existsSync(archivo) && statSync(archivo).size <= 350 * 1024, `${slug}.jpg falta o pesa más de 350 KB`);
+  }
+  const fotos = [...Object.entries(CREDITOS), ...[...FOTOS_CLINICA].map((s) => [s, { url: `clinica:${s}` }])];
+  for (const [slug, c] of fotos) {
     const huella = createHash('sha256').update(readFileSync(new URL(`${slug}.jpg`, CARPETA_FOTOS))).digest('hex');
     for (const clave of [c.url, huella]) {
       assert.ok(!vistos.has(clave), `${slug} repite la foto de ${vistos.get(clave)}`);

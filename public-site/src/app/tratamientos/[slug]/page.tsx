@@ -60,7 +60,7 @@ export default async function PaginaTratamiento({ params }: Props) {
           <header className="relative grid items-center gap-8 overflow-hidden rounded-[32px] bg-neutral-cream p-5 sm:p-8 md:rounded-[44px] lg:grid-cols-[0.9fr_1.1fr] lg:gap-14 lg:p-12">
             <div className="grano" />
             <div className="relative aspect-[4/3] overflow-hidden rounded-[24px] sm:aspect-[16/10] lg:aspect-[4/4.2] lg:rounded-t-full lg:rounded-b-[28px]">
-              <Image src={imagen} alt={credito ? t.nombre : ''} fill priority sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+              <Image src={imagen} alt={t.nombre} fill priority sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
             </div>
             <div className="relative flex flex-col gap-6 lg:py-6">
               <nav aria-label="Ubicación en el sitio" className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-tan">

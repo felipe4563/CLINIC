@@ -43,13 +43,13 @@ export const CREDITOS: Record<string, Credito> = {
   'ondas-rusas': { autor: 'Gciriani', sitio: 'Wikimedia Commons', url: 'https://commons.wikimedia.org/wiki/File:Hamstrings_EMS_recovery.jpeg', licencia: 'CC BY-SA 4.0', licenciaUrl: 'https://creativecommons.org/licenses/by-sa/4.0' },
   'papanicolau': { autor: 'Ajay Kumar Chaurasiya', sitio: 'Wikimedia Commons', url: 'https://commons.wikimedia.org/wiki/File:Compound_Microscope_Image.jpg', licencia: 'CC BY-SA 4.0', licenciaUrl: 'https://creativecommons.org/licenses/by-sa/4.0' },
   'pdrn-pn': { autor: 'alinesilvahold', sitio: 'Flickr', url: 'https://www.flickr.com/photos/146621731@N03/46844761555', licencia: 'CC0 1.0', licenciaUrl: 'https://creativecommons.org/publicdomain/zero/1.0/' },
-  'peelings-medicos': { autor: 'Shixart1985', sitio: 'Wikimedia Commons', url: 'https://commons.wikimedia.org/wiki/File:Woman_washes_her_face_at_a_bathroom_sink.jpg', licencia: 'CC BY 2.0', licenciaUrl: 'https://creativecommons.org/licenses/by/2.0' },
   'perfilado-de-nariz': { autor: 'Elmo Love from Fort Lauderdale, United States', sitio: 'Wikimedia Commons', url: 'https://commons.wikimedia.org/wiki/File:Profile_Photographic_Portrait_of_Blonde_Young_Woman.jpg', licencia: 'CC BY 2.0', licenciaUrl: 'https://creativecommons.org/licenses/by/2.0' },
   'planificacion-familiar': { autor: 'BruceBlaus', sitio: 'Wikimedia Commons', url: 'https://commons.wikimedia.org/wiki/File:Birth_Control_Pills.png', licencia: 'CC BY-SA 4.0', licenciaUrl: 'https://creativecommons.org/licenses/by-sa/4.0' },
   'prp-facial': { autor: 'AfroBrazilian', sitio: 'Wikimedia Commons', url: 'https://commons.wikimedia.org/wiki/File:Blood_collection_tube_(2_kind).jpg', licencia: 'CC BY-SA 3.0', licenciaUrl: 'https://creativecommons.org/licenses/by-sa/3.0' },
   'radiofrecuencia': { autor: 'picturemychway', sitio: 'Flickr', url: 'https://www.flickr.com/photos/188393326@N02/49912162872', licencia: 'CC0 1.0', licenciaUrl: 'https://creativecommons.org/publicdomain/zero/1.0/' },
   'rehabilitacion': { autor: 'Cabblow', sitio: 'Wikimedia Commons', url: 'https://commons.wikimedia.org/wiki/File:Physical_Rehabilitation.png', licencia: 'CC BY-SA 4.0', licenciaUrl: 'https://creativecommons.org/licenses/by-sa/4.0' },
-  'relleno-de-labios': { autor: 'socialspice.de', sitio: 'Flickr', url: 'https://www.flickr.com/photos/62758442@N03/5713714538', licencia: 'CC BY 2.0', licenciaUrl: 'https://creativecommons.org/licenses/by/2.0/' },
   'sueros': { autor: 'Gruppe 2 ap0813', sitio: 'Wikimedia Commons', url: 'https://commons.wikimedia.org/wiki/File:Infusion1.JPG', licencia: 'CC BY-SA 4.0', licenciaUrl: 'https://creativecommons.org/licenses/by-sa/4.0' },
-  'toxina-botulinica': { autor: 'D. Schwarzburg', sitio: 'Wikimedia Commons', url: 'https://commons.wikimedia.org/w/index.php?curid=117783248', licencia: 'CC0 1.0', licenciaUrl: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en/' },
 };
+
+// Fotos que entregó la clínica (también en public/tratamientos/<slug>.jpg): no llevan crédito.
+export const FOTOS_CLINICA = new Set<string>(['toxina-botulinica', 'peelings-medicos', 'relleno-de-labios']);

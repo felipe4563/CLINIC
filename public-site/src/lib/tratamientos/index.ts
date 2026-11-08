@@ -1,6 +1,6 @@
 import type { Categoria, Credito, Enlace, Tratamiento } from './tipos';
 import { ubicarTratamiento } from './categorias';
-import { CREDITOS } from './creditos';
+import { CREDITOS, FOTOS_CLINICA } from './creditos';
 import { faciales } from './contenido/faciales';
 import { armonizacion } from './contenido/armonizacion';
 import { rejuvenecimiento } from './contenido/rejuvenecimiento';
@@ -46,7 +46,7 @@ export function buscarTratamiento(slug: string): InfoTratamiento | null {
     categoria: lugar.categoria,
     contexto: lugar.contexto,
     hermanos: lugar.vecinos.filter((v) => v.slug !== slug && POR_SLUG.has(v.slug)),
-    imagen: credito ? `/tratamientos/${slug}.jpg` : lugar.categoria.imagen,
+    imagen: credito || FOTOS_CLINICA.has(slug) ? `/tratamientos/${slug}.jpg` : lugar.categoria.imagen,
     credito,
   };
 }
